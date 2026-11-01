@@ -15,7 +15,12 @@ export function mountResources(root, api) {
   const TODAY = new Date(); TODAY.setHours(0, 0, 0, 0);
   const T = key(TODAY);
   const tools = JSON.parse(JSON.stringify(api.tools || {}));
-  const ui = { tool: api.initialTool || null };
+  const ui = { tool: (api.intent && api.intent.tool) || null, joint: !!(api.intent && api.intent.joint && api.couple) };
+  // Shared with a partner: the Couples Workbook, and the money planner's "Our plan"
+  const couple = api.couple || null;
+  const jointTools = JSON.parse(JSON.stringify(api.coupleData || {}));
+  const MONEY_KEYS = new Set(['monthly', 'spending', 'efund', 'debt', 'nw']);
+  const rootFor = (seg) => (couple && (seg === 'couples' || (ui.tool === 'money' && ui.joint && MONEY_KEYS.has(seg))) ? jointTools : tools);
   const dirty = new Set(); let timer = null;
   const fmtDate = (k, o) => (k ? fmtD(k, o) : '');
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -25,15 +30,15 @@ export function mountResources(root, api) {
 
   /* ---------- saving ---------- */
   const setSaveState = (txt, cls) => { const el = root.querySelector('[data-savestate]'); if (el) { el.textContent = txt; el.className = 'savestate ' + (cls || ''); } };
-  const flush = () => { clearTimeout(timer); timer = null; dirty.forEach((k) => { if (tools[k] !== undefined) api.persist(k, tools[k]); }); const had = dirty.size; dirty.clear(); if (had) setSaveState('✓ All changes saved', 'ok'); };
-  const curKey = () => (ui.tool === 'money' ? null : ui.tool ? STORE_KEY[ui.tool] || ui.tool : null);
+  const flush = () => { clearTimeout(timer); timer = null; dirty.forEach((k) => { if (k.startsWith('c:')) { const j = k.slice(2); if (jointTools[j] !== undefined) api.persistCouple(j, jointTools[j]); } else if (tools[k] !== undefined) api.persist(k, tools[k]); }); const had = dirty.size; dirty.clear(); if (had) setSaveState('✓ All changes saved', 'ok'); };
+  const curKey = () => { const k = ui.tool === 'money' ? null : ui.tool ? STORE_KEY[ui.tool] || ui.tool : null; return k && rootFor(k) === jointTools ? 'c:' + k : k; };
   const save = () => { const k = curKey(); if (k) dirty.add(k); setSaveState('Saving…'); clearTimeout(timer); timer = setTimeout(flush, 800); };
 
   /* ---------- form helpers ---------- */
   const num = (v) => { const n = parseFloat(String(v ?? '').replace(/[$,]/g, '')); return isFinite(n) ? n : 0; };
   const money = (n) => (n < 0 ? '−' : '') + '$' + Math.abs(n).toLocaleString('en-US', { minimumFractionDigits: (Math.round(n * 100) % 100) ? 2 : 0, maximumFractionDigits: 2 });
-  const getP = (path) => path.split('.').reduce((o, k) => (o == null ? undefined : o[k]), tools);
-  const setP = (path, val) => { const ks = path.split('.'); dirty.add(ks[0]); let o = tools; ks.slice(0, -1).forEach((k) => { if (o[k] == null || typeof o[k] !== 'object') o[k] = {}; o = o[k]; }); o[ks[ks.length - 1]] = val; };
+  const getP = (path) => path.split('.').reduce((o, k) => (o == null ? undefined : o[k]), rootFor(path.split('.')[0]));
+  const setP = (path, val) => { const ks = path.split('.'); const root = rootFor(ks[0]); dirty.add((root === jointTools ? 'c:' : '') + ks[0]); let o = root; ks.slice(0, -1).forEach((k) => { if (o[k] == null || typeof o[k] !== 'object') o[k] = {}; o = o[k]; }); o[ks[ks.length - 1]] = val; };
   const inp = (path, { type = 'text', ph = '', cls = '', rr = false, attrs = '' } = {}) => `<input type="${type}" ${type === 'number' ? 'step="any" inputmode="decimal"' : ''} class="${cls}" data-b="${esc(path)}" ${rr ? 'data-rr' : ''} value="${esc(getP(path) ?? '')}" placeholder="${esc(ph)}" aria-label="${esc(ph || path.split('.').pop())}" ${attrs}>`;
   const area = (path, ph = '', rows = 3) => `<textarea data-b="${esc(path)}" rows="${rows}" placeholder="${esc(ph)}" aria-label="${esc(ph || 'Notes')}">${esc(getP(path) ?? '')}</textarea>`;
   const chk = (path, label, rr = false) => `<label class="ck"><input type="checkbox" data-b="${esc(path)}" ${rr ? 'data-rr' : ''} ${getP(path) ? 'checked' : ''}><span>${label}</span></label>`;
@@ -351,7 +356,7 @@ export function mountResources(root, api) {
     render() {
       const pn = partnerName() || 'my partner', si = (getP('couples.si') || 0) % STARTERS.length;
       return `<div class="stack">
-    ${partnerName() ? `<section class="card"><p style="margin:0">💞 Connected with <b>${esc(pn)}</b>. Your check-ins are shared.</p></section>` : `<section class="card"><p style="margin:0">Tip: once couple connection arrives, you and your partner will share these check-ins.</p></section>`}
+    ${partnerName() ? `<section class="card"><p style="margin:0">💞 Connected with <b>${esc(pn)}</b>. You both see and add to this workbook.</p></section>` : `<section class="card"><p style="margin:0">Tip: connect with your partner from your profile (the circle at the top of Today) to share these check-ins.</p></section>`}
     <section class="card"><h2>Conversation starter</h2><div class="rule"></div><p class="prompt" style="margin:0 0 10px">${esc(STARTERS[si])}</p><button class="btn small" data-r="starter">Next question</button></section>
     <section class="card"><h2>Weekly check-in</h2><div class="rule"></div><p class="sub" style="margin-top:0">Take turns. Listen to understand, not to answer.</p>
       ${[['appr', 'One thing I appreciated about you this week'], ['working', 'What’s working well for us'], ['hard', 'What’s been hard for me'], ['request', 'One thing I’d like to ask for'], ['plans', 'Plans for the week ahead']].map(([k, l]) => `<label class="lbl" style="margin-top:8px">${l}</label>${area('couples.draft.' + k, '', 2)}`).join('')}
@@ -361,7 +366,7 @@ export function mountResources(root, api) {
       <div class="summary" style="margin-top:10px">${out('cp-i')}</div></section>
     <section class="card"><h2>Love languages</h2><div class="rule"></div><label class="lbl">How I feel most loved</label>${pick('couples.ll.me', LOVE, true)}<label class="lbl" style="margin-top:10px">How ${esc(pn)} feels most loved</label>${pick('couples.ll.them', LOVE, true)}</section>
     <section class="card"><h2>When an argument heats up</h2><div class="rule"></div><ol class="principles"><li><b>Pause.</b> Either of you can call a 20-minute break. Say when you’ll come back.</li><li><b>Calm your body.</b> Breathe, walk, get water. Don’t rehearse your argument.</li><li><b>Come back.</b> Start softly: “I feel… about… I need…”</li><li><b>Reflect.</b> Repeat back what you heard before you respond.</li><li><b>Find one thing to agree on,</b> then one small next step.</li><li><b>Repair.</b> A sorry, a hug, or a joke helps you both reset.</li></ol></section>
-    <section class="card"><h2>Past check-ins</h2><div class="rule"></div>${entriesList('couples', (e) => `${kv('Appreciated', e.appr)}${kv('Working well', e.working)}${kv('Hard', e.hard)}${kv('Request', e.request)}`, 'Your check-ins will show up here.')}</section></div>`;
+    <section class="card"><h2>Past check-ins</h2><div class="rule"></div>${entriesList('couples', (e) => `${e.by ? `<div class="byline">💞 ${esc(e.by)}</div>` : ''}${kv('Appreciated', e.appr)}${kv('Working well', e.working)}${kv('Hard', e.hard)}${kv('Request', e.request)}`, 'Your check-ins will show up here.')}</section></div>`;
     },
     outs() { const g = (k) => (getP('couples.i.' + k) || '').trim(); const f = g('feel'), w = g('when'), b = g('because'), n = g('need'); return { 'cp-i': (f || w) ? `“I feel ${f || '…'} when ${w || '…'}${b ? ` because ${b}` : ''}.${n ? ` I need ${n}.` : ''}”` : 'Your sentence will appear here.' }; },
   };
@@ -428,7 +433,7 @@ export function mountResources(root, api) {
     const efCur = num(getP('efund.cur')) || num(getP('monthly.ef.cur')), efGoal = num(getP('efund.goal')) || num(getP('monthly.ef.goal'));
     const hist = getP('nw.hist') || []; const hasNw = nw.a || nw.l;
     const groc = { budget: num(getP('meals.budget')), spent: num(getP('meals.spent')), line: num(((getP('spending.items') || {}).Groceries || {}).on ? getP('spending.items.Groceries.cost') : 0) };
-    return { groc, sp, income, expenses, left: income - expenses, cats, debts, debtTot, mins, sim, highRate, efCur, efGoal, nw, hist, hasNw, goals: api.financialGoals ? api.financialGoals() : [] };
+    return { groc, sp, income, expenses, left: income - expenses, cats, debts, debtTot, mins, sim, highRate, efCur, efGoal, nw, hist, hasNw, goals: api.financialGoals ? api.financialGoals(ui.joint) : [] };
   }
   /* ---------- Financial Wellness Planner: one page, in sections ---------- */
   // Wheel colors: checked for colorblind-safe neighbors in light and dark mode (see .dn1–.dn7 in globals.css)
@@ -491,7 +496,12 @@ export function mountResources(root, api) {
       if (!getP('monthly.month')) setP('monthly.month', TODAY.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }));
       const d = portfolioData(), bills = getP('monthly.bills') || [], up = getP('monthly.up') || [], sugg = suggestions(d);
       const secH = (t, id) => `<h2 class="pf-h" id="${id}">${t}</h2>`;
-      return `<div class="planner-wide">
+      const pFirst = couple ? (couple.partner_name || '').split(' ')[0] : '';
+      const jointEmpty = ui.joint && ![...MONEY_KEYS].some((k) => jointTools[k] && Object.keys(jointTools[k]).length > (k === 'monthly' ? 1 : 0));
+      const modeBar = couple ? `<div class="planmode"><div class="seg" role="group" aria-label="Whose plan"><button data-r="plan" data-v="me" aria-pressed="${!ui.joint}">My plan</button><button data-r="plan" data-v="us" aria-pressed="${ui.joint}">💞 Our plan</button></div>
+        <span class="sub">${ui.joint ? `Shared with ${esc(pFirst)}. You both see and edit this plan.` : `Private to you. ${esc(pFirst)} can’t see it.`}</span></div>
+        ${jointEmpty ? `<section class="card together" style="margin:8px 0 14px"><h2>Start your joint plan</h2><p style="margin:6px 0 10px">Fill it in together from scratch, or copy your own plan in as a starting point. ${esc(pFirst)} will see whatever is in “Our plan.”</p><div class="row" style="flex-wrap:wrap;gap:8px"><button class="btn primary small" data-r="copyplan">Copy my plan into our plan</button><span class="sub" style="align-self:center">or just start filling it in below</span></div></section>` : ''}` : '';
+      return `${modeBar}<div class="planner-wide">
   <div class="pf-top">
     <aside class="pf-left"><section class="card"><div class="card-head"><h2>Where your money goes</h2><span class="sub">each month</span></div>
       <div data-oh="pf-donut"></div><div data-oh="pf-tiles"></div></section></aside>
@@ -536,18 +546,18 @@ export function mountResources(root, api) {
   <div class="pf-two"><div id="pf-efund"><h3 class="pf-sub">Emergency fund</h3>${TOOL_EFUND.render()}</div><div id="pf-debt"><h3 class="pf-sub">Debt payoff</h3>${TOOL_DEBT.render()}</div></div>
   ${secH('Net worth', 'pf-nw')}
   <div class="pf-two"><div>${TOOL_NW.render()}</div><div><section class="card"><div class="card-head"><h2>Net worth over time</h2>${d.hasNw ? `<span class="sub">${money(d.nw.nw)} now</span>` : ''}</div>${nwTrend(d.hist)}</section></div></div>
-  ${secH('Goals & groceries', 'pf-goals')}
+  ${secH(ui.joint ? 'Our money goals' : 'Goals & groceries', 'pf-goals')}
   <div class="pf-two"><section class="card"><h2>Money goals</h2><div class="rule"></div>
       ${d.goals.length ? d.goals.map((g) => { const pct = g.target ? Math.min(100, Math.round((g.total / g.target) * 100)) : 0; return `<div class="goal" style="grid-template-columns:4px 1fr"><span class="stripe" style="background:${P.financial.color}"></span><div><div class="goal-title">${esc(g.title)}</div>${g.type === 'target' && g.unit !== 'done' ? `<div class="bar"><span style="width:${pct}%;background:${P.financial.color}"></span></div><div class="goal-meta" style="margin-top:4px">${g.unit === '$' ? money(g.total) : g.total} of ${g.unit === '$' ? money(g.target) : g.target + ' ' + esc(g.unit)} (${pct}%)</div>` : `<div class="goal-meta">${g.type === 'habit' ? `${g.total} logged so far` : g.total >= 1 ? 'Done' : 'Not done yet'}</div>`}</div></div>`; }).join('') : '<p class="empty">No money goals yet.</p>'}
-      <button class="btn small" style="margin-top:8px" data-r="newgoal" data-v="financial">+ New money goal</button></section>
-    <section class="card"><div class="card-head"><h2>Groceries this week</h2><span class="sub">from the Meal & Grocery Planner</span></div>
+      <button class="btn small" style="margin-top:8px" data-r="newgoal" data-v="financial">+ New ${ui.joint ? 'shared ' : ''}money goal</button></section>
+    ${ui.joint ? '' : `<section class="card"><div class="card-head"><h2>Groceries this week</h2><span class="sub">from the Meal & Grocery Planner</span></div>
       ${d.groc.budget || d.groc.spent ? `${d.groc.budget ? `<div class="bar" style="height:12px"><span style="width:${Math.min(100, (d.groc.spent / d.groc.budget) * 100)}%;background:${d.groc.spent > d.groc.budget ? '#C0503A' : P.financial.color}"></span></div>` : ''}
         <div class="kv"><span>Spent so far</span><b>${money(d.groc.spent)}</b></div>
         ${d.groc.budget ? `<div class="kv"><span>Weekly budget</span><b>${money(d.groc.budget)}</b></div><div class="kv"><span>${d.groc.spent > d.groc.budget ? '⚠ Over budget by' : 'Left this week'}</span><b>${money(Math.abs(d.groc.budget - d.groc.spent))}</b></div>
         <div class="kv"><span>About per month</span><b>${money(Math.round(d.groc.budget * 4.33))}</b></div>
         ${d.groc.line ? `<p class="hint">Your budget has ${money(d.groc.line)} a month for groceries${Math.abs(d.groc.line - d.groc.budget * 4.33) > 25 ? `, so your weekly budget works out ${d.groc.budget * 4.33 > d.groc.line ? 'higher' : 'lower'}. You may want to match them.` : ', which matches your weekly budget.'}</p>` : ''}` : ''}`
       : `<p class="empty">Add a weekly grocery budget in the Meal & Grocery Planner to see it here.</p>`}
-      <button class="btn small" style="margin-top:10px" data-r="opentool" data-v="meals">Open the Meal & Grocery Planner</button></section></div>
+      <button class="btn small" style="margin-top:10px" data-r="opentool" data-v="meals">Open the Meal & Grocery Planner</button></section>`}</div>
   ${secH('Next steps', 'pf-next')}
   <div class="pf-two"><section class="card"><h2>Suggested next steps</h2><div class="rule"></div>
       ${sugg.length ? sugg.map(([t, txt, act]) => `<div class="sugg"><b>${t}</b><p>${txt}</p>${act}</div>`).join('') : '<p class="empty">You’re on track. Keep checking in each month.</p>'}
@@ -626,14 +636,16 @@ export function mountResources(root, api) {
     if (a === 'opentool') openTool(b.dataset.v);
     else if (a === 'jump') { const el = root.querySelector('#' + b.dataset.v); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
     else if (a === 'savenow') { const k = curKey(); if (k) dirty.add(k); flush(); setSaveState('✓ All changes saved', 'ok'); toast('Saved'); }
-    else if (a === 'newgoal') api.newGoal && api.newGoal(b.dataset.v);
+    else if (a === 'newgoal') api.newGoal && api.newGoal(b.dataset.v, ui.tool === 'money' && ui.joint);
+    else if (a === 'plan') { flush(); ui.joint = b.dataset.v === 'us'; render(); window.scrollTo(0, 0); }
+    else if (a === 'copyplan') { MONEY_KEYS.forEach((k) => { if (tools[k]) { jointTools[k] = JSON.parse(JSON.stringify(tools[k])); dirty.add('c:' + k); } }); flush(); render(); toast('Copied your plan into “Our plan.”'); }
     else if (a === 'back') openTool(null);
     else if (a === 'pick') { const p = b.dataset.path, v = b.dataset.v; if (b.hasAttribute('data-multi')) { const arr = [...(getP(p) || [])]; const i = arr.indexOf(v); i < 0 ? arr.push(v) : arr.splice(i, 1); setP(p, arr); } else setP(p, String(getP(p)) === v ? '' : v); save(); rerenderKeep(); }
     else if (a === 'set') { setP(b.dataset.path, b.dataset.v); save(); rerenderKeep(); }
     else if (a === 'add') { const arr = getP(b.dataset.path) || []; arr.push({}); setP(b.dataset.path, arr); save(); rerenderKeep(); }
     else if (a === 'del') { const arr = getP(b.dataset.path) || []; arr.splice(+b.dataset.i, 1); setP(b.dataset.path, arr); save(); rerenderKeep(); }
     else if (a === 'efuse') { const v = num(getP('efund.ess')) * (num(getP('efund.mo')) || 3); if (v) { setP('efund.goal', String(v)); save(); rerenderKeep(); toast('Goal set to ' + money(v)); } else toast('Add your essential monthly expenses first'); }
-    else if (a === 'efgoal') { const c = efCalc(); if (!c.goal) { toast('Set a goal amount first'); return; } api.addGoal({ id: uid(), pillar: 'financial', title: 'Build an emergency fund', type: 'target', count: 1, per: 'day', target: c.goal, unit: '$', why: getP('efund.why') || '', deadline: getP('efund.date') || key(addMonths(TODAY, 6)), sure: 7 }, c.cur); toast('Added to your goals'); }
+    else if (a === 'efgoal') { const c = efCalc(); if (!c.goal) { toast('Set a goal amount first'); return; } api.addGoal({ ...(ui.tool === 'money' && ui.joint && couple ? { coupleId: couple.couple_id } : {}), id: uid(), pillar: 'financial', title: ui.tool === 'money' && ui.joint ? 'Build our emergency fund' : 'Build an emergency fund', type: 'target', count: 1, per: 'day', target: c.goal, unit: '$', why: getP('efund.why') || '', deadline: getP('efund.date') || key(addMonths(TODAY, 6)), sure: 7 }, c.cur); toast('Added to your goals'); }
     else if (a === 'debtex') { setP('debt.list', [{ name: 'Store Card', bal: '500', rate: '18', min: '25' }, { name: 'Credit Card', bal: '2000', rate: '24', min: '60' }, { name: 'Personal Loan', bal: '5000', rate: '10', min: '150' }]); setP('debt.extra', '100'); save(); rerenderKeep(); }
     else if (a === 'nwsave') { const h = getP('nw.hist') || []; const nw = nwCalc().nw; const ex = h.findIndex((x) => x.date === T); ex >= 0 ? (h[ex].nw = nw) : h.push({ date: T, nw }); setP('nw.hist', h); save(); rerenderKeep(); toast('Check-in saved'); }
     else if (a === 'book') { const k = b.dataset.k; const cur = getP('books.' + k); setP('books.' + k, cur === b.dataset.v ? '' : b.dataset.v); save(); rerenderKeep(); }
@@ -643,7 +655,7 @@ export function mountResources(root, api) {
     else if (a === 'fav') { const f = getP('coping.fav') || []; const k = b.dataset.k, i = f.indexOf(k); i < 0 ? f.push(k) : f.splice(i, 1); setP('coping.fav', f); save(); refreshCope(); }
     else if (a === 'used') { const k = b.dataset.k; setP('coping.used.' + ik(k), (getP('coping.used.' + ik(k)) || 0) + 1); save(); toast(api.logCoping() ? 'Nice. Counted toward your coping skill goal.' : 'Nice work. Logged it.'); refreshCope(); }
     else if (a === 'bsec') { setP('burn.sec', +b.dataset.v); save(); render(); window.scrollTo(0, 0); }
-    else if (a === 'saveentry') { const t = b.dataset.tool, d = getP(t + '.draft') || {}; const filled = Object.entries(d).some(([k, v]) => k !== 'date' && (Array.isArray(v) ? v.length : String(v || '').trim())); if (!filled) { toast('Fill in at least one field first'); return; } const list = getP(t + '.entries') || []; list.push({ ...d, date: d.date || T }); setP(t + '.entries', list); setP(t + '.draft', {}); save(); rerenderKeep(); toast('Saved'); }
+    else if (a === 'saveentry') { const t = b.dataset.tool, d = getP(t + '.draft') || {}; const filled = Object.entries(d).some(([k, v]) => k !== 'date' && (Array.isArray(v) ? v.length : String(v || '').trim())); if (!filled) { toast('Fill in at least one field first'); return; } const list = getP(t + '.entries') || []; list.push({ ...d, date: d.date || T, ...(t === 'couples' && couple ? { by: api.myName || '' } : {}) }); setP(t + '.entries', list); setP(t + '.draft', {}); save(); rerenderKeep(); toast('Saved'); }
     else if (a === 'mealday') { ui.mealDay = b.dataset.v; rerenderKeep(); }
     else if (a === 'mealclear') { setP('meals.plan', {}); save(); rerenderKeep(); }
     else if (a === 'grocclear') { setP('meals.groc', (getP('meals.groc') || []).filter((x) => !x.done)); save(); rerenderKeep(); }

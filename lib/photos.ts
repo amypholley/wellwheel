@@ -6,11 +6,12 @@ import { uid } from './core';
 const urls = new Map<string, string>(); // photo id -> viewable link
 export const photoUrl = (id: string) => urls.get(id) || '';
 
-export async function uploadPhoto(blob: Blob, guest: boolean): Promise<string> {
+// folder: 'places' (travel map) and 'shared' (couple's bucket list) can be seen by a connected partner; 'mine' cannot
+export async function uploadPhoto(blob: Blob, guest: boolean, folder = 'mine'): Promise<string> {
   if (guest || !supabase) { const id = 'local:' + uid(); urls.set(id, URL.createObjectURL(blob)); return id; }
   const { data: u } = await supabase.auth.getUser();
   if (!u.user) throw new Error('Not signed in');
-  const id = `${u.user.id}/${uid()}.jpg`;
+  const id = `${u.user.id}/${folder}/${uid()}.jpg`;
   const { error } = await supabase.storage.from('photos').upload(id, blob, { contentType: 'image/jpeg', upsert: false });
   if (error) throw error;
   urls.set(id, URL.createObjectURL(blob)); // show it right away

@@ -399,3 +399,12 @@ b.num{text-align:right;font-variant-numeric:tabular-nums}
   .pf-tiles{grid-template-columns:repeat(4,1fr)}
 }
 .subfold > summary .sub{margin-left:auto}
+/* ---------- Couple features ---------- */
+.shared{font-size:11px;font-weight:700;color:#E0507E;margin-left:6px;text-transform:none;letter-spacing:0}
+.contrib{font-size:12.5px;color:#C2416B;margin-top:6px;font-weight:600}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .contrib{color:#F08FAE}}
+.together{border-color:color-mix(in srgb,#E0507E 40%,var(--line));background:linear-gradient(135deg,color-mix(in srgb,#E0507E 8%,var(--surface)),var(--surface))}
+.sharebox{margin-top:12px;background:color-mix(in srgb,#E0507E 8%,var(--surface));border:1px solid color-mix(in srgb,#E0507E 35%,var(--line));border-radius:12px;padding:10px 12px}
+.planmode{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:6px 0 4px}
+.planmode .seg{min-width:240px}
+.byline{font-size:12px;font-weight:700;color:#C2416B}

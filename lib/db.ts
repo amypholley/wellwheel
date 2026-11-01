@@ -8,11 +8,13 @@ const goalToRow = (g: Goal) => ({
   id: g.id, pillar: g.pillar, title: g.title, type: g.type, count: g.count, per: g.per, unit: g.unit,
   amt: !!g.amt, step: g.step ?? null, step_label: g.stepLabel ?? null, target: g.target ?? null,
   why: g.why || '', deadline: g.deadline || null, sure: g.sure, example: !!g.example,
+  ...(g.coupleId ? { couple_id: g.coupleId } : {}), // only once Phase 4 is set up and the goal is shared
 });
 const rowToGoal = (r: any): Goal => ({
   id: r.id, pillar: r.pillar, title: r.title, type: r.type, count: Number(r.count ?? 1), per: r.per || 'day', unit: r.unit,
   amt: r.amt, step: r.step == null ? undefined : Number(r.step), stepLabel: r.step_label ?? undefined,
   target: r.target == null ? undefined : Number(r.target), why: r.why || '', deadline: r.deadline || '', sure: r.sure ?? 7, example: r.example,
+  coupleId: r.couple_id || null, ownerId: r.owner_id,
 });
 
 let currentUserId = '';
@@ -30,7 +32,7 @@ export async function loadState(): Promise<State> {
   const s = blankState();
   const [goals, logs, grat, jr, tl] = await Promise.all([
     supabase!.from('goals').select('*').order('created_at'),
-    supabase!.from('goal_logs').select('goal_id,day,amount'),
+    supabase!.from('goal_logs').select('goal_id,user_id,day,amount'),
     supabase!.from('gratitude').select('*').order('created_at'),
     supabase!.from('journal').select('*'),
     supabase!.from('tool_data').select('tool,data'),
@@ -42,7 +44,18 @@ export async function loadState(): Promise<State> {
   (logs.data || []).forEach((r: any) => {
     const m = (s.logs[r.goal_id] = s.logs[r.goal_id] || {});
     m[r.day] = (m[r.day] || 0) + Number(r.amount);
+    const b = (s.by[r.goal_id] = s.by[r.goal_id] || {});
+    b[r.user_id] = (b[r.user_id] || 0) + Number(r.amount);
   });
+  s.me = currentUserId;
+  // Couple: my partner, what we share, and my partner's travel-map places
+  const ci = await supabase!.rpc('my_couple_info');
+  if (!ci.error && ci.data) {
+    s.couple = ci.data as any;
+    const [cd, pp] = await Promise.all([supabase!.from('couple_data').select('key,data'), supabase!.rpc('partner_places')]);
+    check(cd); (cd.data || []).forEach((r: any) => (s.coupleData[r.key] = r.data));
+    if (!pp.error) s.partnerPlaces = (pp.data as any) || {};
+  }
   s.gratitude = (grat.data || []).map((r: any) => ({ id: r.id, date: r.day, text: r.text, example: r.example }));
   (jr.data || []).forEach((r: any) => (s.journal[r.day] = { pillar: r.pillar, prompt: r.prompt, label: r.label, text: r.text, example: r.example }));
   return s;
@@ -66,6 +79,12 @@ export const db = {
   async saveTool(tool: string, data: any) {
     check(await supabase!.from('tool_data').upsert({ user_id: currentUserId, tool, data: data ?? {}, updated_at: new Date().toISOString() }, { onConflict: 'user_id,tool' }));
   },
+  async shareGoal(id: string, coupleId: string | null) { check(await supabase!.from('goals').update({ couple_id: coupleId }).eq('id', id)); },
+  async saveCouple(coupleId: string, key: string, data: any) {
+    check(await supabase!.from('couple_data').upsert({ couple_id: coupleId, key, data: data ?? {}, updated_by: currentUserId, updated_at: new Date().toISOString() }, { onConflict: 'couple_id,key' }));
+  },
+  async connect(code: string): Promise<string> { const r = await supabase!.rpc('connect_partner', { code }); if (r.error) throw r.error; return (r.data as any)?.partner_name || ''; },
+  async disconnect() { check(await supabase!.rpc('disconnect_partner')); },
   async removeExamples() {
     await Promise.all([
       supabase!.from('goals').delete().eq('example', true),

@@ -8,6 +8,8 @@ export async function POST(req: Request) {
   const admin = adminClient();
   const { data, error } = await admin.auth.getUser(token);
   if (error || !data.user) return NextResponse.json({ error: 'Not signed in' }, { status: 401 });
+  // If they're connected with a partner, disconnect first so the partner keeps a copy of what they shared (Phase 4)
+  try { await admin.rpc('disconnect_couple', { u: data.user.id }); } catch {}
   // Remove their photos first (Phase 3)
   try {
     const store = admin.storage.from('photos');

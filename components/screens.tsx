@@ -5,6 +5,52 @@ import { Goal, dayVal, fmtDate, fmtNum, fromKey, goalWeekScore, key, pillarScore
 import { Icon, Wheel, initials } from './ui';
 import { firstName, useWW } from './store';
 
+/* ---------- couple helpers ---------- */
+const partnerFirst = (S: any) => (S.couple?.partner_name || '').split(' ')[0];
+function SharedTag({ g }: { g: Goal }) {
+  const { S } = useWW();
+  if (!g.coupleId || !S.couple) return null;
+  return <span className="shared">💞 With {partnerFirst(S)}</span>;
+}
+// "You $200 · Stephanie $300" on shared goals
+function Contrib({ g }: { g: Goal }) {
+  const { S } = useWW();
+  if (!g.coupleId || !S.couple) return null;
+  const by = S.by[g.id] || {};
+  const parts = Object.entries(by).filter(([, v]) => v > 0).map(([u, v]) => {
+    const who = u === S.me ? 'You' : u === S.couple!.partner_id ? partnerFirst(S) : 'Earlier';
+    const amt = g.unit === '$' ? '$' + Number(v).toLocaleString('en-US') : Number(v).toLocaleString('en-US') + (g.type === 'target' && g.unit !== 'done' ? ' ' + g.unit : '');
+    return `${who} ${amt}`;
+  });
+  return parts.length ? <div className="contrib">💞 {parts.join(' · ')}</div> : null;
+}
+function TogetherCard() {
+  const { S, setWizard, setView, setIntent, setProfileOpen } = useWW();
+  if (!S.couple) return null;
+  const first = partnerFirst(S);
+  const shared = S.goals.filter((g) => g.coupleId).length;
+  const dreams = ((S.coupleData.bucket || {}).list || []).length;
+  const mine = (S.tools.adv || {}).places || {}, theirs = S.partnerPlaces || {};
+  const both = Object.keys(mine).filter((k) => mine[k]?.status === 'been' && theirs[k]?.status === 'been').length;
+  const go = (view: any, intent: any) => { setIntent(intent); setView(view); };
+  return (
+    <section className="card together">
+      <div className="card-head"><h2>💞 You & {first}</h2><button className="linkish" onClick={() => setProfileOpen(true)}>Sharing settings</button></div>
+      <div className="mapstats" style={{ marginTop: 4 }}>
+        <div><b>{shared}</b><span>shared goal{shared === 1 ? '' : 's'}</span></div>
+        <div><b>{dreams}</b><span>couple dreams</span></div>
+        <div><b>{both}</b><span>places together</span></div>
+      </div>
+      <div className="row" style={{ flexWrap: 'wrap', gap: 8 }}>
+        <button className="btn small" onClick={() => go('adventures', { adv: 'map', who: 'us' })}>Our map</button>
+        <button className="btn small" onClick={() => go('adventures', { adv: 'bucket', who: 'us' })}>Our bucket list</button>
+        <button className="btn small" onClick={() => go('resources', { tool: 'money', joint: true })}>Our money plan</button>
+        <button className="btn small" onClick={() => setWizard({ share: true })}>+ Shared goal</button>
+      </div>
+    </section>
+  );
+}
+
 /* ---------- Today ---------- */
 function GoalRowToday({ g, logOpen, setLogOpen }: { g: Goal; logOpen: string | null; setLogOpen: (v: string | null) => void }) {
   const { S, act, toast } = useWW();
@@ -81,10 +127,10 @@ function GoalRowToday({ g, logOpen, setLogOpen }: { g: Goal; logOpen: string | n
     <div className="goal">
       <span className="stripe" style={{ background: p.color }} />
       <div>
-        <div className="pill"><span className="dot" style={{ background: p.color }} />{p.name}{g.example && <span className="example">Example</span>}</div>
+        <div className="pill"><span className="dot" style={{ background: p.color }} />{p.name}{g.example && <span className="example">Example</span>}<SharedTag g={g} /></div>
         <div className="goal-title">{g.title}</div>
         <div className="goal-meta">{meta}</div>
-        {ticks}
+        {ticks}<Contrib g={g} />
       </div>
       {ctrl}{extra}
     </div>
@@ -137,6 +183,7 @@ export function Today() {
             </div>
           </div>
         </section>
+        <TogetherCard />
         <section className="card">
           <div className="card-head"><h2>Today’s check-ins</h2><button className="linkish" onClick={() => setWizard({})}>+ New goal</button></div>
           {S.goals.length ? S.goals.map((g) => <GoalRowToday key={g.id} g={g} logOpen={logOpen} setLogOpen={setLogOpen} />) : (
@@ -162,6 +209,8 @@ export function Today() {
 export function Goals() {
   const { S, act, setWizard, toast } = useWW();
   const [del, setDel] = useState<string | null>(null);
+  const first = partnerFirst(S);
+  const mine = (g: Goal) => !g.ownerId || g.ownerId === S.me;
   const empty = PILLARS.filter((p) => !S.goals.some((g) => g.pillar === p.id));
   const groups = PILLARS.map((p) => {
     const gs = S.goals.filter((g) => g.pillar === p.id); if (!gs.length) return null;
@@ -172,12 +221,15 @@ export function Goals() {
           <div className="goal" style={{ gridTemplateColumns: '4px 1fr' }} key={g.id}>
             <span className="stripe" style={{ background: p.color }} />
             <div>
-              <div className="goal-title">{g.title}{g.example && <span className="example">Example</span>}</div>
+              <div className="goal-title">{g.title}{g.example && <span className="example">Example</span>}<SharedTag g={g} /></div>
               <p style={{ margin: '4px 0 6px', fontSize: 14 }}>{smartSentence(g)}</p>
               <div className="goal-meta">Confidence {g.sure || '–'}/10 · Due {fmtDate(g.deadline)}</div>
+              <Contrib g={g} />
+              {!mine(g) ? <p className="hint" style={{ marginBottom: 0 }}>{first} created this shared goal. You can both log progress.</p> :
               <div className="row" style={{ marginTop: 8, flexWrap: 'wrap' }}>
+                {S.couple && <button className="btn small" onClick={() => { act.shareGoal(g.id, !g.coupleId); toast(g.coupleId ? 'Stopped sharing. It’s only on your goals now.' : `Shared with ${first}. You can both log progress.`); }}>{g.coupleId ? 'Stop sharing' : `💞 Share with ${first}`}</button>}
                 <button className={`btn small ${del === g.id ? 'primary' : ''}`} onClick={() => { if (del === g.id) { act.deleteGoal(g.id); setDel(null); toast('Goal deleted'); } else setDel(g.id); }}>{del === g.id ? 'Tap again to delete' : 'Delete'}</button>
-              </div>
+              </div>}
             </div>
           </div>
         ))}

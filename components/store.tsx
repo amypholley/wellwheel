@@ -17,7 +17,9 @@ function useStoreValue() {
   const [recovery, setRecovery] = useState(false);
   const [loadError, setLoadError] = useState('');
   const [view, setViewRaw] = useState<View>('today');
-  const [wizard, setWizard] = useState<{ pillar?: PillarId } | null>(null);
+  const [wizard, setWizard] = useState<{ pillar?: PillarId; share?: boolean } | null>(null);
+  // Where to land when a shortcut opens another tab (e.g. "Our map" on Today)
+  const [intent, setIntent] = useState<{ adv?: string; who?: string; tool?: string; joint?: boolean } | null>(null);
   const [profileOpen, setProfileOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState<string | null>(null);
   const [toastMsg, setToastMsg] = useState({ text: '', n: 0 });
@@ -73,6 +75,17 @@ function useStoreValue() {
     });
   };
 
+  // When you come back to the app, pick up your partner's latest changes
+  useEffect(() => {
+    const onShow = async () => {
+      if (document.visibilityState !== 'visible' || modeRef.current !== 'user') return;
+      await queue.current;
+      try { setS(await loadState()); } catch {}
+    };
+    document.addEventListener('visibilitychange', onShow);
+    return () => document.removeEventListener('visibilitychange', onShow);
+  }, []);
+
   const act = {
     addGoal(g: Goal) {
       setS((s) => ({ ...s, goals: [...s.goals, g], logs: { ...s.logs, [g.id]: {} } }));
@@ -85,9 +98,31 @@ function useStoreValue() {
     log(id: string, delta: number, day = today().T) {
       setS((s) => {
         const cur = (s.logs[id] || {})[day] || 0;
-        return { ...s, logs: { ...s.logs, [id]: { ...(s.logs[id] || {}), [day]: Math.max(0, cur + delta) } } };
+        const by = s.me ? { ...s.by, [id]: { ...(s.by[id] || {}), [s.me]: Math.max(0, ((s.by[id] || {})[s.me] || 0) + delta) } } : s.by;
+        return { ...s, by, logs: { ...s.logs, [id]: { ...(s.logs[id] || {}), [day]: Math.max(0, cur + delta) } } };
       });
       persist(() => db.log(id, day, delta));
+    },
+    shareGoal(id: string, on: boolean) {
+      const cid = on ? S.couple?.couple_id || null : null;
+      setS((s) => ({ ...s, goals: s.goals.map((g) => (g.id === id ? { ...g, coupleId: cid } : g)) }));
+      persist(() => db.shareGoal(id, cid));
+    },
+    saveCouple(key: string, data: any) {
+      const cid = S.couple?.couple_id; if (!cid) return;
+      setS((s) => ({ ...s, coupleData: { ...s.coupleData, [key]: data } }));
+      persist(() => db.saveCouple(cid, key, data));
+    },
+    async connect(code: string) {
+      await queue.current;
+      const name = await db.connect(code);
+      setS(await loadState());
+      return name;
+    },
+    async disconnect() {
+      await queue.current;
+      await db.disconnect();
+      setS(await loadState());
     },
     addGratitude(text: string, replaceToday: boolean) {
       const { T } = today();
@@ -134,7 +169,19 @@ function useStoreValue() {
       setProfile({ ...profile, display_name: name });
       persist(() => db.updateProfile({ display_name: name }, profile.id));
     },
-    startGuest() { setMode('guest'); setS(seedState()); setProfile(null); setViewRaw('today'); },
+    startGuest() {
+      const s = seedState();
+      // Preview the couple features with an example partner: open the app with ?demo=couple
+      if (typeof window !== 'undefined' && /demo=couple/.test(window.location.search)) {
+        s.me = 'me';
+        s.couple = { couple_id: 'demo', partner_id: 'partner', partner_name: 'Stephanie', partner_username: 'stephanie', since: new Date().toISOString() };
+        const g = s.goals.find((x) => x.pillar === 'financial');
+        if (g) { g.coupleId = 'demo'; g.ownerId = 'me'; s.by[g.id] = { me: 400, partner: 250 }; }
+        s.partnerPlaces = { 'W:840': { status: 'been' }, 'W:380': { status: 'been', note: 'Our honeymoon someday!' }, 'S:48': { status: 'been' }, 'S:15': { status: 'want' } };
+        s.coupleData = { bucket: { list: [{ text: 'Take a dance class together', cat: 'Just for fun', year: '', done: false, photos: [] }, { text: 'Stay in a cabin in the mountains', cat: 'Travel', year: '2027', done: false, photos: [] }] }, couples: { entries: [] } };
+      }
+      setMode('guest'); setS(s); setProfile(null); setViewRaw('today');
+    },
     async logout() {
       setProfileOpen(false);
       if (modeRef.current === 'guest') { setMode('auth'); setS(blankState()); return; }
@@ -153,7 +200,7 @@ function useStoreValue() {
   };
 
   return {
-    mode, S, profile, recovery, setRecovery, loadError, view, setView, wizard, setWizard,
+    intent, setIntent, mode, S, profile, recovery, setRecovery, loadError, view, setView, wizard, setWizard,
     profileOpen, setProfileOpen, authOpen, setAuthOpen, toastMsg, toast, act, loadUser,
   };
 }

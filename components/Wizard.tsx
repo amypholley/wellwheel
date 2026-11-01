@@ -24,16 +24,18 @@ function startDraft(pillar: PillarId, pr: Preset | null): Draft {
 const normalize = (g: Draft) => ({ ...g, count: Math.max(1, parseInt(String(g.count)) || 1), target: Number(g.target) || 0, title: g.title || 'my goal' });
 
 export function Wizard() {
-  const { wizard, setWizard, act, setView, toast } = useWW();
+  const { wizard, setWizard, act, setView, toast, S } = useWW();
+  const first = (S.couple?.partner_name || '').split(' ')[0];
   const [step, setStep] = useState(1);
   const [pillar, setPillar] = useState<PillarId | null>(null);
   const [g, setG] = useState<Draft | null>(null);
   const [err, setErr] = useState('');
+  const [share, setShare] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!wizard) return;
-    setPillar(wizard.pillar || null); setStep(wizard.pillar ? 2 : 1); setG(null); setErr('');
+    setPillar(wizard.pillar || null); setStep(wizard.pillar ? 2 : 1); setG(null); setErr(''); setShare(!!wizard.share);
     document.body.style.overflow = 'hidden';
     return () => { document.body.style.overflow = ''; };
   }, [wizard]);
@@ -89,6 +91,7 @@ export function Wizard() {
       act.addGoal({
         id: uid(), amt: !!n.amt, step: n.step, stepLabel: n.stepLabel, pillar: n.pillar, title: g.title.trim(), type: n.type,
         count: n.count, per: n.per, unit: n.unit, target: n.type === 'target' ? n.target : undefined, why: (n.why || '').trim(), deadline: n.deadline, sure: n.sure,
+        coupleId: share && S.couple ? S.couple.couple_id : null,
       });
       close(); setView('today'); toast('Goal saved. One step at a time.');
     };
@@ -146,6 +149,7 @@ export function Wizard() {
         </div>
       </div>
       <div style={{ marginTop: 14 }}><div className="pill" style={{ marginBottom: 6 }}>Your goal</div><div className="summary">{smartSentence(normalize(g))}</div></div>
+      {S.couple && <label className="ck sharebox"><input type="checkbox" checked={share} onChange={(e) => setShare(e.target.checked)} /><span>💞 Share this goal with {first} so you both can track it and add progress</span></label>}
       <p className="hint" style={{ color: '#B3443A' }}>{err}</p>
       <button className="btn primary wide" style={{ marginTop: 6 }} onClick={save}>Save goal</button>
     </>);

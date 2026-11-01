@@ -17,7 +17,12 @@ export function mountAdventures(root, api) {
   const { WORLD, USA, worldSize, usaSize } = api.maps;
   const A = JSON.parse(JSON.stringify(api.adv || ADV0()));
   A.places = A.places || {}; A.bucket = A.bucket || { me: [], us: [] }; A.bucket.me = A.bucket.me || []; A.bucket.us = A.bucket.us || []; A.hobbies = A.hobbies || [];
-  const ui = { adv: 'map', mapMode: 'world', place: null, bk: 'me', mapWho: 'me' };
+  const it = api.intent || {};
+  const ui = { adv: it.adv || 'map', mapMode: 'world', place: null, bk: it.adv === 'bucket' && it.who === 'us' ? 'us' : 'me', mapWho: it.who === 'us' ? 'us' : 'me' };
+  // With a partner, the couple's bucket list is the shared one; my own "us" list is kept aside unchanged
+  const couple = !!api.couple;
+  const personalUs = A.bucket.us;
+  if (couple) A.bucket.us = JSON.parse(JSON.stringify(api.coupleBucket || []));
   const MAPS = { world: { data: WORLD, w: worldSize[0], h: worldSize[1], prefix: 'W:' }, usa: { data: USA, w: usaSize[0], h: usaSize[1], prefix: 'S:' } };
   const vb = { world: [0, 0, worldSize[0], worldSize[1]], usa: [0, 0, usaSize[0], usaSize[1]] };
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -28,19 +33,23 @@ export function mountAdventures(root, api) {
   const pPlaces = () => (api.partnerPlaces ? api.partnerPlaces() : {}) || {};
 
   /* ---------- saving ---------- */
-  let timer = null, dirty = false;
-  const flush = () => { clearTimeout(timer); timer = null; if (dirty) { dirty = false; api.persist(JSON.parse(JSON.stringify(A))); } };
-  const save = () => { dirty = true; clearTimeout(timer); timer = setTimeout(flush, 700); };
+  let timer = null, dirty = false, dirtyUs = false;
+  const flush = () => {
+    clearTimeout(timer); timer = null;
+    if (dirty) { dirty = false; const copy = JSON.parse(JSON.stringify(A)); if (couple) copy.bucket.us = personalUs; api.persist(copy); }
+    if (dirtyUs) { dirtyUs = false; api.persistCouple('bucket', { list: JSON.parse(JSON.stringify(A.bucket.us)) }); }
+  };
+  const save = () => { if (couple && ui.adv === 'bucket' && ui.bk === 'us') dirtyUs = true; else dirty = true; clearTimeout(timer); timer = setTimeout(flush, 700); };
 
   /* ---------- photos (kept in Supabase Storage; the list holds their ids) ---------- */
   const url = (id) => api.photoUrl(id);
   const photoInput = (target) => `<label class="btn small addph">+ Add photos<input type="file" accept="image/*" multiple data-ph="${target}" hidden></label>`;
   const photoGrid = (ids, target) => ids && ids.length ? `<div class="phgrid">${ids.map((id, i) => `<button class="ph" data-a="lightbox" data-target="${target}" data-i="${i}">${url(id) ? `<img src="${esc(url(id))}" alt="Photo ${i + 1}" loading="lazy">` : '<span class="phload">…</span>'}</button>`).join('')}</div>` : '';
-  async function addPhotos(files, list) {
+  async function addPhotos(files, list, folder) {
     let n = 0;
     for (const f of files) {
       if (!f.type.startsWith('image/')) continue;
-      try { const blob = await shrink(f); const id = await api.uploadPhoto(blob); list.push(id); n++; save(); rerenderKeep(); } catch (e) { console.error(e); toast('A photo couldn’t be added. Try again.'); }
+      try { const blob = await shrink(f); const id = await api.uploadPhoto(blob, folder); list.push(id); n++; save(); rerenderKeep(); } catch (e) { console.error(e); toast('A photo couldn’t be added. Try again.'); }
     }
     return n;
   }
@@ -100,7 +109,7 @@ export function mountAdventures(root, api) {
     const who = ui.bk, list = A.bucket[who] || []; const done = list.filter((x) => x.done).length;
     const used = new Set(list.map((x) => x.text.toLowerCase()));
     return `<section class="card"><div class="seg" role="group" aria-label="Which list"><button data-a="bk" data-v="me" aria-pressed="${who === 'me'}">My bucket list</button><button data-a="bk" data-v="us" aria-pressed="${who === 'us'}">Couple’s bucket list</button></div>
-    ${who === 'us' ? (partnerName() ? `<p class="sub" style="margin:10px 0 0">💞 Shared with <b>${esc(partnerName())}</b>. You both see and edit this list.</p>` : `<div class="grid2" style="margin-top:10px"><label class="sub" for="partner">Our list with</label><input type="text" id="partner" data-av="partner" placeholder="Partner’s name" value="${esc(A.partner || '')}"></div><p class="hint">Couple connection is coming soon. Then you can share this list with your partner.</p>`) : ''}
+    ${who === 'us' ? (partnerName() ? `<p class="sub" style="margin:10px 0 0">💞 Shared with <b>${esc(partnerName())}</b>. You both see and edit this list.</p>` : `<div class="grid2" style="margin-top:10px"><label class="sub" for="partner">Our list with</label><input type="text" id="partner" data-av="partner" placeholder="Partner’s name" value="${esc(A.partner || '')}"></div><p class="hint">Connect with your partner from your profile (the circle at the top of Today) to share this list.</p>`) : ''}
     <div class="mapstats"><div><b>${list.length}</b><span>dreams on the list</span></div><div><b>${done}</b><span>done</span></div><div><b>${list.length ? Math.round((done / list.length) * 100) : 0}%</b><span>complete</span></div></div>
     <form class="stack" data-av-form="bucket" style="gap:8px"><input type="text" id="bk-text" maxlength="200" placeholder="${who === 'us' ? 'Something we want to do together' : 'Something I want to do in my life'}" aria-label="New bucket list item"><div class="row"><select id="bk-cat" aria-label="Category">${BK_CATS.map((c) => `<option>${c}</option>`).join('')}</select><input type="number" id="bk-year" placeholder="By year" aria-label="Target year" style="max-width:110px"><button class="btn primary" type="submit">Add</button></div></form></section>
   <section class="card"><div class="card-head"><h2>${who === 'us' ? (A.partner ? `Me & ${esc(A.partner)}` : 'Our list') : 'My list'}</h2><span class="sub">${done} of ${list.length}</span></div>
@@ -200,7 +209,8 @@ export function mountAdventures(root, api) {
       if (t === 'place') { const p = A.places[ui.place]; p.photos = p.photos || []; list = p.photos; }
       else { const [k, i] = t.split(':'); const obj = k === 'bk' ? A.bucket[ui.bk][+i] : A.hobbies[+i]; obj.photos = obj.photos || []; list = obj.photos; }
       const files = [...el.files]; toast(files.length > 1 ? `Adding ${files.length} photos…` : 'Adding photo…');
-      const n = await addPhotos(files, list); if (n) toast(`${n} photo${n === 1 ? '' : 's'} added`);
+      const folder = t === 'place' ? 'places' : t.startsWith('bk:') && ui.bk === 'us' ? 'shared' : 'mine';
+      const n = await addPhotos(files, list, folder); if (n) toast(`${n} photo${n === 1 ? '' : 's'} added`);
     }
   };
   const onSubmit = (e) => {
@@ -219,6 +229,7 @@ export function mountAdventures(root, api) {
     ...Object.values(A.places).flatMap((p) => p.photos || []),
     ...A.bucket.me.flatMap((x) => x.photos || []), ...A.bucket.us.flatMap((x) => x.photos || []),
     ...A.hobbies.flatMap((h) => h.photos || []),
+    ...Object.values(pPlaces()).flatMap((p) => (p && p.photos) || []),
   ];
   const ids = allPhotos(); if (ids.length) api.loadPhotos(ids).then(() => rerenderKeep()).catch(() => {});
 

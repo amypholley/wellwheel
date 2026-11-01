@@ -6,6 +6,7 @@ export type Goal = {
   count: number; per: 'day' | 'week'; unit: string;
   amt?: boolean; step?: number; stepLabel?: string;
   target?: number; why: string; deadline: string; sure: number; example?: boolean;
+  coupleId?: string | null; ownerId?: string; // shared with a partner when coupleId is set
 };
 export type Gratitude = { id: string; date: string; text: string; example?: boolean };
 export type JournalEntry = { pillar: PillarId; prompt: string; label?: string; text: string; example?: boolean };
@@ -15,8 +16,14 @@ export type State = {
   gratitude: Gratitude[];
   journal: Record<string, JournalEntry>; // day -> entry
   tools: Record<string, any>; // worksheet answers, one record per worksheet
+  by: Record<string, Record<string, number>>; // goalId -> userId -> total logged (who added what)
+  me: string; // my user id ('' for guests)
+  couple: CoupleInfo | null; // my partner, if connected
+  coupleData: Record<string, any>; // things we share: bucket, couples workbook, joint money plan
+  partnerPlaces: Record<string, any>; // partner's travel-map places (for the Together map)
 };
-export const blankState = (): State => ({ goals: [], logs: {}, gratitude: [], journal: {}, tools: {} });
+export type CoupleInfo = { couple_id: string; partner_id: string; partner_name: string; partner_username: string; since: string };
+export const blankState = (): State => ({ goals: [], logs: {}, gratitude: [], journal: {}, tools: {}, by: {}, me: '', couple: null, coupleData: {}, partnerPlaces: {} });
 export const uid = () =>
   typeof crypto !== 'undefined' && crypto.randomUUID
     ? crypto.randomUUID()
@@ -119,5 +126,5 @@ export function seedState(): State {
     },
     partner: '', hobbies: [{ name: 'Baking', goal: 'Bake bread from scratch', note: '', photos: [], sessions: {}, example: true }],
   };
-  return { goals, logs, gratitude, journal, tools: { adv } };
+  return { ...blankState(), goals, logs, gratitude, journal, tools: { adv } };
 }
