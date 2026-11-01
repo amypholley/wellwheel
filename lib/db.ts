@@ -90,6 +90,7 @@ export const db = {
     check(await supabase!.from('couple_data').upsert({ couple_id: coupleId, key, data: data ?? {}, updated_by: currentUserId, updated_at: new Date().toISOString() }, { onConflict: 'couple_id,key' }));
   },
   async connect(code: string): Promise<string> { const r = await supabase!.rpc('connect_partner', { code }); if (r.error) throw r.error; return (r.data as any)?.partner_name || ''; },
+  async redeemCode(code: string) { const r = await supabase!.rpc('redeem_plus_code', { code }); if (r.error) throw r.error; return r.data as any; },
   async disconnect() { check(await supabase!.rpc('disconnect_partner')); },
   async removeExamples() {
     await Promise.all([

@@ -132,8 +132,10 @@ export function PillarReport() {
 
 /* ---------- Plus section in Profile ---------- */
 export function PlusStatus() {
-  const { plusInfo, setPlusOpen, toast } = useWW();
+  const { plusInfo, setPlusOpen, toast, act } = useWW();
   const [busy, setBusy] = useState(false);
+  const [code, setCode] = useState('');
+  const [codeErr, setCodeErr] = useState('');
   const p = plusInfo;
   const manage = async () => {
     setBusy(true);
@@ -151,8 +153,8 @@ export function PlusStatus() {
     <section className="card" style={{ marginTop: 14 }}>
       <div className="card-head"><h2>WellWheel Plus</h2>{p.plus && <span className="badge">Plus</span>}</div>
       {p.plus ? (<>
-        <p style={{ marginTop: 0 }}>{p.status === 'comp' ? 'You have Plus.' : p.source === 'partner' ? `Included with ${p.paid_by || 'your partner'}’s couples plan.` : `You’re on the ${p.plan === 'couple' ? 'couples' : 'individual'} plan${p.plan === 'couple' ? ', which covers your partner too' : ''}.`}</p>
-        {until && p.status !== 'comp' && <p className="sub" style={{ marginTop: 0 }}>{p.status === 'canceled' ? `Ends ${until}.` : `Renews ${until}.`}</p>}
+        <p style={{ marginTop: 0 }}>{p.status === 'comp' ? (p.until ? 'You have free Plus.' : 'You have Plus.') : p.source === 'partner' ? `Included with ${p.paid_by || 'your partner'}’s couples plan.` : `You’re on the ${p.plan === 'couple' ? 'couples' : 'individual'} plan${p.plan === 'couple' ? ', which covers your partner too' : ''}.`}</p>
+        {until && <p className="sub" style={{ marginTop: 0 }}>{p.status === 'comp' ? `Free until ${until}.` : p.status === 'canceled' ? `Ends ${until}.` : `Renews ${until}.`}</p>}
         {p.status === 'past_due' && <p className="note">Your last payment didn’t go through. Update your card to keep Plus.</p>}
         {p.can_manage && <button className="btn" disabled={busy} onClick={manage}>{busy ? 'Opening…' : 'Manage subscription'}</button>}
       </>) : (<>
@@ -161,6 +163,16 @@ export function PlusStatus() {
           <button className="btn primary" onClick={() => setPlusOpen('profile')}>See WellWheel Plus</button>
           {p.can_manage && <button className="btn" disabled={busy} onClick={manage}>{busy ? 'Opening…' : 'Billing & receipts'}</button>}
         </div>
+        <form className="row" style={{ marginTop: 14 }} onSubmit={async (e) => {
+          e.preventDefault(); if (!code.trim()) return; setBusy(true); setCodeErr('');
+          try { await act.redeemCode(code.trim()); setCode(''); toast('Code applied. Welcome to WellWheel Plus!'); }
+          catch (err: any) { setCodeErr(/function|schema/i.test(err?.message || '') ? 'Codes aren’t set up yet.' : err?.message || 'That code didn’t work.'); }
+          setBusy(false);
+        }}>
+          <input type="text" placeholder="Have a code?" aria-label="Plus code" autoCapitalize="characters" value={code} onChange={(e) => setCode(e.target.value)} />
+          <button className="btn" type="submit" disabled={busy}>Apply</button>
+        </form>
+        {codeErr && <p className="autherr" role="alert" style={{ marginTop: 8 }}>{codeErr}</p>}
       </>)}
     </section>
   );

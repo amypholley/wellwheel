@@ -134,6 +134,11 @@ function useStoreValue() {
       setS(await loadState()); setPlusInfo(await loadPlus());
       return name;
     },
+    async redeemCode(code: string) {
+      const r = await db.redeemCode(code);
+      setPlusInfo(await loadPlus());
+      return r;
+    },
     async disconnect() {
       await queue.current;
       await db.disconnect();

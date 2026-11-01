@@ -20,7 +20,8 @@ export async function POST(req: Request) {
   catch { return NextResponse.json({ error: 'Bad signature' }, { status: 400 }); }
 
   const admin = adminClient();
-  const notComp = 'plus_status.is.null,plus_status.neq.comp'; // never overwrite free Plus given by the owner
+  // Never overwrite permanent free Plus (owner accounts). Time-limited free Plus from a code can be replaced by a paid plan.
+  const notComp = 'plus_status.is.null,plus_status.neq.comp,plus_until.not.is.null';
   try {
     if (event.type === 'checkout.session.completed') {
       const s = event.data.object as Stripe.Checkout.Session;
