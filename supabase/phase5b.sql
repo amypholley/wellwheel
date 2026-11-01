@@ -53,3 +53,7 @@ grant execute on function public.redeem_plus_code(text) to authenticated;
 -- The FRIEND code: one free year of Plus, couples plan (covers a connected partner too)
 insert into public.plus_codes (code, plan, days) values ('FRIEND', 'couple', 365)
 on conflict (code) do nothing;
+
+-- The 100 code: the first 100 people get 6 months of Plus free, couples plan
+insert into public.plus_codes (code, plan, days, max_uses) values ('100', 'couple', 183, 100)
+on conflict (code) do nothing;

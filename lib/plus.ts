@@ -6,8 +6,8 @@ export const PLUS_LINKS = {
   individual: 'https://buy.stripe.com/9B66oId4QgAc7hrg2Sao805',
   couple: 'https://buy.stripe.com/5kQdRa6Gs6ZCeJT03Uao806',
 };
-// Price text shown on the buttons. Fill in the couples price, e.g. '$8.99/month'.
-export const PLUS_PRICE = { individual: '$5.99/month', couple: '' };
+// Price text shown on the upgrade screen (the real prices are set in Stripe)
+export const PLUS_PRICE = { individual: '$5.99/month', couple: '$8.99/month' };
 
 // ---------- What free accounts get ----------
 export const FREE_PILLAR_LIMIT = 2;          // free: goals in up to 2 pillars
