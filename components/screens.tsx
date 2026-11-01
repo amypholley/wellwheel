@@ -259,7 +259,7 @@ export function Journal() {
   const [text, setText] = useState(saved?.text || '');
   useEffect(() => { if (saved?.text) setText((t) => t || saved.text); }, [saved?.text]);
   const pr = todaysPrompt(S, shift), p = P[pr.pillar];
-  const past = Object.entries(S.journal).filter(([k, v]) => k !== T && v.text).sort((a, b) => (a[0] < b[0] ? 1 : -1));
+  const past = Object.entries(S.journal).filter(([, v]) => v.text).sort((a, b) => (a[0] < b[0] ? 1 : -1));
   const preNov = TODAY < new Date(2026, 10, 1);
   // Saves automatically a moment after you stop typing, and when you leave the page.
   const [status, setStatus] = useState<'' | 'typing' | 'saved'>(saved?.text ? 'saved' : '');
@@ -303,12 +303,12 @@ export function Journal() {
           </div>
         </section>
         {preNov && <section className="card"><h2>30 Days, 9 Pillars starts Nov 1</h2><p className="sub" style={{ margin: '6px 0 0' }}>All November, your daily prompt comes from the challenge, starting with your list of 30 things you’re grateful for.</p></section>}
-        <section className="card"><div className="card-head"><h2>Past entries</h2><span className="sub">{past.length}</span></div>
+        <section className="card"><div className="card-head"><h2>My entries</h2><span className="sub">{past.length}</span></div>
           {past.length ? past.map(([k, v]) => { const pp = P[v.pillar] || P.purpose; return (
             <div className="goal" style={{ gridTemplateColumns: '4px 1fr' }} key={k}>
               <span className="stripe" style={{ background: pp.color }} />
               <div>
-                <div className="goal-meta">{fmtDate(k, { weekday: 'short', month: 'short', day: 'numeric' })}{v.example && <span className="example">Example</span>}</div>
+                <div className="goal-meta">{k === T ? <b style={{ color: 'var(--good)' }}>Today ✓ Saved</b> : fmtDate(k, { weekday: 'short', month: 'short', day: 'numeric' })}{v.example && <span className="example">Example</span>}</div>
                 <div className="sub" style={{ fontStyle: 'italic', margin: '3px 0' }}>{v.prompt}</div>
                 <div style={{ whiteSpace: 'pre-wrap' }}>{v.text}</div>
               </div>
