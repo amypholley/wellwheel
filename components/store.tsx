@@ -114,9 +114,10 @@ function useStoreValue() {
         const goals = s.goals.filter((g) => !g.example);
         const logs = Object.fromEntries(Object.entries(s.logs).filter(([k]) => goals.some((g) => g.id === k)));
         const journal = Object.fromEntries(Object.entries(s.journal).filter(([, v]) => !v.example));
-        return { ...s, goals, logs, gratitude: s.gratitude.filter((x) => !x.example), journal };
+        return { ...s, goals, logs, gratitude: s.gratitude.filter((x) => !x.example), journal, tools: advNoExamples(s.tools) };
       });
       persist(() => db.removeExamples());
+      if (S.tools.adv) persist(() => db.saveTool('adv', advNoExamples(S.tools).adv));
     },
     addExamples() {
       const ex = seedState();
@@ -124,6 +125,7 @@ function useStoreValue() {
         ...s,
         goals: [...s.goals, ...ex.goals], logs: { ...s.logs, ...ex.logs },
         gratitude: [...s.gratitude, ...ex.gratitude], journal: { ...ex.journal, ...s.journal },
+        tools: s.tools.adv ? s.tools : { ...s.tools, adv: ex.tools.adv },
       }));
       persist(() => db.insertState(ex));
     },
@@ -163,4 +165,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   return <Ctx.Provider value={v}>{children}</Ctx.Provider>;
 }
 export const useWW = () => useContext(Ctx)!;
+// Adventures data with the example places, dreams, and hobbies taken out
+function advNoExamples(tools: Record<string, any>) {
+  const a = tools.adv; if (!a) return tools;
+  const places = Object.fromEntries(Object.entries(a.places || {}).filter(([, v]: any) => !v.example));
+  const bucket = { me: (a.bucket?.me || []).filter((x: any) => !x.example), us: (a.bucket?.us || []).filter((x: any) => !x.example) };
+  return { ...tools, adv: { ...a, places, bucket, hobbies: (a.hobbies || []).filter((x: any) => !x.example) } };
+}
 export const firstName = (p: Profile | null) => (p && p.display_name ? p.display_name.trim().split(/\s+/)[0] : '');

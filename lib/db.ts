@@ -77,6 +77,8 @@ export const db = {
     await db.addGoals(s.goals);
     for (const g of s.goals) await db.setLogs(g.id, s.logs[g.id] || {});
     await db.addGratitude(s.gratitude);
+    // example Adventures data only if the person has none yet
+    if (s.tools.adv) { const { data } = await supabase!.from('tool_data').select('tool').eq('tool', 'adv').maybeSingle(); if (!data) await db.saveTool('adv', s.tools.adv); }
     for (const [day, e] of Object.entries(s.journal)) {
       // never overwrite a real entry with an example
       const { data } = await supabase!.from('journal').select('day').eq('day', day).maybeSingle();

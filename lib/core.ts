@@ -110,5 +110,14 @@ export function seedState(): State {
   ];
   const yk = key(addDays(TODAY, -1));
   const journal: State['journal'] = { [yk]: { pillar: 'relationships', prompt: 'Who made your day a little better? Did they know it?', text: 'Stephanie, for packing me a lunch without being asked. I told her tonight.', example: true } };
-  return { goals, logs, gratitude, journal, tools: {} };
+  const ex = (status: string) => ({ status, photos: [] as string[], example: true });
+  const adv = {
+    places: { 'W:840': ex('been'), 'W:124': ex('want'), 'W:372': ex('want'), 'S:48': ex('been'), 'S:47': ex('been'), 'S:12': ex('been'), 'S:08': ex('been'), 'S:06': ex('want') },
+    bucket: {
+      me: [{ text: 'See the Northern Lights', cat: 'Travel', year: '2028', done: false, photos: [], example: true }, { text: 'Visit all 50 states', cat: 'Travel', year: '', done: false, photos: [], example: true }],
+      us: [{ text: 'Take a dance class together', cat: 'Just for fun', year: '', done: false, photos: [], example: true }],
+    },
+    partner: '', hobbies: [{ name: 'Baking', goal: 'Bake bread from scratch', note: '', photos: [], sessions: {}, example: true }],
+  };
+  return { goals, logs, gratitude, journal, tools: { adv } };
 }

@@ -1,9 +1,10 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { StoreProvider, useWW, View } from './store';
-import { Today, Goals, Progress, Journal, Gratitude, ComingSoon } from './screens';
+import { Today, Goals, Progress, Journal, Gratitude } from './screens';
 import { Wizard } from './Wizard';
 import { Resources } from './resources/Resources';
+import { Adventures } from './adventures/Adventures';
 import { Auth } from './Auth';
 import { Profile } from './Profile';
 import { LogoWheel } from './ui';
@@ -29,7 +30,7 @@ function Shell() {
   const { mode, view, setView } = useWW();
   if (mode === 'loading') return <div className="loading"><LogoWheel size={64} /></div>;
   const screen = view === 'today' ? <Today /> : view === 'goals' ? <Goals /> : view === 'progress' ? <Progress />
-    : view === 'journal' ? <Journal /> : view === 'grateful' ? <Gratitude /> : view === 'resources' ? <Resources /> : <ComingSoon which={view as any} />;
+    : view === 'journal' ? <Journal /> : view === 'grateful' ? <Gratitude /> : view === 'resources' ? <Resources /> : <Adventures />;
   return (
     <>
       {mode !== 'auth' && (<>

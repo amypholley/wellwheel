@@ -198,3 +198,22 @@ drop policy if exists "tool_data: own" on public.tool_data;
 create policy "tool_data: own" on public.tool_data for all to authenticated
   using (user_id = auth.uid()) with check (user_id = auth.uid());
 grant select, insert, update, delete on public.tool_data to authenticated;
+
+-- =====================================================================
+-- Phase 3: photos (same as supabase/phase3.sql)
+-- =====================================================================
+-- A private place to keep photos. Each person gets their own folder.
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('photos', 'photos', false, 10485760, array['image/jpeg','image/png','image/webp','image/heic'])
+on conflict (id) do nothing;
+
+-- People can only add, see, and delete photos in their own folder
+drop policy if exists "photos: add own" on storage.objects;
+create policy "photos: add own" on storage.objects for insert to authenticated
+  with check (bucket_id = 'photos' and (storage.foldername(name))[1] = auth.uid()::text);
+drop policy if exists "photos: see own" on storage.objects;
+create policy "photos: see own" on storage.objects for select to authenticated
+  using (bucket_id = 'photos' and (storage.foldername(name))[1] = auth.uid()::text);
+drop policy if exists "photos: delete own" on storage.objects;
+create policy "photos: delete own" on storage.objects for delete to authenticated
+  using (bucket_id = 'photos' and (storage.foldername(name))[1] = auth.uid()::text);

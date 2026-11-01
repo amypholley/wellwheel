@@ -19,3 +19,7 @@ cp .env.example .env.local   # fill in Supabase keys
 npm install
 npm run dev
 ```
+
+## Ideas for later
+- Grocery history: save each week's grocery budget and spending, add a monthly grocery goal, and show grocery spending over time in the portfolio.
+- Fuller "grow your income" resources under the Financial Wellness Planner.
