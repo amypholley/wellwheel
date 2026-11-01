@@ -28,13 +28,15 @@ export async function loadProfile(): Promise<Profile | null> {
 
 export async function loadState(): Promise<State> {
   const s = blankState();
-  const [goals, logs, grat, jr] = await Promise.all([
+  const [goals, logs, grat, jr, tl] = await Promise.all([
     supabase!.from('goals').select('*').order('created_at'),
     supabase!.from('goal_logs').select('goal_id,day,amount'),
     supabase!.from('gratitude').select('*').order('created_at'),
     supabase!.from('journal').select('*'),
+    supabase!.from('tool_data').select('tool,data'),
   ]);
-  [goals, logs, grat, jr].forEach(check);
+  [goals, logs, grat, jr, tl].forEach(check);
+  (tl.data || []).forEach((r: any) => (s.tools[r.tool] = r.data));
   s.goals = (goals.data || []).map(rowToGoal);
   s.goals.forEach((g) => (s.logs[g.id] = {}));
   (logs.data || []).forEach((r: any) => {
@@ -60,6 +62,9 @@ export const db = {
   async deleteGratitudeOn(day: string) { check(await supabase!.from('gratitude').delete().eq('day', day)); },
   async saveJournal(day: string, e: JournalEntry) {
     check(await supabase!.from('journal').upsert({ user_id: currentUserId, day, pillar: e.pillar, prompt: e.prompt, label: e.label || '', text: e.text, example: !!e.example, updated_at: new Date().toISOString() }, { onConflict: 'user_id,day' }));
+  },
+  async saveTool(tool: string, data: any) {
+    check(await supabase!.from('tool_data').upsert({ user_id: currentUserId, tool, data: data ?? {}, updated_at: new Date().toISOString() }, { onConflict: 'user_id,tool' }));
   },
   async removeExamples() {
     await Promise.all([

@@ -105,18 +105,23 @@ function useStoreValue() {
       setS((s) => ({ ...s, journal: { ...s.journal, [T]: e } }));
       persist(() => db.saveJournal(T, e));
     },
+    saveTool(tool: string, data: any) {
+      setS((s) => ({ ...s, tools: { ...s.tools, [tool]: data } }));
+      persist(() => db.saveTool(tool, data));
+    },
     removeExamples() {
       setS((s) => {
         const goals = s.goals.filter((g) => !g.example);
         const logs = Object.fromEntries(Object.entries(s.logs).filter(([k]) => goals.some((g) => g.id === k)));
         const journal = Object.fromEntries(Object.entries(s.journal).filter(([, v]) => !v.example));
-        return { goals, logs, gratitude: s.gratitude.filter((x) => !x.example), journal };
+        return { ...s, goals, logs, gratitude: s.gratitude.filter((x) => !x.example), journal };
       });
       persist(() => db.removeExamples());
     },
     addExamples() {
       const ex = seedState();
       setS((s) => ({
+        ...s,
         goals: [...s.goals, ...ex.goals], logs: { ...s.logs, ...ex.logs },
         gratitude: [...s.gratitude, ...ex.gratitude], journal: { ...ex.journal, ...s.journal },
       }));

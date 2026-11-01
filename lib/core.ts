@@ -14,8 +14,9 @@ export type State = {
   logs: Record<string, Record<string, number>>; // goalId -> day -> amount
   gratitude: Gratitude[];
   journal: Record<string, JournalEntry>; // day -> entry
+  tools: Record<string, any>; // worksheet answers, one record per worksheet
 };
-export const blankState = (): State => ({ goals: [], logs: {}, gratitude: [], journal: {} });
+export const blankState = (): State => ({ goals: [], logs: {}, gratitude: [], journal: {}, tools: {} });
 export const uid = () =>
   typeof crypto !== 'undefined' && crypto.randomUUID
     ? crypto.randomUUID()
@@ -109,5 +110,5 @@ export function seedState(): State {
   ];
   const yk = key(addDays(TODAY, -1));
   const journal: State['journal'] = { [yk]: { pillar: 'relationships', prompt: 'Who made your day a little better? Did they know it?', text: 'Stephanie, for packing me a lunch without being asked. I told her tonight.', example: true } };
-  return { goals, logs, gratitude, journal };
+  return { goals, logs, gratitude, journal, tools: {} };
 }
