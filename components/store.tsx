@@ -68,7 +68,7 @@ function useStoreValue() {
     if (modeRef.current !== 'user') return;
     queue.current = queue.current.then(fn).catch(async (e) => {
       console.error(e);
-      toast('Couldn’t save that. Check your connection and try again.');
+      toast('Couldn’t save that. ' + (e?.message ? '(' + String(e.message).slice(0, 80) + ')' : 'Check your connection and try again.'));
       try { setS(await loadState()); } catch {}
     });
   };

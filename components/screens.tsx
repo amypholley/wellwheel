@@ -261,10 +261,31 @@ export function Journal() {
   const pr = todaysPrompt(S, shift), p = P[pr.pillar];
   const past = Object.entries(S.journal).filter(([k, v]) => k !== T && v.text).sort((a, b) => (a[0] < b[0] ? 1 : -1));
   const preNov = TODAY < new Date(2026, 10, 1);
+  // Saves automatically a moment after you stop typing, and when you leave the page.
+  const [status, setStatus] = useState<'' | 'typing' | 'saved'>(saved?.text ? 'saved' : '');
+  const latest = useRef({ text, pr, dirty: false });
+  latest.current = { ...latest.current, text, pr };
+  const flush = () => {
+    const { text: t, pr: cur, dirty } = latest.current;
+    if (!dirty || !t.trim()) return false;
+    act.saveJournal({ pillar: cur.pillar, prompt: cur.text, label: cur.label, text: t.trim() });
+    latest.current.dirty = false; setShift(0); setStatus('saved');
+    return true;
+  };
+  useEffect(() => {
+    if (!latest.current.dirty) return;
+    const id = setTimeout(flush, 1200);
+    return () => clearTimeout(id);
+  }, [text]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    const onHide = () => { if (document.visibilityState === 'hidden') flush(); };
+    document.addEventListener('visibilitychange', onHide);
+    return () => { document.removeEventListener('visibilitychange', onHide); flush(); };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const onType = (v: string) => { setText(v); latest.current.dirty = true; setStatus('typing'); };
   const saveEntry = () => {
-    const t = text.trim(); if (!t) { toast('Write something first'); return; }
-    act.saveJournal({ pillar: pr.pillar, prompt: pr.text, label: pr.label, text: t });
-    setShift(0); toast('Journal entry saved');
+    if (!text.trim()) { toast('Write something first'); return; }
+    latest.current.dirty = true; flush(); toast('Journal entry saved');
   };
   return (
     <>
@@ -274,9 +295,10 @@ export function Journal() {
           <div className="pill" style={{ color: p.color }}><Icon id={p.id} size={14} />{pr.label || p.name}</div><div className="rule" />
           <p className="prompt" style={{ margin: '0 0 12px' }}>{pr.text}</p>
           <label className="lbl" htmlFor="jtext">My entry</label>
-          <textarea id="jtext" style={{ minHeight: 160 }} placeholder="Write as much or as little as you want." value={text} onChange={(e) => setText(e.target.value)} />
+          <textarea id="jtext" style={{ minHeight: 160 }} placeholder="Write as much or as little as you want." value={text} onChange={(e) => onType(e.target.value)} />
+          <p className="hint" aria-live="polite" style={{ margin: '6px 0 0', minHeight: 18 }}>{status === 'typing' ? 'Saving…' : status === 'saved' ? '✓ Saved. It saves automatically as you write.' : 'Your entry saves automatically as you write.'}</p>
           <div className="row" style={{ justifyContent: 'space-between', marginTop: 10, flexWrap: 'wrap' }}>
-            <button className="btn ghost small" onClick={() => setShift((s) => s + 1)}>Show a different prompt</button>
+            <button className="btn ghost small" onClick={() => { flush(); setShift((s) => s + 1); }}>Show a different prompt</button>
             <button className="btn primary" onClick={saveEntry}>{saved ? 'Update entry' : 'Save entry'}</button>
           </div>
         </section>
