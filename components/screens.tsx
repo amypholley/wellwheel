@@ -44,7 +44,7 @@ function TogetherCard() {
       <div className="row" style={{ flexWrap: 'wrap', gap: 8 }}>
         <button className="btn small" onClick={() => go('adventures', { adv: 'map', who: 'us' })}>Our map</button>
         <button className="btn small" onClick={() => go('adventures', { adv: 'bucket', who: 'us' })}>Our bucket list</button>
-        <button className="btn small" onClick={() => go('resources', { tool: 'money', joint: true })}>Our money plan</button>
+        <button className="btn small" onClick={() => go('portfolio', { joint: true })}>Our money plan</button>
         <button className="btn small" onClick={() => setWizard({ share: true })}>+ Shared goal</button>
       </div>
     </section>
@@ -171,8 +171,9 @@ export function Today() {
           {profile ? initials(profile.display_name) : <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7" /></svg>}
         </button>
       </header>
-      <div className="stack">
-        <section className="card">
+      {/* Wide screens: wheel on the left, check-ins on the right, the rest underneath. Phones: one column. */}
+      <div className="today-grid">
+        <section className="card tg-wheel">
           <div className="card-head"><h2>This week’s balance</h2><span className="sub">Tap a pillar to add a goal</span></div>
           <div className="wheel-wrap"><Wheel S={S} />
             <div className="legend">
@@ -183,6 +184,7 @@ export function Today() {
             </div>
           </div>
         </section>
+        <div className="tg-main stack">
         <TogetherCard />
         <section className="card">
           <div className="card-head"><h2>Today’s check-ins</h2><button className="linkish" onClick={() => setWizard({})}>+ New goal</button></div>
@@ -190,6 +192,8 @@ export function Today() {
             <><p className="empty">No goals yet. Pick a pillar and start with one small goal.</p><button className="btn primary" onClick={() => setWizard({})}>Set my first goal</button></>
           )}
         </section>
+        </div>
+        <div className="tg-under">
         <section className="card">
           <div className="card-head"><h2>Grateful today</h2><span className="sub">{S.gratitude.length} so far</span></div>
           {todays ? (<><p className="prompt" style={{ margin: 0 }}>“{todays.text}”</p><button className="linkish" style={{ marginTop: 8 }} onClick={() => act.clearTodayGratitude()}>Change it</button></>) : (
@@ -200,6 +204,7 @@ export function Today() {
           )}
         </section>
         <JournalTeaser />
+        </div>
       </div>
     </>
   );

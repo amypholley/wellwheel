@@ -408,3 +408,18 @@ b.num{text-align:right;font-variant-numeric:tabular-nums}
 .planmode{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:6px 0 4px}
 .planmode .seg{min-width:240px}
 .byline{font-size:12px;font-weight:700;color:#C2416B}
+/* ---------- Today: wheel left, check-ins right, the rest underneath (wide screens) ---------- */
+.today-grid{display:grid;grid-template-columns:1fr;gap:14px}
+.tg-under{display:flex;flex-direction:column;gap:14px}
+@media (min-width:900px){
+  .app:has(.today-grid){max-width:1180px}
+  .today-grid{grid-template-columns:minmax(360px,5fr) 7fr;align-items:start}
+  .tg-wheel{position:sticky;top:12px}
+  .tg-wheel .wheel-wrap{grid-template-columns:1fr;justify-items:center}
+  .tg-wheel .wheel-wrap svg{width:240px;height:240px}
+  .tg-wheel .legend{width:100%;grid-template-columns:1fr 1fr;gap:4px 16px}
+  .tg-under{grid-column:1 / -1;display:grid;grid-template-columns:1fr 1fr;align-items:start}
+}
+/* 8 tabs: a little tighter on small phones */
+@media (max-width:400px){nav.tabs button{font-size:9px}nav.tabs button svg{width:20px;height:20px}}
+nav.tabs .in{grid-template-columns:repeat(8,1fr);max-width:720px}

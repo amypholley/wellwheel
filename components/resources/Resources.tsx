@@ -5,7 +5,8 @@ import { mountResources } from './engine';
 import { Goal, today } from '@/lib/core';
 
 // Hosts the worksheets (drawn by engine.js) inside the React app.
-export function Resources() {
+// portfolio: the Portfolio tab, which opens straight into the Financial Wellness Planner
+export function Resources({ portfolio = false }: { portfolio?: boolean }) {
   const { S, act, toast, setWizard, intent, setIntent, profile } = useWW();
   const ref = useRef<HTMLDivElement>(null);
   const latest = useRef({ S, act, toast });
@@ -15,7 +16,7 @@ export function Resources() {
     const L = () => latest.current;
     const m = mountResources(ref.current!, {
       tools: L().S.tools,
-      intent, couple: L().S.couple, coupleData: L().S.coupleData, myName: (profile?.display_name || 'You').split(' ')[0],
+      intent: portfolio ? { tool: 'money', joint: !!intent?.joint } : intent, home: portfolio ? 'money' : null, couple: L().S.couple, coupleData: L().S.coupleData, myName: (profile?.display_name || 'You').split(' ')[0],
       partnerName: () => L().S.couple?.partner_name || '',
       persistCouple: (key: string, data: any) => L().act.saveCouple(key, data),
       toast: (msg: string) => L().toast(msg),

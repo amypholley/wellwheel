@@ -6,7 +6,7 @@ import { Goal, JournalEntry, State, blankState, seedState, today, uid } from '@/
 import { PillarId } from '@/lib/data';
 
 export type Mode = 'loading' | 'auth' | 'guest' | 'user';
-export type View = 'today' | 'goals' | 'progress' | 'journal' | 'grateful' | 'resources' | 'adventures';
+export type View = 'today' | 'goals' | 'progress' | 'journal' | 'grateful' | 'portfolio' | 'resources' | 'adventures';
 
 function useStoreValue() {
   const [mode, setModeRaw] = useState<Mode>('loading');

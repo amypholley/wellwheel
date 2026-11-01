@@ -15,6 +15,7 @@ const TABS: [View, string, string][] = [
   ['progress', 'Progress', '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'],
   ['journal', 'Journal', '<path d="M5 4h11a2 2 0 0 1 2 2v14H7a2 2 0 0 1-2-2z"/><path d="M5 18a2 2 0 0 1 2-2h11M9 8h6M9 11h4"/>'],
   ['grateful', 'Gratitude', '<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>'],
+  ['portfolio', 'Portfolio', '<ellipse cx="9" cy="7" rx="4.5" ry="2"/><path d="M4.5 7v4c0 1.1 2 2 4.5 2s4.5-.9 4.5-2V7"/><ellipse cx="15" cy="14" rx="4.5" ry="2"/><path d="M10.5 14v4c0 1.1 2 2 4.5 2s4.5-.9 4.5-2v-4"/>'],
   ['resources', 'Resources', '<path d="M4 19V5a1 1 0 0 1 1-1h4v16H5a1 1 0 0 1-1-1zM9 4h4v16H9zM14 5.5l3.8-1 3.7 14.5-3.8 1z"/>'],
   ['adventures', 'Adventures', '<circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/>'],
 ];
@@ -30,7 +31,7 @@ function Shell() {
   const { mode, view, setView } = useWW();
   if (mode === 'loading') return <div className="loading"><LogoWheel size={64} /></div>;
   const screen = view === 'today' ? <Today /> : view === 'goals' ? <Goals /> : view === 'progress' ? <Progress />
-    : view === 'journal' ? <Journal /> : view === 'grateful' ? <Gratitude /> : view === 'resources' ? <Resources /> : <Adventures />;
+    : view === 'journal' ? <Journal /> : view === 'grateful' ? <Gratitude /> : view === 'portfolio' ? <Resources key="portfolio" portfolio /> : view === 'resources' ? <Resources key="resources" /> : <Adventures />;
   return (
     <>
       {mode !== 'auth' && (<>

@@ -44,7 +44,7 @@ export function mountResources(root, api) {
   const chk = (path, label, rr = false) => `<label class="ck"><input type="checkbox" data-b="${esc(path)}" ${rr ? 'data-rr' : ''} ${getP(path) ? 'checked' : ''}><span>${label}</span></label>`;
   const pick = (path, opts, multi = false) => `<div class="chips" role="group">${opts.map((o) => { const v = getP(path); const on = multi ? Array.isArray(v) && v.includes(o) : v === o; return `<button type="button" class="chip" data-r="pick" data-path="${esc(path)}" data-v="${esc(o)}" ${multi ? 'data-multi' : ''} aria-pressed="${on}">${esc(o)}</button>`; }).join('')}</div>`;
   const out = (name) => `<span data-o="${name}"></span>`;
-  const toolHead = (r) => { const p = P[r.pillar]; return `<header class="top"><div><button class="linkish" data-r="back">← Resources</button><div class="brand" style="margin-top:10px;color:color-mix(in srgb,${p.color} 75%,var(--ink));display:flex;align-items:center;gap:6px">${icon(r.pillar, 16)}${p.name}</div><h1>${esc(r.title)}</h1><div class="sub">${esc(r.tag || r.desc)}</div></div></header>`; };
+  const toolHead = (r) => { const p = P[r.pillar]; const back = api.home === r.id ? '' : `<button class="linkish" data-r="back">← ${api.home ? 'My portfolio' : 'Resources'}</button>`; return `<header class="top"><div>${back}<div class="brand" style="margin-top:${api.home === r.id ? 0 : 10}px;color:color-mix(in srgb,${p.color} 75%,var(--ink));display:flex;align-items:center;gap:6px">${icon(r.pillar, 16)}${p.name}</div><h1>${esc(r.title)}</h1><div class="sub">${esc(r.tag || r.desc)}</div></div></header>`; };
   const ik = (s) => s.replace(/[.]/g, '');
 
   /* ---------- 1. Intentional spending ---------- */
@@ -639,7 +639,7 @@ export function mountResources(root, api) {
     else if (a === 'newgoal') api.newGoal && api.newGoal(b.dataset.v, ui.tool === 'money' && ui.joint);
     else if (a === 'plan') { flush(); ui.joint = b.dataset.v === 'us'; render(); window.scrollTo(0, 0); }
     else if (a === 'copyplan') { MONEY_KEYS.forEach((k) => { if (tools[k]) { jointTools[k] = JSON.parse(JSON.stringify(tools[k])); dirty.add('c:' + k); } }); flush(); render(); toast('Copied your plan into “Our plan.”'); }
-    else if (a === 'back') openTool(null);
+    else if (a === 'back') openTool(api.home || null);
     else if (a === 'pick') { const p = b.dataset.path, v = b.dataset.v; if (b.hasAttribute('data-multi')) { const arr = [...(getP(p) || [])]; const i = arr.indexOf(v); i < 0 ? arr.push(v) : arr.splice(i, 1); setP(p, arr); } else setP(p, String(getP(p)) === v ? '' : v); save(); rerenderKeep(); }
     else if (a === 'set') { setP(b.dataset.path, b.dataset.v); save(); rerenderKeep(); }
     else if (a === 'add') { const arr = getP(b.dataset.path) || []; arr.push({}); setP(b.dataset.path, arr); save(); rerenderKeep(); }
