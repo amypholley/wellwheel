@@ -11,7 +11,7 @@ A holistic wellness app from The Holistic Ecosystem, built with Next.js and Supa
 2. ✅ Resources (all worksheets)
 3. ✅ Adventures (maps, photos, bucket lists, hobbies)
 4. ✅ Couple connection and sharing
-5. Plus subscription (Stripe)
+5. ✅ Plus subscription (Stripe)
 
 ## Developers
 ```

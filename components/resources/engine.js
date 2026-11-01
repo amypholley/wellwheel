@@ -606,7 +606,7 @@ export function mountResources(root, api) {
     }
     const groups = [['financial', 'Money'], ['physical', 'Body'], ['mental', 'Mind & coping'], ['emotional', 'Heart & stress'], ['relationships', 'Relationships'], ['spiritual', 'Spirit'], ['purpose', 'Purpose & vision']];
     return `<header class="top"><div><div class="brand">Resources</div><h1>Tools & worksheets</h1><div class="sub">Interactive versions of The Holistic Ecosystem workbooks. Everything you type is saved.</div></div></header>
-  <div class="stack">${groups.map(([pid, lbl]) => { const rs = RES.filter((r) => r.pillar === pid); return `<section><div class="sec-l">${lbl}</div><div class="rgrid">${rs.map((r) => { const p = P[r.pillar]; return `<button class="tile rtile ${r.wide ? 'wide' : ''}" style="--c:${p.color}" data-r="opentool" data-v="${r.id}"><span class="ico">${icon(r.pillar)}</span><b>${esc(r.title)}</b><small>${esc(r.desc)}</small></button>`; }).join('')}</div></section>`; }).join('')}
+  <div class="stack">${groups.map(([pid, lbl]) => { const rs = RES.filter((r) => r.pillar === pid); return `<section><div class="sec-l">${lbl}</div><div class="rgrid">${rs.map((r) => { const p = P[r.pillar]; const lock = api.isLocked && api.isLocked(r.id); return `<button class="tile rtile ${r.wide ? 'wide' : ''}" style="--c:${p.color}" data-r="opentool" data-v="${r.id}"><span class="ico">${icon(r.pillar)}</span><b>${esc(r.title)}${lock ? ' <span class="badge" style="vertical-align:2px">Plus</span>' : ''}</b><small>${esc(r.desc)}</small></button>`; }).join('')}</div></section>`; }).join('')}
   <section><div class="sec-l">Coming soon</div><div class="chips">${SOON.map(([pid, t]) => `<span class="chip static soon" style="--c:${P[pid].color}"><span style="color:${P[pid].color};display:inline-flex;vertical-align:-3px;margin-right:4px">${icon(pid, 14)}</span>${t}</span>`).join('')}</div></section></div>`;
   }
   function updateOuts() {
@@ -633,7 +633,7 @@ export function mountResources(root, api) {
   const refreshCope = () => { const y = window.scrollY; const cl = root.querySelector('#copelist'); if (cl) cl.innerHTML = copeList(); window.scrollTo(0, y); };
   const onClick = (e) => {
     const b = e.target.closest('[data-r]'); if (!b || !root.contains(b)) return; const a = b.dataset.r;
-    if (a === 'opentool') openTool(b.dataset.v);
+    if (a === 'opentool') { if (api.isLocked && api.isLocked(b.dataset.v)) { api.openPlus(b.dataset.v === 'money' ? 'portfolio' : 'tool'); return; } openTool(b.dataset.v); }
     else if (a === 'jump') { const el = root.querySelector('#' + b.dataset.v); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
     else if (a === 'savenow') { const k = curKey(); if (k) dirty.add(k); flush(); setSaveState('✓ All changes saved', 'ok'); toast('Saved'); }
     else if (a === 'newgoal') api.newGoal && api.newGoal(b.dataset.v, ui.tool === 'money' && ui.joint);

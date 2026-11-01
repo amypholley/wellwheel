@@ -4,6 +4,8 @@ import { P, PILLARS } from '@/lib/data';
 import { Goal, dayVal, fmtDate, fmtNum, fromKey, goalWeekScore, key, pillarScore, smartSentence, today, todaysPrompt, total, weekSum } from '@/lib/core';
 import { Icon, Wheel, initials } from './ui';
 import { firstName, useWW } from './store';
+import { PillarReport, PlusLock } from './Plus';
+import { FREE_CHALLENGES } from '@/lib/plus';
 
 /* ---------- couple helpers ---------- */
 const partnerFirst = (S: any) => (S.couple?.partner_name || '').split(' ')[0];
@@ -138,9 +140,9 @@ function GoalRowToday({ g, logOpen, setLogOpen }: { g: Goal; logOpen: string | n
 }
 
 function JournalTeaser() {
-  const { S, setView } = useWW();
+  const { S, setView, isPlus } = useWW();
   const { T } = today();
-  const pr = todaysPrompt(S, 0), p = P[pr.pillar], done = !!(S.journal[T] && S.journal[T].text);
+  const pr = todaysPrompt(S, 0, isPlus || FREE_CHALLENGES), p = P[pr.pillar], done = !!(S.journal[T] && S.journal[T].text);
   return (
     <section className="card">
       <div className="card-head"><h2>Today’s journal prompt</h2>{done && <span className="sub" style={{ color: 'var(--good)', fontWeight: 600 }}>✓ Written</span>}</div>
@@ -258,7 +260,7 @@ export function Goals() {
 
 /* ---------- Progress ---------- */
 export function Progress() {
-  const { S, act, toast, mode } = useWW();
+  const { S, act, toast, mode, isPlus } = useWW();
   const { TODAY, T, weekStart, weekDays } = today();
   const thisMonth = S.gratitude.filter((x) => x.date.slice(0, 7) === T.slice(0, 7)).length;
   const hasExamples = S.goals.some((g) => g.example) || S.gratitude.some((g) => g.example) || Object.values(S.journal).some((j) => j.example);
@@ -291,10 +293,7 @@ export function Progress() {
           }) : <p className="empty">Add a goal to see progress.</p>}
         </section>
         <section className="card"><div className="card-head"><h2>Gratitude</h2></div><p style={{ margin: 0 }}>{thisMonth} line{thisMonth === 1 ? '' : 's'} this month, {S.gratitude.length} all time.</p></section>
-        <section className="card locked"><div className="card-head"><h2>Monthly pillar report</h2><span className="badge">Plus</span></div>
-          <p style={{ margin: '0 0 10px', color: 'var(--muted)' }}>See which pillars got your energy this month, which ones got left out, and a suggested focus for next month. Includes every 30-day challenge and printable workbooks.</p>
-          <button className="btn primary" onClick={() => toast('Plus is coming soon.')}>Try Plus · $5.99/month</button>
-        </section>
+        {isPlus ? <PillarReport /> : <PlusLock reason="report" title="Monthly pillar report" text="See which pillars got your energy this month, which ones got left out, and a suggested focus for next month. Includes every 30-day challenge and all worksheets." />}
         <section className="card"><h2>Example data</h2>
           <p className="hint">{mode === 'guest' ? 'You’re looking around. Nothing here is saved.' : 'Your goals are saved to your account and sync across your devices.'}</p>
           <div className="row" style={{ flexWrap: 'wrap', marginTop: 8 }}>
@@ -309,13 +308,15 @@ export function Progress() {
 
 /* ---------- Journal ---------- */
 export function Journal() {
-  const { S, act, toast } = useWW();
+  const { S, act, toast, isPlus } = useWW();
   const { TODAY, T } = today();
   const [shift, setShift] = useState(0);
+  const challengeOn = isPlus || FREE_CHALLENGES;
+  const inChallenge = TODAY.getFullYear() === 2026 && TODAY.getMonth() === 10;
   const saved = S.journal[T];
   const [text, setText] = useState(saved?.text || '');
   useEffect(() => { if (saved?.text) setText((t) => t || saved.text); }, [saved?.text]);
-  const pr = todaysPrompt(S, shift), p = P[pr.pillar];
+  const pr = todaysPrompt(S, shift, challengeOn), p = P[pr.pillar];
   const past = Object.entries(S.journal).filter(([, v]) => v.text).sort((a, b) => (a[0] < b[0] ? 1 : -1));
   const preNov = TODAY < new Date(2026, 10, 1);
   // Saves automatically a moment after you stop typing, and when you leave the page.
@@ -359,6 +360,7 @@ export function Journal() {
             <button className="btn primary" onClick={saveEntry}>{saved ? 'Update entry' : 'Save entry'}</button>
           </div>
         </section>
+        {inChallenge && !challengeOn && <PlusLock reason="challenge" title="30 Days, 9 Pillars" text="All November, Plus members get a daily challenge prompt that walks through every pillar, starting with 30 things you’re grateful for." />}
         {preNov && <section className="card"><h2>30 Days, 9 Pillars starts Nov 1</h2><p className="sub" style={{ margin: '6px 0 0' }}>All November, your daily prompt comes from the challenge, starting with your list of 30 things you’re grateful for.</p></section>}
         <section className="card"><div className="card-head"><h2>My entries</h2><span className="sub">{past.length}</span></div>
           {past.length ? past.map(([k, v]) => { const pp = P[v.pillar] || P.purpose; return (

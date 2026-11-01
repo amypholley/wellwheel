@@ -4,6 +4,7 @@ import { P, PILLARS, PRESETS, PillarId, Preset } from '@/lib/data';
 import { addMonths, fmtNum, key, smartSentence, today, uid } from '@/lib/core';
 import { Icon } from './ui';
 import { useWW } from './store';
+import { FREE_CUSTOM_GOALS, FREE_PILLAR_LIMIT, pillarsInUse } from '@/lib/plus';
 
 type Draft = {
   pillar: PillarId; title: string; type: 'habit' | 'target'; count: string | number; per: 'day' | 'week'; unit: string;
@@ -24,7 +25,11 @@ function startDraft(pillar: PillarId, pr: Preset | null): Draft {
 const normalize = (g: Draft) => ({ ...g, count: Math.max(1, parseInt(String(g.count)) || 1), target: Number(g.target) || 0, title: g.title || 'my goal' });
 
 export function Wizard() {
-  const { wizard, setWizard, act, setView, toast, S } = useWW();
+  const { wizard, setWizard, act, setView, toast, S, isPlus, setPlusOpen } = useWW();
+  // Free accounts: goals in up to FREE_PILLAR_LIMIT pillars, preset goals only
+  const used = pillarsInUse(S.goals);
+  const pillarLocked = (id: PillarId) => !isPlus && !used.includes(id) && used.length >= FREE_PILLAR_LIMIT;
+  const customLocked = !isPlus && !FREE_CUSTOM_GOALS;
   const first = (S.couple?.partner_name || '').split(' ')[0];
   const [step, setStep] = useState(1);
   const [pillar, setPillar] = useState<PillarId | null>(null);
@@ -35,6 +40,7 @@ export function Wizard() {
 
   useEffect(() => {
     if (!wizard) return;
+    if (wizard.pillar && pillarLocked(wizard.pillar)) { setWizard(null); setPlusOpen('pillars'); return; }
     setPillar(wizard.pillar || null); setStep(wizard.pillar ? 2 : 1); setG(null); setErr(''); setShare(!!wizard.share);
     document.body.style.overflow = 'hidden';
     return () => { document.body.style.overflow = ''; };
@@ -53,8 +59,8 @@ export function Wizard() {
     body = (<>
       <header className="top"><div><div className="brand">New goal · Step 1 of 3</div><h1>Which pillar are you working on?</h1></div>{back}</header>{steps}
       <div className="tiles">{PILLARS.map((p) => (
-        <button key={p.id} className="tile" style={{ ['--c' as any]: p.color }} onClick={() => { setPillar(p.id); setStep(2); }}>
-          <span className="ico"><Icon id={p.id} /></span><b>{p.name}</b><small>{p.desc}</small>
+        <button key={p.id} className="tile" style={{ ['--c' as any]: p.color }} onClick={() => { if (pillarLocked(p.id)) { setWizard(null); setPlusOpen('pillars'); return; } setPillar(p.id); setStep(2); }}>
+          <span className="ico"><Icon id={p.id} /></span><b>{p.name}{pillarLocked(p.id) && <span className="badge" style={{ marginLeft: 6, verticalAlign: 2 }}>Plus</span>}</b><small>{p.desc}</small>
         </button>))}</div>
     </>);
   } else if (step === 2 && pillar) {
@@ -71,8 +77,8 @@ export function Wizard() {
               : pr.options!.length > 1 ? `Choose an amount: ${pr.options!.map((o) => fmtNum(o, pr.unit)).join(', ')}, or your own` : 'One-time goal'}</small></span>
             <span aria-hidden="true">›</span>
           </button>))}
-        <button className="preset" style={{ ['--c' as any]: p.color, borderStyle: 'dashed' }} onClick={() => { setG(startDraft(pillar, null)); setStep(3); }}>
-          <span><b>Write my own goal</b><small>Start from a blank SMART goal</small></span><span aria-hidden="true">›</span>
+        <button className="preset" style={{ ['--c' as any]: p.color, borderStyle: 'dashed' }} onClick={() => { if (customLocked) { setWizard(null); setPlusOpen('custom'); return; } setG(startDraft(pillar, null)); setStep(3); }}>
+          <span><b>Write my own goal{customLocked && <span className="badge" style={{ marginLeft: 6, verticalAlign: 2 }}>Plus</span>}</b><small>Start from a blank SMART goal</small></span><span aria-hidden="true">›</span>
         </button>
       </div>
     </>);

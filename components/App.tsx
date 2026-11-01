@@ -8,6 +8,7 @@ import { Adventures } from './adventures/Adventures';
 import { Auth } from './Auth';
 import { Profile } from './Profile';
 import { LogoWheel } from './ui';
+import { PlusSheet } from './Plus';
 
 const TABS: [View, string, string][] = [
   ['today', 'Today', '<circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6 5.6 18.4"/>'],
@@ -28,10 +29,10 @@ function Toast() {
 }
 
 function Shell() {
-  const { mode, view, setView } = useWW();
+  const { mode, view, setView, isPlus } = useWW();
   if (mode === 'loading') return <div className="loading"><LogoWheel size={64} /></div>;
   const screen = view === 'today' ? <Today /> : view === 'goals' ? <Goals /> : view === 'progress' ? <Progress />
-    : view === 'journal' ? <Journal /> : view === 'grateful' ? <Gratitude /> : view === 'portfolio' ? <Resources key="portfolio" portfolio /> : view === 'resources' ? <Resources key="resources" /> : <Adventures />;
+    : view === 'journal' ? <Journal /> : view === 'grateful' ? <Gratitude /> : view === 'portfolio' ? <Resources key={'portfolio' + isPlus} portfolio /> : view === 'resources' ? <Resources key={'resources' + isPlus} /> : <Adventures />;
   return (
     <>
       {mode !== 'auth' && (<>
@@ -43,7 +44,7 @@ function Shell() {
             </button>))}
         </div></nav>
       </>)}
-      <Wizard /><Profile /><Auth /><Toast />
+      <Wizard /><Profile /><PlusSheet /><Auth /><Toast />
     </>
   );
 }

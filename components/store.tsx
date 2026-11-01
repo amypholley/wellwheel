@@ -1,7 +1,8 @@
 'use client';
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { db, loadProfile, loadState, Profile } from '@/lib/db';
+import { db, loadPlus, loadProfile, loadState, Profile } from '@/lib/db';
+import { PlusInfo } from '@/lib/plus';
 import { Goal, JournalEntry, State, blankState, seedState, today, uid } from '@/lib/core';
 import { PillarId } from '@/lib/data';
 
@@ -23,6 +24,9 @@ function useStoreValue() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState<string | null>(null);
   const [toastMsg, setToastMsg] = useState({ text: '', n: 0 });
+  const [plusInfo, setPlusInfo] = useState<PlusInfo>({ plus: false });
+  const [plusOpen, setPlusOpen] = useState<string | null>(null); // why the upgrade sheet opened
+  const [guestFree, setGuestFree] = useState(false); // ?demo=free previews the app as a free account
   const loadedFor = useRef<string | null>(null);
   const queue = useRef<Promise<any>>(Promise.resolve());
 
@@ -41,6 +45,17 @@ function useStoreValue() {
       }
       const s = await loadState();
       setProfile(prof); setS(s); setMode('user'); setViewRaw('today');
+      setPlusInfo(await loadPlus());
+      // Back from Stripe checkout: wait for Stripe to confirm, then unlock
+      if (typeof window !== 'undefined' && /plus=success/.test(window.location.search)) {
+        history.replaceState(null, '', window.location.pathname);
+        toast('Thank you! Unlocking Plus…');
+        for (let i = 0; i < 12; i++) {
+          await new Promise((r) => setTimeout(r, 2500));
+          const p = await loadPlus(); setPlusInfo(p);
+          if (p.plus) { toast('Welcome to WellWheel Plus!'); break; }
+        }
+      }
     } catch (e: any) {
       console.error(e);
       setLoadError('We couldn’t load your account. Check your connection and try again.');
@@ -80,7 +95,7 @@ function useStoreValue() {
     const onShow = async () => {
       if (document.visibilityState !== 'visible' || modeRef.current !== 'user') return;
       await queue.current;
-      try { setS(await loadState()); } catch {}
+      try { setS(await loadState()); setPlusInfo(await loadPlus()); } catch {}
     };
     document.addEventListener('visibilitychange', onShow);
     return () => document.removeEventListener('visibilitychange', onShow);
@@ -116,13 +131,13 @@ function useStoreValue() {
     async connect(code: string) {
       await queue.current;
       const name = await db.connect(code);
-      setS(await loadState());
+      setS(await loadState()); setPlusInfo(await loadPlus());
       return name;
     },
     async disconnect() {
       await queue.current;
       await db.disconnect();
-      setS(await loadState());
+      setS(await loadState()); setPlusInfo(await loadPlus());
     },
     addGratitude(text: string, replaceToday: boolean) {
       const { T } = today();
@@ -180,6 +195,7 @@ function useStoreValue() {
         s.partnerPlaces = { 'W:840': { status: 'been' }, 'W:380': { status: 'been', note: 'Our honeymoon someday!' }, 'S:48': { status: 'been' }, 'S:15': { status: 'want' } };
         s.coupleData = { bucket: { list: [{ text: 'Take a dance class together', cat: 'Just for fun', year: '', done: false, photos: [] }, { text: 'Stay in a cabin in the mountains', cat: 'Travel', year: '2027', done: false, photos: [] }] }, couples: { entries: [] } };
       }
+      setGuestFree(typeof window !== 'undefined' && /demo=free/.test(window.location.search));
       setMode('guest'); setS(s); setProfile(null); setViewRaw('today');
     },
     async logout() {
@@ -200,6 +216,8 @@ function useStoreValue() {
   };
 
   return {
+    // Guests ("Look around") can preview everything; accounts follow their Plus status
+    isPlus: mode === 'guest' ? !guestFree : plusInfo.plus, plusInfo, plusOpen, setPlusOpen,
     intent, setIntent, mode, S, profile, recovery, setRecovery, loadError, view, setView, wizard, setWizard,
     profileOpen, setProfileOpen, authOpen, setAuthOpen, toastMsg, toast, act, loadUser,
   };

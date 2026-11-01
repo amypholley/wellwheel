@@ -61,6 +61,12 @@ export async function loadState(): Promise<State> {
   return s;
 }
 
+// WellWheel Plus status (a couples plan paid by either partner covers both)
+export async function loadPlus(): Promise<any> {
+  const r = await supabase!.rpc('my_plus');
+  return r.error || !r.data ? { plus: false } : r.data;
+}
+
 export const db = {
   async addGoals(goals: Goal[]) { if (goals.length) check(await supabase!.from('goals').insert(goals.map(goalToRow))); },
   async deleteGoal(id: string) { check(await supabase!.from('goals').delete().eq('id', id)); },

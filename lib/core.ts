@@ -79,12 +79,13 @@ export function smartSentence(g: Partial<Goal>) {
 }
 
 /* ---------- journal prompt ---------- */
-export function todaysPrompt(S: State, shift: number): { pillar: PillarId; text: string; label: string } {
+// challenge: false hides the 30-day challenge prompts (a Plus feature) and uses the regular daily prompts
+export function todaysPrompt(S: State, shift: number, challenge = true): { pillar: PillarId; text: string; label: string } {
   const { TODAY, T } = today();
   const saved = S.journal[T];
   if (saved && !shift) return { pillar: saved.pillar, text: saved.prompt, label: saved.label || '' };
   const y = TODAY.getFullYear(), m = TODAY.getMonth();
-  if (y === 2026 && m === 10 && !shift) {
+  if (challenge && y === 2026 && m === 10 && !shift) {
     const d = Math.min(30, TODAY.getDate());
     const [pl, txt] = CHALLENGE[d - 1];
     const pid = (PILLARS.find((p) => pl.startsWith(p.name)) || { id: 'purpose' as PillarId }).id;

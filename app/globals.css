@@ -428,3 +428,8 @@ nav.tabs .in{grid-template-columns:repeat(8,1fr);max-width:720px}
 .bkedit select{width:auto;padding:5px 8px;font-size:13px;border-radius:8px}
 .bkyear{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--muted)}
 .bkyear input{width:84px;padding:5px 8px;font-size:13px;border-radius:8px}
+/* ---------- WellWheel Plus ---------- */
+.plus-sheet{z-index:38}
+.plans{display:grid;grid-template-columns:1fr;gap:12px;margin-top:12px}
+@media (min-width:560px){.plans{grid-template-columns:1fr 1fr}}
+.plan-price{font-family:var(--display);font-size:24px;font-weight:600;margin:0 0 12px}

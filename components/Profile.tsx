@@ -3,9 +3,11 @@ import { useEffect, useState } from 'react';
 import { fmtDate } from '@/lib/core';
 import { initials } from './ui';
 import { useWW } from './store';
+import { PlusStatus } from './Plus';
+import { FREE_COUPLE } from '@/lib/plus';
 
 function Couple() {
-  const { S, profile, act, toast } = useWW();
+  const { S, profile, act, toast, isPlus, setPlusOpen } = useWW();
   const [code, setCode] = useState('');
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
@@ -41,6 +43,10 @@ function Couple() {
       <p style={{ marginTop: 0 }}>Share your code with your partner, or enter theirs. Then you can share goals (like a savings goal), a travel map, a couple’s bucket list, and a joint money plan, while your journal and everything else stays private.</p>
       <div className="codebox"><span className="sub">Your couple code</span><b>{profile.couple_code}</b>
         <button className="btn small" onClick={async () => { try { await navigator.clipboard.writeText(profile.couple_code); toast('Code copied'); } catch { toast('Code: ' + profile.couple_code); } }}>Copy</button></div>
+      {!isPlus && !FREE_COUPLE ? (
+        <div className="note" style={{ marginTop: 12 }}>Connecting is part of WellWheel Plus. The couples plan covers both of you with one payment. If your partner already has Plus, give them your code and they can connect from their profile.
+          <div style={{ marginTop: 8 }}><button className="btn small primary" onClick={() => setPlusOpen('couple')}>See WellWheel Plus</button></div></div>
+      ) : (<>
       <form className="row" style={{ marginTop: 12 }} onSubmit={async (e) => {
         e.preventDefault(); if (!code.trim()) return;
         setBusy(true); setErr('');
@@ -52,6 +58,7 @@ function Couple() {
         <button className="btn primary" type="submit" disabled={busy}>{busy ? 'Connecting…' : 'Connect'}</button>
       </form>
       {err && <p className="autherr" role="alert" style={{ marginTop: 8 }}>{err}</p>}
+      </>)}
     </section>
   );
 }
@@ -82,6 +89,7 @@ export function Profile() {
       <div className="pfhead"><span className="avatar big">{initials(profile.display_name)}</span>
         <div><h1 style={{ margin: 0 }}>{profile.display_name}</h1><div className="sub">@{profile.username} · member since {fmtDate(profile.created_at.slice(0, 10), { month: 'long', year: 'numeric' })}</div></div></div>
       <Couple />
+      <PlusStatus />
       <section className="card" style={{ marginTop: 14 }}>
         <h2>Account</h2><div className="rule" />
         <label className="lbl" htmlFor="pf-name">Display name</label>
