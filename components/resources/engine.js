@@ -24,8 +24,10 @@ export function mountResources(root, api) {
   const partnerName = () => api.partnerName ? api.partnerName() : '';
 
   /* ---------- saving ---------- */
-  const flush = () => { clearTimeout(timer); timer = null; dirty.forEach((k) => api.persist(k, tools[k])); dirty.clear(); };
-  const save = () => { if (ui.tool) dirty.add(STORE_KEY[ui.tool] || ui.tool); clearTimeout(timer); timer = setTimeout(flush, 800); };
+  const setSaveState = (txt, cls) => { const el = root.querySelector('[data-savestate]'); if (el) { el.textContent = txt; el.className = 'savestate ' + (cls || ''); } };
+  const flush = () => { clearTimeout(timer); timer = null; dirty.forEach((k) => { if (tools[k] !== undefined) api.persist(k, tools[k]); }); const had = dirty.size; dirty.clear(); if (had) setSaveState('✓ All changes saved', 'ok'); };
+  const curKey = () => (ui.tool === 'money' ? msec()[3] : ui.tool ? STORE_KEY[ui.tool] || ui.tool : null);
+  const save = () => { const k = curKey(); if (k) dirty.add(k); setSaveState('Saving…'); clearTimeout(timer); timer = setTimeout(flush, 800); };
 
   /* ---------- form helpers ---------- */
   const num = (v) => { const n = parseFloat(String(v ?? '').replace(/[$,]/g, '')); return isFinite(n) ? n : 0; };
@@ -43,9 +45,17 @@ export function mountResources(root, api) {
   /* ---------- 1. Intentional spending ---------- */
   function spendTotals() {
     const it = getP('spending.items') || {}; let tot = 0, rev = 0, n = 0;
-    const cats = SPEND_CATS.map(([c, items]) => { let ct = 0, cn = 0; items.forEach((x) => { const r = it[ik(x)]; if (r && r.on) { cn++; ct += num(r.cost); if (r.need === 'No' || r.need === 'Review') rev += num(r.cost); } }); tot += ct; n += cn; return [cn, ct]; });
+    const oth = getP('spending.other') || {};
+    const cats = SPEND_CATS.map(([c, items]) => {
+      let ct = 0, cn = 0;
+      const add = (r) => { cn++; ct += num(r.cost); if (r.need === 'No' || r.need === 'Review') rev += num(r.cost); };
+      items.forEach((x) => { const r = it[ik(x)]; if (r && r.on) add(r); });
+      (oth[ik(c)] || []).forEach((r) => { if (r && (r.label || num(r.cost))) add(r); });
+      tot += ct; n += cn; return [cn, ct];
+    });
     return { tot, rev, n, cats };
   }
+  const needSel = (path, v) => `<select data-b="${esc(path)}" aria-label="Necessary?">${['Yes', 'No', 'Review'].map((o) => `<option ${(v || 'Yes') === o ? 'selected' : ''}>${o}</option>`).join('')}</select>`;
   const TOOL_SPENDING = {
     render() {
       const it = getP('spending.items') || {}, open = getP('spending.open') || {};
@@ -54,23 +64,38 @@ export function mountResources(root, api) {
     <section class="card"><h2>My financial priorities</h2><div class="rule"></div><div class="stack" style="gap:8px">${[0, 1, 2].map((i) => inp(`spending.prio.${i}`, { ph: `Top goal #${i + 1} this month` })).join('')}</div>
       <label class="lbl" style="margin-top:12px">My “why”</label>${area('spending.why', 'Why is managing my money important to me?')}</section>
     <section class="card sticky-sum"><div class="sumgrid">
-      <div><div class="k">Monthly income</div>${inp('spending.income', { type: 'number', ph: '0', cls: 'big' })}</div>
+      <div><div class="k">Monthly income</div><div class="v">${out('sp-inc')}</div></div>
       <div><div class="k">Monthly expenses</div><div class="v">${out('sp-tot')}</div></div>
       <div><div class="k">Left over</div><div class="v">${out('sp-left')}</div></div>
       <div><div class="k">Marked “No” or “Review”</div><div class="v" style="color:var(--gold)">${out('sp-rev')}</div></div>
     </div><p class="hint" style="margin-bottom:0">${out('sp-n')}</p></section>
     ${SPEND_CATS.map(([c, items], ci) => `<details class="card fold" data-fold="spending.open.${ik(c)}" ${open[ik(c)] ? 'open' : ''}><summary><b>${c}</b><span class="sub">${out('sp-c' + ci)}</span></summary>
-      <div class="items">${items.map((x) => { const k = ik(x), r = it[k] || {}; return `<div class="item ${r.on ? 'on' : ''}">${chk(`spending.items.${k}.on`, esc(x), true)}${r.on ? `<div class="item-in"><div class="money">${inp(`spending.items.${k}.cost`, { type: 'number', ph: 'Monthly cost' })}</div><select data-b="spending.items.${k}.need" aria-label="Necessary?">${['Yes', 'No', 'Review'].map((o) => `<option ${(r.need || 'Yes') === o ? 'selected' : ''}>${o}</option>`).join('')}</select></div>` : ''}</div>`; }).join('')}</div></details>`).join('')}
+      <div class="items">${items.map((x) => { const k = ik(x), r = it[k] || {}; return `<div class="item ${r.on ? 'on' : ''}">${chk(`spending.items.${k}.on`, esc(x), true)}${r.on ? `<div class="item-in"><label>Monthly cost<div class="money">${inp(`spending.items.${k}.cost`, { type: 'number', ph: '0' })}</div></label><label>Necessary?${needSel(`spending.items.${k}.need`, r.need)}</label></div>` : ''}</div>`; }).join('')}
+      ${((getP('spending.other') || {})[ik(c)] || []).map((r, i) => `<div class="item other"><div class="oth-in"><label>Other expense${inp(`spending.other.${ik(c)}.${i}.label`, { ph: 'Name it' })}</label><label>Monthly cost<div class="money">${inp(`spending.other.${ik(c)}.${i}.cost`, { type: 'number', ph: '0' })}</div></label><label>Necessary?${needSel(`spending.other.${ik(c)}.${i}.need`, (r || {}).need)}</label><button class="x" data-r="del" data-path="spending.other.${ik(c)}" data-i="${i}" aria-label="Remove">×</button></div></div>`).join('')}
+      </div><button class="btn small" style="margin-top:8px" data-r="add" data-path="spending.other.${ik(c)}">+ Add other</button></details>`).join('')}
     <section class="card"><h2>Before I spend…</h2><div class="rule"></div><ul class="checks"><li>Does this align with my priorities?</li><li>Can I comfortably afford it?</li><li>Will I still value this next month?</li><li>Is this helping me build the life I want?</li></ul>
       <label class="lbl" style="margin-top:10px">Notes</label>${area('spending.notes', 'What did I discover? What will I cancel, lower, or keep?')}</section></div>`;
     },
-    outs() { const t = spendTotals(), inc = num(getP('spending.income')); const o = { 'sp-tot': money(t.tot), 'sp-left': inc ? money(inc - t.tot) : 'Add income', 'sp-rev': money(t.rev), 'sp-n': `${t.n} expense${t.n === 1 ? '' : 's'} checked. “Review” items are the first place to look for savings.` }; t.cats.forEach(([cn, ct], i) => (o['sp-c' + i] = cn ? `${cn} · ${money(ct)}` : '')); return o; },
+    outs() { const t = spendTotals(), inc = incomeTotal(); const o = { 'sp-tot': money(t.tot), 'sp-left': inc ? money(inc - t.tot) : 'Add income', 'sp-rev': money(t.rev), 'sp-inc': inc ? money(inc) : 'Add in Income', 'sp-n': `${t.n} expense${t.n === 1 ? '' : 's'} checked. “Review” items are the first place to look for savings.` }; t.cats.forEach(([cn, ct], i) => (o['sp-c' + i] = cn ? `${cn} · ${money(ct)}` : '')); return o; },
+  };
+
+  /* ---------- Income (shared by every money section) ---------- */
+  const TOOL_INCOME = {
+    render() {
+      return `<div class="stack"><section class="card"><h2>My monthly income</h2><div class="rule"></div><p class="sub" style="margin-top:0">Take-home pay after taxes, for a typical month. You only enter this once; every section of the planner uses it.</p>
+      <div class="rows">${INC_KEYS.map((k) => `<div class="r2"><span>${k}</span><div class="money">${inp(`monthly.inc.${k}`, { type: 'number', ph: '0' })}</div></div>`).join('')}
+      <div class="r2 total"><span>Total monthly income</span><b>${out('m-inc')}</b></div></div>
+      <p class="note">Paid every two weeks? Multiply one paycheck by 26, then divide by 12.</p></section></div>`;
+    },
+    outs() { return { 'm-inc': money(incomeTotal()) }; },
   };
 
   /* ---------- 2. Monthly money plan ---------- */
   const DAYS7 = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+  // One income for the whole planner (older entries from the spending worksheet still count)
+  const incomeTotal = () => INC_KEYS.reduce((a, k) => a + num(getP(`monthly.inc.${k}`)), 0) || num(getP('spending.income'));
   function monthlyCalc() {
-    const inc = INC_KEYS.reduce((a, k) => a + num(getP(`monthly.inc.${k}`)), 0);
+    const inc = incomeTotal();
     let pl = 0, ac = 0; PLAN_CATS.forEach((c) => { pl += num(getP(`monthly.plan.${c}.p`)); ac += num(getP(`monthly.plan.${c}.a`)); });
     const bills = getP('monthly.bills') || []; const bt = bills.reduce((a, b) => a + num(b.amt), 0), bu = bills.filter((b) => !b.paid).reduce((a, b) => a + num(b.amt), 0);
     return { inc, pl, ac, bt, bu };
@@ -87,8 +112,7 @@ export function mountResources(root, api) {
       <li><b>Manage debt wisely.</b> Use debt thoughtfully and pay it down with a plan.</li>
       <li><b>Build the life you want.</b> Money is a tool, not the destination.</li></ol></details>
     <section class="card"><label class="lbl">Month</label>${inp('monthly.month', { ph: 'Month' })}</section>
-    <section class="card"><h2>Income</h2><div class="rule"></div><div class="rows">${INC_KEYS.map((k) => `<div class="r2"><span>${k}</span><div class="money">${inp(`monthly.inc.${k}`, { type: 'number', ph: '0' })}</div></div>`).join('')}
-      <div class="r2 total"><span>Total monthly income</span><b>${out('m-inc')}</b></div></div></section>
+    <section class="card"><div class="r2 total" style="border:0;padding:0;margin:0"><span>Total monthly income</span><b>${out('m-inc')}</b></div><button class="linkish" style="margin-top:6px" data-r="msec" data-v="income">Edit income</button></section>
     <section class="card"><h2>Monthly financial goals</h2><div class="rule"></div><div class="stack" style="gap:8px">
       <div class="goalline">${chk('monthly.goals.save.on', 'Save')}<div class="money">${inp('monthly.goals.save.amt', { type: 'number', ph: 'Amount' })}</div></div>
       <div class="goalline">${chk('monthly.goals.pay.on', 'Pay off')}<div class="money">${inp('monthly.goals.pay.amt', { type: 'number', ph: 'Amount' })}</div></div>
@@ -109,9 +133,8 @@ export function mountResources(root, api) {
       ${up.map((b, i) => `<div class="bill">${inp(`monthly.up.${i}.txt`, { ph: 'e.g. Oil change, birthday gift' })}<div class="money">${inp(`monthly.up.${i}.amt`, { type: 'number', ph: '0' })}</div><button class="x" data-r="del" data-path="monthly.up" data-i="${i}" aria-label="Remove">×</button></div>`).join('')}
       <button class="btn small" data-r="add" data-path="monthly.up">+ Add an expense</button></section>
     <section class="card"><h2>Savings planner</h2><div class="rule"></div>
-      <div class="r2"><span>Emergency fund goal</span><div class="money">${inp('monthly.ef.goal', { type: 'number', ph: '0' })}</div></div>
-      <div class="r2"><span>Current balance</span><div class="money">${inp('monthly.ef.cur', { type: 'number', ph: '0' })}</div></div>
-      <div class="boxes" data-oh="m-efbox"></div>
+      <h3 class="h3" style="margin-top:0">Emergency fund</h3>
+      <div class="boxes" data-oh="m-efbox"></div><button class="linkish" data-r="msec" data-v="efund">Update in Emergency fund</button>
       <h3 class="h3">Other savings goals</h3><div class="rows">${SAVE_KEYS.map((k) => `<div class="r2"><span>${k}</span><div class="money">${inp(`monthly.sav.${k}`, { type: 'number', ph: '0' })}</div></div>`).join('')}</div></section>
     <section class="card"><h2>Financial wellness habits</h2><div class="rule"></div>
       ${['Reviewed my financial plan', 'Checked my bank account'].map((h, hi) => `<div class="habit"><span>${h}</span><div class="days">${DAYS7.map((d, i) => `<label class="day"><input type="checkbox" data-b="monthly.hab.${hi}.${i}" ${getP(`monthly.hab.${hi}.${i}`) ? 'checked' : ''}><span>${d}</span></label>`).join('')}</div></div>`).join('')}</section></div>`;
@@ -120,7 +143,7 @@ export function mountResources(root, api) {
       const c = monthlyCalc(); const o = { 'm-inc': money(c.inc), 'm-pl': money(c.pl), 'm-ac': money(c.ac), 'm-dt': c.ac ? money(c.pl - c.ac) : '', 'm-bills': `${money(c.bt)} total · ${money(c.bu)} unpaid` };
       PLAN_CATS.forEach((cat) => { const p = num(getP(`monthly.plan.${cat}.p`)), a = num(getP(`monthly.plan.${cat}.a`)); o['m-d-' + ik(cat).replace(/\W/g, '')] = a ? money(p - a) : ''; });
       const left = c.inc - c.pl; o['m-left'] = !c.inc ? 'Add your income to see how much is left to give a purpose.' : left > 0 ? `${money(left)} still needs a purpose. Consider savings or debt.` : left === 0 ? 'Every dollar has a purpose. Nice work.' : `Planned spending is ${money(-left)} more than income.`;
-      const g = num(getP('monthly.ef.goal')), cu = num(getP('monthly.ef.cur')), f = g ? Math.min(10, Math.floor((cu / g) * 10)) : 0;
+      const g = num(getP('efund.goal')) || num(getP('monthly.ef.goal')), cu = num(getP('efund.cur')) || num(getP('monthly.ef.cur')), f = g ? Math.min(10, Math.floor((cu / g) * 10)) : 0;
       o.__html = { 'm-efbox': Array.from({ length: 10 }, (_, i) => `<span class="${i < f ? 'on' : ''}"></span>`).join('') + `<em>${g ? Math.min(100, Math.round((cu / g) * 100)) + '%' : ''}</em>` };
       return o;
     },
@@ -462,14 +485,119 @@ export function mountResources(root, api) {
     },
   };
 
+
+  /* ---------- Financial portfolio (pulls from the money worksheets and goals) ---------- */
+  const hbar = (label, value, max, note = '') => `<div class="hb" title="${esc(label)}: ${money(value)}"><span class="hb-l">${esc(label)}</span><span class="hb-t"><span style="width:${max > 0 ? Math.max(1.5, Math.min(100, (value / max) * 100)) : 0}%"></span></span><span class="hb-v">${money(value)}${note}</span></div>`;
+  function nwTrend(hist) {
+    if (hist.length < 2) return '<p class="empty">Save at least two check-ins in the Net worth section to see your trend here.</p>';
+    const W = 320, H = 130, px = 10, py = 14;
+    const vals = hist.map((h) => h.nw), lo = Math.min(0, ...vals), hi = Math.max(...vals), span = hi - lo || 1;
+    const x = (i) => px + (i * (W - 2 * px)) / (hist.length - 1), y = (v) => H - py - ((v - lo) / span) * (H - 2 * py);
+    const pts = hist.map((h, i) => `${x(i).toFixed(1)},${y(h.nw).toFixed(1)}`).join(' ');
+    const zero = lo < 0 ? `<line x1="${px}" x2="${W - px}" y1="${y(0)}" y2="${y(0)}" stroke="var(--line)" stroke-width="1"/>` : '';
+    return `<svg class="nwline" viewBox="0 0 ${W} ${H}" role="img" aria-label="Net worth over time">${zero}<polyline points="${pts}" fill="none" stroke="${P.financial.color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+      ${hist.map((h, i) => `<g><circle cx="${x(i)}" cy="${y(h.nw)}" r="12" fill="transparent"><title>${fmtDate(h.date)}: ${money(h.nw)}</title></circle><circle cx="${x(i)}" cy="${y(h.nw)}" r="4" fill="${P.financial.color}" stroke="var(--surface)" stroke-width="2" pointer-events="none"/></g>`).join('')}</svg>
+      <div class="nwax"><span>${fmtDate(hist[0].date, { month: 'short', year: 'numeric' })}</span><span>${fmtDate(hist[hist.length - 1].date, { month: 'short', year: 'numeric' })}</span></div>
+      <details class="mini"><summary>Show as a table</summary><div class="tbl" style="margin-top:8px"><div class="th"><span>Date</span><span>Net worth</span></div>${hist.map((h) => `<div class="tr"><span>${fmtDate(h.date)}</span><span>${money(h.nw)}</span></div>`).join('')}</div></details>`;
+  }
+  function portfolioData() {
+    const sp = spendTotals(), mc = monthlyCalc(), nw = nwCalc();
+    const income = mc.inc || num(getP('spending.income'));
+    const expenses = sp.tot || mc.pl;
+    const cats = SPEND_CATS.map(([c], i) => [c, sp.cats[i][1]]).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]);
+    const debts = getP('debt.list') || []; const debtTot = debts.reduce((a, d) => a + num(d.bal), 0); const mins = debts.reduce((a, d) => a + num(d.min), 0);
+    const sim = simDebt(debts, num(getP('debt.extra')), 'avalanche');
+    const highRate = debts.filter((d) => num(d.bal) > 0).sort((a, b) => num(b.rate) - num(a.rate))[0];
+    const efCur = num(getP('efund.cur')) || num(getP('monthly.ef.cur')), efGoal = num(getP('efund.goal')) || num(getP('monthly.ef.goal'));
+    const hist = getP('nw.hist') || []; const hasNw = nw.a || nw.l;
+    return { sp, income, expenses, left: income - expenses, cats, debts, debtTot, mins, sim, highRate, efCur, efGoal, nw, hist, hasNw, goals: api.financialGoals ? api.financialGoals() : [] };
+  }
+  function suggestions(d) {
+    const out = []; const go = (id, lbl) => `<button class="linkish" data-r="msec" data-v="${id === 'monthly' ? 'plan' : id}">${lbl} →</button>`;
+    if (!d.income) out.push(['Start with the full picture', 'Add your monthly income and expenses so everything here can add up.', go('income', 'Add my income')]);
+    if (d.income && d.left < 0) out.push(['Spending is more than income', `Your expenses are ${money(-d.left)} more than your income each month. Items you marked “No” or “Review” add up to ${money(d.sp.rev)}, which is the first place to look.`, go('spending', 'Review my expenses')]);
+    if (d.efCur < 500) out.push(['Build a starter emergency fund', 'A first cushion of about $500 keeps one surprise from turning into new debt.', go('efund', 'Emergency fund')]);
+    else if (d.efGoal && d.efCur < d.efGoal) out.push(['Keep growing your emergency fund', `You’re ${money(d.efGoal - d.efCur)} from your goal.${d.left > 0 ? ` Setting aside part of the ${money(d.left)} left over each month would get you there faster.` : ''}`, go('efund', 'Emergency fund')]);
+    if (d.highRate && num(d.highRate.rate) >= 15) out.push(['Target high-interest debt', `${esc(d.highRate.name || 'One debt')} charges ${num(d.highRate.rate)}% interest. Paying extra toward the highest rate first (the avalanche method) saves the most interest.`, go('debt', 'Debt')]);
+    else if (!d.debts.length) out.push(['List any debts', 'If you have debts, add them to see your debt-free date and the order to pay them off.', go('debt', 'Debt')]);
+    if (!d.hasNw) out.push(['Take a net worth snapshot', 'Add what you own and owe, then save a check-in every few months to watch your progress.', go('networth', 'Net worth')]);
+    if (!d.goals.length) out.push(['Set a money goal', 'Pick one specific goal, like a trip fund or paying off one card, and track it on Today.', `<button class="linkish" data-r="newgoal" data-v="financial">Set a money goal →</button>`]);
+    if (d.income && d.left > 0 && d.efCur >= 500 && !(d.highRate && num(d.highRate.rate) >= 15)) out.push(['Give your extra money a job', `You have about ${money(d.left)} left each month. Decide ahead of time how much goes to savings, debt, and goals.`, go('monthly', 'Monthly plan')]);
+    return out;
+  }
+  const TOOL_PORTFOLIO = {
+    render() {
+      const d = portfolioData();
+      const maxIE = Math.max(d.income, d.expenses);
+      const top = d.cats.slice(0, 8), rest = d.cats.slice(8).reduce((a, [, v]) => a + v, 0); if (rest) top.push(['Everything else', rest]);
+      const catMax = top.length ? top[0][1] : 0;
+      const leftCls = !d.income ? '' : d.left >= 0 ? 'good' : 'bad';
+      const sugg = suggestions(d);
+      return `<div class="stack">
+    <section class="card"><p style="margin:0">Your money in one place, pulled from every section of this planner and your money goals. Change a number in any section and this page updates.</p></section>
+    <section class="card"><h2>This month</h2><div class="rule"></div><div class="sumgrid">
+      <div><div class="k">Monthly income</div><div class="v">${d.income ? money(d.income) : '—'}</div></div>
+      <div><div class="k">Monthly expenses</div><div class="v">${d.expenses ? money(d.expenses) : '—'}</div></div>
+      <div><div class="k">Left over</div><div class="v ${leftCls}">${d.income ? (d.left >= 0 ? '' : '⚠ ') + money(d.left) : '—'}</div>${leftCls === 'bad' ? '<div class="hint" style="margin:0">Over budget</div>' : ''}</div>
+      <div><div class="k">Net worth</div><div class="v">${d.hasNw ? money(d.nw.nw) : '—'}</div></div>
+      <div><div class="k">Total debt</div><div class="v">${d.debtTot ? money(d.debtTot) : '—'}</div></div>
+      <div><div class="k">Emergency fund</div><div class="v">${d.efCur ? money(d.efCur) : '—'}</div></div>
+    </div>
+    ${d.income || d.expenses ? `<h3 class="h3">Income vs. expenses</h3><div class="hbars">${hbar('Income', d.income, maxIE)}${hbar('Expenses', d.expenses, maxIE)}</div>` : ''}</section>
+    <section class="card"><div class="card-head"><h2>Where the money goes</h2><span class="sub">per month</span></div>
+      ${top.length ? `<div class="hbars">${top.map(([c, v]) => hbar(c, v, catMax, d.expenses ? ` <small>${Math.round((v / d.expenses) * 100)}%</small>` : '')).join('')}</div>` : `<p class="empty">Check off your expenses in the Expenses section to see this.</p><button class="btn small" data-r="msec" data-v="spending">Go to Expenses</button>`}</section>
+    <section class="card"><div class="card-head"><h2>Net worth over time</h2>${d.hasNw ? `<span class="sub">${money(d.nw.nw)} now</span>` : ''}</div>${nwTrend(d.hist)}
+      <button class="btn small" style="margin-top:10px" data-r="msec" data-v="networth">Update net worth</button></section>
+    <section class="card"><h2>Savings & debt</h2><div class="rule"></div>
+      <h3 class="h3" style="margin-top:0">Emergency fund</h3>
+      ${d.efGoal ? `<div class="bar" style="height:12px"><span style="width:${Math.min(100, (d.efCur / d.efGoal) * 100)}%;background:${P.financial.color}"></span></div><div class="goal-meta" style="margin-top:4px">${money(d.efCur)} of ${money(d.efGoal)} (${Math.min(100, Math.round((d.efCur / d.efGoal) * 100))}%)</div>` : `<p class="empty">No goal set yet.</p>`}
+      <h3 class="h3">Debt</h3>
+      ${d.debtTot ? `<div class="kv"><span>Total owed</span><b>${money(d.debtTot)}</b></div><div class="kv"><span>Minimum payments</span><b>${money(d.mins)}/month</b></div>${d.sim && !d.sim.stuck ? `<div class="kv"><span>Debt-free (avalanche plan)</span><b>${mdate(d.sim.months)}</b></div><div class="kv"><span>Interest still to pay</span><b>${money(Math.round(d.sim.interest))}</b></div>` : d.sim && d.sim.stuck ? '<p class="note">At these payments the balances don’t go down. Add an extra monthly amount in the Debt section.</p>' : ''}` : `<p class="empty">No debts listed.</p>`}</section>
+    <section class="card"><h2>Money goals</h2><div class="rule"></div>
+      ${d.goals.length ? d.goals.map((g) => { const pct = g.target ? Math.min(100, Math.round((g.total / g.target) * 100)) : 0; return `<div class="goal" style="grid-template-columns:4px 1fr"><span class="stripe" style="background:${P.financial.color}"></span><div><div class="goal-title">${esc(g.title)}</div>${g.type === 'target' && g.unit !== 'done' ? `<div class="bar"><span style="width:${pct}%;background:${P.financial.color}"></span></div><div class="goal-meta" style="margin-top:4px">${g.unit === '$' ? money(g.total) : g.total} of ${g.unit === '$' ? money(g.target) : g.target + ' ' + esc(g.unit)} (${pct}%)</div>` : `<div class="goal-meta">${g.type === 'habit' ? `${g.total} logged so far` : g.total >= 1 ? 'Done' : 'Not done yet'}</div>`}</div></div>`; }).join('') : '<p class="empty">No money goals yet.</p>'}
+      <button class="btn small" style="margin-top:8px" data-r="newgoal" data-v="financial">+ New money goal</button></section>
+    <section class="card"><h2>Suggested next steps</h2><div class="rule"></div>
+      ${sugg.length ? sugg.map(([t, txt, act]) => `<div class="sugg"><b>${t}</b><p>${txt}</p>${act}</div>`).join('') : '<p class="empty">You’re on track. Keep checking in each month.</p>'}
+      <p class="note">These are general, educational suggestions, not personal financial advice.</p></section>
+    <section class="card"><h2>Ideas for growing your income</h2><div class="rule"></div><ul class="checks">
+      <li>Ask about a raise, more hours, or a higher-paying role where you are. Bring a list of your wins.</li>
+      <li>Build one skill that pays more in your field: a certification, license, or course.</li>
+      <li>Turn a skill or hobby into side income: baking, crafts, tutoring, pet sitting, or freelance work.</li>
+      <li>Sell things you no longer use, and put the money toward a goal.</li>
+      <li>Check for benefits you may be missing, like an employer retirement match.</li></ul>
+      <button class="btn small" style="margin-top:10px" data-r="newgoal" data-v="financial">Set an “Earn side income” goal</button></section></div>`;
+    },
+  };
+
+  /* ---------- Financial Wellness Planner: every money section in one place ---------- */
+  const MSECS = [
+    ['portfolio', 'My portfolio', TOOL_PORTFOLIO, null],
+    ['income', 'Income', TOOL_INCOME, 'monthly'],
+    ['spending', 'Expenses', TOOL_SPENDING, 'spending'],
+    ['plan', 'Monthly plan', TOOL_MONTHLY, 'monthly'],
+    ['efund', 'Emergency fund', TOOL_EFUND, 'efund'],
+    ['debt', 'Debt', TOOL_DEBT, 'debt'],
+    ['networth', 'Net worth', TOOL_NW, 'nw'],
+    ['books', 'Reading list', TOOL_BOOKS, 'books'],
+  ];
+  const msec = () => MSECS.find((m) => m[0] === ui.msec) || MSECS[0];
+  const hasMoney = () => { const d = portfolioData(); return !!(d.income || d.expenses || d.debtTot || d.efCur || d.hasNw); };
+  const TOOL_MONEY = {
+    render() {
+      if (!ui.msec) ui.msec = hasMoney() ? 'portfolio' : 'income';
+      const [id, , tool] = msec(); const i = MSECS.findIndex((m) => m[0] === id);
+      const steps = MSECS.slice(1);
+      const nav = `<div class="chips scroll msec" role="tablist" aria-label="Planner sections">${MSECS.map(([k, l], n) => `<button class="chip" role="tab" data-r="msec" data-v="${k}" aria-pressed="${k === id}">${n ? n + '. ' : '📊 '}${l}</button>`).join('')}</div>`;
+      const next = id === 'portfolio' ? '' : `<div class="row" style="justify-content:space-between;margin-top:14px;flex-wrap:wrap;gap:8px">${i > 1 ? `<button class="btn" data-r="msec" data-v="${MSECS[i - 1][0]}">← ${MSECS[i - 1][1]}</button>` : '<span></span>'}${i < MSECS.length - 1 ? `<button class="btn primary" data-r="msec" data-v="${MSECS[i + 1][0]}">Next: ${MSECS[i + 1][1]} →</button>` : `<button class="btn primary" data-r="msec" data-v="portfolio">See my portfolio →</button>`}</div>`;
+      return nav + (id === 'portfolio' ? '' : `<p class="sub" style="margin:8px 2px 12px">Step ${i} of ${steps.length}</p>`) + tool.render() + next;
+    },
+    outs() { const t = msec()[2]; return t.outs ? t.outs() : {}; },
+    after(r) { const t = msec()[2]; if (t.after) t.after(r); },
+  };
+
   /* ---------- registry ---------- */
   const RES = [
-    { id: 'spending', pillar: 'financial', title: 'Intentional Spending Worksheet', desc: 'Find every recurring expense and decide what stays.', tag: 'Tell your dollars where to go before they decide for you.', tool: TOOL_SPENDING },
-    { id: 'monthly', pillar: 'financial', title: 'Monthly Money Plan', desc: 'Income, spending plan, bills, savings, and habits for the month.', tag: 'Building healthy money habits one month at a time.', tool: TOOL_MONTHLY },
-    { id: 'efund', pillar: 'financial', title: 'Emergency Fund Builder', desc: 'Set your goal, see what to save per paycheck, and track milestones.', tool: TOOL_EFUND },
-    { id: 'debt', pillar: 'financial', title: 'Debt Payoff Planner', desc: 'Compare snowball and avalanche using your real numbers.', tool: TOOL_DEBT },
-    { id: 'networth', pillar: 'financial', title: 'Net Worth Tracker', desc: 'Assets minus liabilities, with check-ins over time.', tool: TOOL_NW },
-    { id: 'books', pillar: 'financial', title: 'Money Reading List', desc: '40 books on money, business, and habits. Track what you’ve read.', tool: TOOL_BOOKS },
+    { id: 'money', pillar: 'financial', title: 'Financial Wellness Planner', desc: 'Income, expenses, monthly plan, emergency fund, debt, net worth, and your portfolio with charts and next steps, all in one place.', tag: 'Everything about your money in one place. Fill in each section, then see your portfolio.', tool: TOOL_MONEY, wide: true },
     { id: 'sleep', pillar: 'physical', title: 'Sleep Journal', desc: 'Log your nights, spot patterns, and build a wind-down routine.', tool: TOOL_SLEEP },
     { id: 'meals', pillar: 'physical', title: 'Meal & Grocery Planner', desc: 'Plan the week, build your list by aisle, and track the budget.', tool: TOOL_MEALS },
     { id: 'coping', pillar: 'mental', title: 'Coping Skills Library', desc: `${COPE_COUNT} skills you can search, filter, and save as favorites.`, tool: TOOL_COPING },
@@ -482,10 +610,14 @@ export function mountResources(root, api) {
   ];
 
   function renderResources() {
-    if (ui.tool) { const r = RES.find((x) => x.id === ui.tool); return toolHead(r) + r.tool.render(); }
+    if (ui.tool) {
+      const r = RES.find((x) => x.id === ui.tool);
+      const bar = r.noSave || (r.id === 'money' && msec()[0] === 'portfolio') ? '' : `<div class="savebar"><span class="savestate ${dirty.size ? '' : 'ok'}" data-savestate>${dirty.size ? 'Saving…' : '✓ All changes saved'}</span><button class="btn primary small" data-r="savenow">Save</button></div>`;
+      return toolHead(r) + r.tool.render() + bar;
+    }
     const groups = [['financial', 'Money'], ['physical', 'Body'], ['mental', 'Mind & coping'], ['emotional', 'Heart & stress'], ['relationships', 'Relationships'], ['spiritual', 'Spirit'], ['purpose', 'Purpose & vision']];
     return `<header class="top"><div><div class="brand">Resources</div><h1>Tools & worksheets</h1><div class="sub">Interactive versions of The Holistic Ecosystem workbooks. Everything you type is saved.</div></div></header>
-  <div class="stack">${groups.map(([pid, lbl]) => { const rs = RES.filter((r) => r.pillar === pid); return `<section><div class="sec-l">${lbl}</div><div class="rgrid">${rs.map((r) => { const p = P[r.pillar]; return `<button class="tile rtile" style="--c:${p.color}" data-r="opentool" data-v="${r.id}"><span class="ico">${icon(r.pillar)}</span><b>${esc(r.title)}</b><small>${esc(r.desc)}</small></button>`; }).join('')}</div></section>`; }).join('')}
+  <div class="stack">${groups.map(([pid, lbl]) => { const rs = RES.filter((r) => r.pillar === pid); return `<section><div class="sec-l">${lbl}</div><div class="rgrid">${rs.map((r) => { const p = P[r.pillar]; return `<button class="tile rtile ${r.wide ? 'wide' : ''}" style="--c:${p.color}" data-r="opentool" data-v="${r.id}"><span class="ico">${icon(r.pillar)}</span><b>${esc(r.title)}</b><small>${esc(r.desc)}</small></button>`; }).join('')}</div></section>`; }).join('')}
   <section><div class="sec-l">Coming soon</div><div class="chips">${SOON.map(([pid, t]) => `<span class="chip static soon" style="--c:${P[pid].color}"><span style="color:${P[pid].color};display:inline-flex;vertical-align:-3px;margin-right:4px">${icon(pid, 14)}</span>${t}</span>`).join('')}</div></section></div>`;
   }
   function updateOuts() {
@@ -497,7 +629,7 @@ export function mountResources(root, api) {
   }
   function render() { root.innerHTML = renderResources(); updateOuts(); }
   function rerenderKeep() { const y = window.scrollY; render(); window.scrollTo(0, y); }
-  const openTool = (id) => { flush(); ui.tool = id; render(); window.scrollTo(0, 0); api.onToolChange && api.onToolChange(id); };
+  const openTool = (id) => { flush(); if (id === 'money') ui.msec = null; ui.tool = id; render(); window.scrollTo(0, 0); api.onToolChange && api.onToolChange(id); };
 
   /* ---------- events ---------- */
   const onInput = (e) => {
@@ -513,6 +645,9 @@ export function mountResources(root, api) {
   const onClick = (e) => {
     const b = e.target.closest('[data-r]'); if (!b || !root.contains(b)) return; const a = b.dataset.r;
     if (a === 'opentool') openTool(b.dataset.v);
+    else if (a === 'msec') { flush(); ui.msec = b.dataset.v; render(); window.scrollTo(0, 0); }
+    else if (a === 'savenow') { const k = curKey(); if (k) dirty.add(k); flush(); setSaveState('✓ All changes saved', 'ok'); toast('Saved'); }
+    else if (a === 'newgoal') api.newGoal && api.newGoal(b.dataset.v);
     else if (a === 'back') openTool(null);
     else if (a === 'pick') { const p = b.dataset.path, v = b.dataset.v; if (b.hasAttribute('data-multi')) { const arr = [...(getP(p) || [])]; const i = arr.indexOf(v); i < 0 ? arr.push(v) : arr.splice(i, 1); setP(p, arr); } else setP(p, String(getP(p)) === v ? '' : v); save(); rerenderKeep(); }
     else if (a === 'set') { setP(b.dataset.path, b.dataset.v); save(); rerenderKeep(); }

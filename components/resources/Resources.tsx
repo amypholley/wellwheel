@@ -6,7 +6,7 @@ import { Goal, today } from '@/lib/core';
 
 // Hosts the worksheets (drawn by engine.js) inside the React app.
 export function Resources() {
-  const { S, act, toast } = useWW();
+  const { S, act, toast, setWizard } = useWW();
   const ref = useRef<HTMLDivElement>(null);
   const latest = useRef({ S, act, toast });
   latest.current = { S, act, toast };
@@ -19,6 +19,12 @@ export function Resources() {
       persist: (tool: string, data: any) => L().act.saveTool(tool, data),
       addGoal: (g: Goal, initial: number) => { L().act.addGoal(g); if (initial > 0) L().act.log(g.id, initial, today().T); },
       // "I used this" counts toward a coping-skill goal, if there is one
+      newGoal: (pillar: any) => setWizard({ pillar }),
+      // Money goals with their progress, for the Financial Portfolio
+      financialGoals: () => L().S.goals.filter((g) => g.pillar === 'financial').map((g) => ({
+        title: g.title, type: g.type, unit: g.unit, target: g.target || 0,
+        total: Object.values(L().S.logs[g.id] || {}).reduce((a, b) => a + b, 0),
+      })),
       logCoping: () => {
         const g = L().S.goals.find((x) => /coping/i.test(x.title));
         if (!g) return false;
