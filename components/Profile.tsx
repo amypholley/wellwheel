@@ -5,6 +5,7 @@ import { initials } from './ui';
 import { useWW } from './store';
 import { PlusStatus } from './Plus';
 import { FeedbackButton } from './Feedback';
+import { ShareCard } from './Share';
 import { FREE_COUPLE } from '@/lib/plus';
 
 function Couple() {
@@ -85,6 +86,7 @@ export function Profile() {
       <button className="btn wide" style={{ marginTop: 10 }} onClick={() => { close(); setAuthOpen('login'); }}>Log in</button>
       <button className="linkish" style={{ margin: '16px auto 0', display: 'block' }} onClick={() => act.logout()}>Leave guest mode</button>
       <div style={{ textAlign: 'center', marginTop: 18 }}><FeedbackButton /></div>
+      <ShareCard />
     </>);
   } else {
     body = (<>
@@ -92,6 +94,7 @@ export function Profile() {
         <div><h1 style={{ margin: 0 }}>{profile.display_name}</h1><div className="sub">@{profile.username} · member since {fmtDate(profile.created_at.slice(0, 10), { month: 'long', year: 'numeric' })}</div></div></div>
       <Couple />
       <PlusStatus />
+      <ShareCard />
       <section className="card" style={{ marginTop: 14 }}>
         <h2>Account</h2><div className="rule" />
         <label className="lbl" htmlFor="pf-name">Display name</label>

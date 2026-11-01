@@ -67,6 +67,12 @@ export async function loadPlus(): Promise<any> {
   return r.error || !r.data ? { plus: false } : r.data;
 }
 
+// "Share with a friend" totals
+export async function loadReferrals(): Promise<{ joined: number; rewarded: number }> {
+  const r = await supabase!.rpc('my_referrals');
+  return r.error || !r.data ? { joined: 0, rewarded: 0 } : (r.data as any);
+}
+
 export const db = {
   async addGoals(goals: Goal[]) { if (goals.length) check(await supabase!.from('goals').insert(goals.map(goalToRow))); },
   async deleteGoal(id: string) { check(await supabase!.from('goals').delete().eq('id', id)); },

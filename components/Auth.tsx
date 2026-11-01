@@ -59,7 +59,7 @@ export function Auth() {
       if (avail === false) { setErr('That username is taken. Try another.'); return; }
       const { data, error } = await supabase.auth.signUp({
         email, password: f.pw,
-        options: { data: { username: user, display_name: name, seed_examples: f.ex }, emailRedirectTo: window.location.origin },
+        options: { data: { username: user, display_name: name, seed_examples: f.ex, ref: (() => { try { return localStorage.getItem('ww-ref') || ''; } catch { return ''; } })() }, emailRedirectTo: window.location.origin },
       });
       if (error) {
         if (/already registered|already exists/i.test(error.message)) setErr('An account with that email already exists. Try logging in.');

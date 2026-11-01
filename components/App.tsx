@@ -51,6 +51,11 @@ function Shell() {
 }
 
 export default function App() {
+  // Invite links (?ref=username): remember who invited this person until they sign up
+  useEffect(() => {
+    const ref = new URLSearchParams(window.location.search).get('ref');
+    if (ref && /^[a-zA-Z0-9_]{3,20}$/.test(ref)) { try { localStorage.setItem('ww-ref', ref.toLowerCase()); } catch {} }
+  }, []);
   useEffect(() => { if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('/sw.js').catch(() => {}); }, []);
   return <StoreProvider><Shell /></StoreProvider>;
 }
