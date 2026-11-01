@@ -423,3 +423,8 @@ b.num{text-align:right;font-variant-numeric:tabular-nums}
 /* 8 tabs: a little tighter on small phones */
 @media (max-width:400px){nav.tabs button{font-size:9px}nav.tabs button svg{width:20px;height:20px}}
 nav.tabs .in{grid-template-columns:repeat(8,1fr);max-width:720px}
+/* bucket list: edit category and target year right on each item */
+.bkedit{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.bkedit select{width:auto;padding:5px 8px;font-size:13px;border-radius:8px}
+.bkyear{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--muted)}
+.bkyear input{width:84px;padding:5px 8px;font-size:13px;border-radius:8px}
