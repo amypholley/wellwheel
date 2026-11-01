@@ -1,0 +1,341 @@
+'use client';
+import { useEffect, useRef, useState } from 'react';
+import { P, PILLARS } from '@/lib/data';
+import { Goal, dayVal, fmtDate, fmtNum, fromKey, goalWeekScore, key, pillarScore, smartSentence, today, todaysPrompt, total, weekSum } from '@/lib/core';
+import { Icon, Wheel, initials } from './ui';
+import { firstName, useWW } from './store';
+
+/* ---------- Today ---------- */
+function GoalRowToday({ g, logOpen, setLogOpen }: { g: Goal; logOpen: string | null; setLogOpen: (v: string | null) => void }) {
+  const { S, act, toast } = useWW();
+  const { T } = today();
+  const p = P[g.pillar];
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [amount, setAmount] = useState('');
+  useEffect(() => { if (logOpen === g.id) inputRef.current?.focus(); }, [logOpen, g.id]);
+
+  const plus = () => {
+    const before = dayVal(S, g, T), inc = g.amt ? g.step : 1, after = before + inc;
+    act.log(g.id, inc);
+    if (g.amt) { if (before < g.count && after >= g.count) toast('Daily goal reached!'); return; }
+    if (g.type === 'habit') {
+      const n = g.per === 'week' ? weekSum(S, g) + inc : after;
+      if (n === g.count) toast(g.per === 'day' ? 'Done for today. Nice work.' : 'Weekly goal reached!');
+    }
+  };
+  const minus = () => {
+    const v = dayVal(S, g, T);
+    if (v > 0) { act.log(g.id, -Math.min(v, g.amt ? g.step : 1)); return; }
+    if (g.type === 'target' && g.unit === 'done') { // undo a "done" logged on another day
+      const d = Object.entries(S.logs[g.id] || {}).find(([, x]) => x > 0);
+      if (d) act.log(g.id, -d[1], d[0]);
+    }
+  };
+  const submitLog = (e: React.FormEvent) => {
+    e.preventDefault(); const v = parseFloat(amount); if (!(v > 0)) return;
+    act.log(g.id, v); setAmount(''); setLogOpen(null); toast('Progress logged');
+  };
+
+  let meta: string, ticks: React.ReactNode = null, ctrl: React.ReactNode, extra: React.ReactNode = null;
+  const logForm = (ph: string, label: string) => (
+    <form className="logrow" onSubmit={submitLog}>
+      <input ref={inputRef} type="number" step="any" min="0" inputMode="decimal" placeholder={ph} aria-label={label} value={amount} onChange={(e) => setAmount(e.target.value)} />
+      <button className="btn primary small" type="submit">Add</button>
+    </form>
+  );
+  if (g.type === 'habit' && g.amt) {
+    const n = dayVal(S, g, T), pct = Math.min(100, Math.round((n / g.count) * 100));
+    meta = `${n.toLocaleString('en-US')} of ${Number(g.count).toLocaleString('en-US')} ${g.unit} today${n >= g.count ? ' ✓' : ''}`;
+    ticks = <div className="bar"><span style={{ width: pct + '%', background: p.color }} /></div>;
+    ctrl = (
+      <div className="counter">
+        {n > 0 && <button className="round" onClick={minus} aria-label={`Take back ${g.stepLabel}`}>−</button>}
+        <button className="btn small primary" onClick={plus}>{g.stepLabel || '+' + g.step}</button>
+        <button className="btn small" onClick={() => setLogOpen(logOpen === g.id ? null : g.id)}>Other</button>
+      </div>
+    );
+    if (logOpen === g.id) extra = logForm(g.unit === 'oz' ? 'Ounces, e.g. 16' : `How many ${g.unit}?`, 'Amount to add');
+  } else if (g.type === 'habit') {
+    const n = g.per === 'day' ? dayVal(S, g, T) : weekSum(S, g);
+    const done = n >= g.count;
+    meta = g.per === 'day' ? `${Math.min(n, g.count)} of ${g.count} today` : `${n} of ${g.count} this week`;
+    ticks = g.count > 12
+      ? <div className="bar"><span style={{ width: Math.min(100, Math.round((n / g.count) * 100)) + '%', background: p.color }} /></div>
+      : <div className="ticks" aria-hidden="true">{Array.from({ length: g.count }, (_, i) => <span key={i} className={`tick ${i < n ? 'on' : ''}`} style={i < n ? { background: p.color } : undefined} />)}</div>;
+    ctrl = (
+      <div className="counter">
+        {dayVal(S, g, T) > 0 && <button className="round" onClick={minus} aria-label={`Undo one check-in for ${g.title}`}>−</button>}
+        <button className={`round ${done ? 'done' : 'plus'}`} onClick={plus} aria-label={`Check in ${g.title}`}>{done ? '✓' : '+'}</button>
+      </div>
+    );
+  } else {
+    const t = total(S, g), pct = Math.min(100, Math.round((t / g.target) * 100));
+    meta = g.unit === 'done' ? (t >= 1 ? 'Done' : 'Not done yet') : `${fmtNum(t, g.unit)} of ${fmtNum(g.target, g.unit)} · ${pct}%`;
+    ticks = <div className="bar"><span style={{ width: pct + '%', background: p.color }} /></div>;
+    ctrl = g.unit === 'done'
+      ? <button className={`round ${t >= 1 ? 'done' : 'plus'}`} onClick={t >= 1 ? minus : plus} aria-label={`Mark ${g.title} done`}>{t >= 1 ? '✓' : '+'}</button>
+      : <button className="btn small" onClick={() => setLogOpen(logOpen === g.id ? null : g.id)}>Log</button>;
+    if (logOpen === g.id) extra = logForm(g.unit === '$' ? 'Amount saved, e.g. 50' : `How many ${g.unit}?`, 'Amount to log');
+  }
+  return (
+    <div className="goal">
+      <span className="stripe" style={{ background: p.color }} />
+      <div>
+        <div className="pill"><span className="dot" style={{ background: p.color }} />{p.name}{g.example && <span className="example">Example</span>}</div>
+        <div className="goal-title">{g.title}</div>
+        <div className="goal-meta">{meta}</div>
+        {ticks}
+      </div>
+      {ctrl}{extra}
+    </div>
+  );
+}
+
+function JournalTeaser() {
+  const { S, setView } = useWW();
+  const { T } = today();
+  const pr = todaysPrompt(S, 0), p = P[pr.pillar], done = !!(S.journal[T] && S.journal[T].text);
+  return (
+    <section className="card">
+      <div className="card-head"><h2>Today’s journal prompt</h2>{done && <span className="sub" style={{ color: 'var(--good)', fontWeight: 600 }}>✓ Written</span>}</div>
+      <div className="pill" style={{ color: p.color }}><Icon id={p.id} size={14} />{pr.label || p.name}</div>
+      <div className="rule" />
+      <p className="prompt" style={{ margin: '0 0 12px' }}>{pr.text}</p>
+      <button className={`btn ${done ? '' : 'primary'}`} onClick={() => setView('journal')}>{done ? 'Open my journal' : 'Write in my journal'}</button>
+    </section>
+  );
+}
+
+export function Today() {
+  const { S, act, profile, mode, setWizard, setProfileOpen, setAuthOpen, toast } = useWW();
+  const { TODAY, T } = today();
+  const [logOpen, setLogOpen] = useState<string | null>(null);
+  const [grat, setGrat] = useState('');
+  const hr = new Date().getHours(), greet = hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening';
+  const todays = S.gratitude.find((x) => x.date === T);
+  const name = firstName(profile);
+  return (
+    <>
+      {mode === 'guest' && (
+        <div className="guestbar"><span>You’re looking around with example data. Nothing is saved.</span><button className="btn small primary" onClick={() => setAuthOpen('signup')}>Sign up</button></div>
+      )}
+      <header className="top">
+        <div><div className="brand">WellWheel · The Holistic Ecosystem</div><h1>{greet}{name ? ', ' + name : ''}</h1><div className="sub">{TODAY.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</div></div>
+        <button className="avatar" onClick={() => setProfileOpen(true)} aria-label="Profile and account">
+          {profile ? initials(profile.display_name) : <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7" /></svg>}
+        </button>
+      </header>
+      <div className="stack">
+        <section className="card">
+          <div className="card-head"><h2>This week’s balance</h2><span className="sub">Tap a pillar to add a goal</span></div>
+          <div className="wheel-wrap"><Wheel S={S} />
+            <div className="legend">
+              {PILLARS.map((p) => { const sc = pillarScore(S, p.id); return (
+                <button key={p.id} onClick={() => setWizard({ pillar: p.id })} aria-label={sc === null ? 'Add a goal for ' + p.name : `${p.name} ${Math.round(sc * 100)} percent`}>
+                  <span className="dot" style={{ background: p.color, opacity: sc === null ? 0.3 : 1 }} />{p.name}<span className="pct">{sc === null ? '+' : Math.round(sc * 100) + '%'}</span>
+                </button>); })}
+            </div>
+          </div>
+        </section>
+        <section className="card">
+          <div className="card-head"><h2>Today’s check-ins</h2><button className="linkish" onClick={() => setWizard({})}>+ New goal</button></div>
+          {S.goals.length ? S.goals.map((g) => <GoalRowToday key={g.id} g={g} logOpen={logOpen} setLogOpen={setLogOpen} />) : (
+            <><p className="empty">No goals yet. Pick a pillar and start with one small goal.</p><button className="btn primary" onClick={() => setWizard({})}>Set my first goal</button></>
+          )}
+        </section>
+        <section className="card">
+          <div className="card-head"><h2>Grateful today</h2><span className="sub">{S.gratitude.length} so far</span></div>
+          {todays ? (<><p className="prompt" style={{ margin: 0 }}>“{todays.text}”</p><button className="linkish" style={{ marginTop: 8 }} onClick={() => act.clearTodayGratitude()}>Change it</button></>) : (
+            <form className="row" onSubmit={(e) => { e.preventDefault(); const t = grat.trim(); if (!t) return; act.addGratitude(t, true); setGrat(''); toast('Added to your gratitude list'); }}>
+              <input type="text" placeholder="Today I’m grateful for…" aria-label="Today I’m grateful for" value={grat} onChange={(e) => setGrat(e.target.value)} maxLength={1000} />
+              <button className="btn primary" type="submit">Save</button>
+            </form>
+          )}
+        </section>
+        <JournalTeaser />
+      </div>
+    </>
+  );
+}
+
+/* ---------- Goals ---------- */
+export function Goals() {
+  const { S, act, setWizard, toast } = useWW();
+  const [del, setDel] = useState<string | null>(null);
+  const empty = PILLARS.filter((p) => !S.goals.some((g) => g.pillar === p.id));
+  const groups = PILLARS.map((p) => {
+    const gs = S.goals.filter((g) => g.pillar === p.id); if (!gs.length) return null;
+    return (
+      <section className="card" key={p.id}>
+        <div className="card-head"><h2 style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span style={{ color: p.color, display: 'flex' }}><Icon id={p.id} size={20} /></span>{p.name}</h2><button className="linkish" onClick={() => setWizard({ pillar: p.id })}>+ Add</button></div>
+        {gs.map((g) => (
+          <div className="goal" style={{ gridTemplateColumns: '4px 1fr' }} key={g.id}>
+            <span className="stripe" style={{ background: p.color }} />
+            <div>
+              <div className="goal-title">{g.title}{g.example && <span className="example">Example</span>}</div>
+              <p style={{ margin: '4px 0 6px', fontSize: 14 }}>{smartSentence(g)}</p>
+              <div className="goal-meta">Confidence {g.sure || '–'}/10 · Due {fmtDate(g.deadline)}</div>
+              <div className="row" style={{ marginTop: 8, flexWrap: 'wrap' }}>
+                <button className={`btn small ${del === g.id ? 'primary' : ''}`} onClick={() => { if (del === g.id) { act.deleteGoal(g.id); setDel(null); toast('Goal deleted'); } else setDel(g.id); }}>{del === g.id ? 'Tap again to delete' : 'Delete'}</button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </section>
+    );
+  });
+  return (
+    <>
+      <header className="top"><div><div className="brand">My goals</div><h1>Goals by pillar</h1><div className="sub">{S.goals.length} active · {9 - empty.length} of 9 pillars</div></div><button className="btn primary" onClick={() => setWizard({})}>+ New goal</button></header>
+      <div className="stack">
+        {S.goals.length ? groups : <p className="empty">No goals yet.</p>}
+        {empty.length > 0 && (
+          <section className="card"><h2>Pillars with no goal yet</h2>
+            <div className="chips">{empty.map((p) => <button key={p.id} className="chip" onClick={() => setWizard({ pillar: p.id })}><span className="dot" style={{ background: p.color, marginRight: 6 }} />{p.name}</button>)}</div>
+          </section>
+        )}
+      </div>
+    </>
+  );
+}
+
+/* ---------- Progress ---------- */
+export function Progress() {
+  const { S, act, toast, mode } = useWW();
+  const { TODAY, T, weekStart, weekDays } = today();
+  const thisMonth = S.gratitude.filter((x) => x.date.slice(0, 7) === T.slice(0, 7)).length;
+  const hasExamples = S.goals.some((g) => g.example) || S.gratitude.some((g) => g.example) || Object.values(S.journal).some((j) => j.example);
+  return (
+    <>
+      <header className="top"><div><div className="brand">Progress</div><h1>How it’s going</h1><div className="sub">Week of {weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div></div></header>
+      <div className="stack">
+        <section className="card"><div className="card-head"><h2>Goals this week</h2></div>
+          {S.goals.length ? S.goals.map((g) => {
+            const p = P[g.pillar];
+            const daysLeft = g.deadline ? Math.max(0, Math.round((fromKey(g.deadline).getTime() - TODAY.getTime()) / 864e5)) : null;
+            let body: React.ReactNode;
+            if (g.type === 'habit') {
+              body = <div className="week">{weekDays.map((d) => { const k = key(d), v = dayVal(S, g, k), f = d > TODAY; const goal = g.per === 'day' ? g.count : 1; const o = f ? 0 : Math.min(1, v / goal);
+                return <div key={k}>{d.toLocaleDateString('en-US', { weekday: 'narrow' })}<div className="sq" style={o > 0 ? { background: p.color, opacity: 0.35 + 0.65 * o } : undefined} title={`${k}: ${v}`} /></div>; })}</div>;
+            } else {
+              const t = total(S, g), pct = Math.min(100, Math.round((t / g.target) * 100));
+              body = <><div className="bar" style={{ height: 12 }}><span style={{ width: pct + '%', background: p.color }} /></div><div className="goal-meta" style={{ marginTop: 4 }}>{fmtNum(t, g.unit)} of {fmtNum(g.target, g.unit)} ({pct}%)</div></>;
+            }
+            return (
+              <div className="goal" style={{ gridTemplateColumns: '4px 1fr' }} key={g.id}>
+                <span className="stripe" style={{ background: p.color }} />
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}><span className="goal-title">{g.title}</span><span className="goal-meta">{Math.round(goalWeekScore(S, g) * 100)}% this week</span></div>
+                  {body}
+                  {daysLeft !== null && <div className="goal-meta" style={{ marginTop: 6 }}>{daysLeft} days left</div>}
+                </div>
+              </div>
+            );
+          }) : <p className="empty">Add a goal to see progress.</p>}
+        </section>
+        <section className="card"><div className="card-head"><h2>Gratitude</h2></div><p style={{ margin: 0 }}>{thisMonth} line{thisMonth === 1 ? '' : 's'} this month, {S.gratitude.length} all time.</p></section>
+        <section className="card locked"><div className="card-head"><h2>Monthly pillar report</h2><span className="badge">Plus</span></div>
+          <p style={{ margin: '0 0 10px', color: 'var(--muted)' }}>See which pillars got your energy this month, which ones got left out, and a suggested focus for next month. Includes every 30-day challenge and printable workbooks.</p>
+          <button className="btn primary" onClick={() => toast('Plus is coming soon.')}>Try Plus · $5.99/month</button>
+        </section>
+        <section className="card"><h2>Example data</h2>
+          <p className="hint">{mode === 'guest' ? 'You’re looking around. Nothing here is saved.' : 'Your goals are saved to your account and sync across your devices.'}</p>
+          <div className="row" style={{ flexWrap: 'wrap', marginTop: 8 }}>
+            {hasExamples && <button className="btn small" onClick={() => { act.removeExamples(); toast('Examples removed'); }}>Remove example goals</button>}
+            <button className="btn small" onClick={() => { act.addExamples(); toast('Examples added'); }}>Add example goals</button>
+          </div>
+        </section>
+      </div>
+    </>
+  );
+}
+
+/* ---------- Journal ---------- */
+export function Journal() {
+  const { S, act, toast } = useWW();
+  const { TODAY, T } = today();
+  const [shift, setShift] = useState(0);
+  const saved = S.journal[T];
+  const [text, setText] = useState(saved?.text || '');
+  useEffect(() => { if (saved?.text) setText((t) => t || saved.text); }, [saved?.text]);
+  const pr = todaysPrompt(S, shift), p = P[pr.pillar];
+  const past = Object.entries(S.journal).filter(([k, v]) => k !== T && v.text).sort((a, b) => (a[0] < b[0] ? 1 : -1));
+  const preNov = TODAY < new Date(2026, 10, 1);
+  const saveEntry = () => {
+    const t = text.trim(); if (!t) { toast('Write something first'); return; }
+    act.saveJournal({ pillar: pr.pillar, prompt: pr.text, label: pr.label, text: t });
+    setShift(0); toast('Journal entry saved');
+  };
+  return (
+    <>
+      <header className="top"><div><div className="brand">Journal</div><h1>Today’s prompt</h1><div className="sub">{TODAY.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</div></div></header>
+      <div className="stack">
+        <section className="card">
+          <div className="pill" style={{ color: p.color }}><Icon id={p.id} size={14} />{pr.label || p.name}</div><div className="rule" />
+          <p className="prompt" style={{ margin: '0 0 12px' }}>{pr.text}</p>
+          <label className="lbl" htmlFor="jtext">My entry</label>
+          <textarea id="jtext" style={{ minHeight: 160 }} placeholder="Write as much or as little as you want." value={text} onChange={(e) => setText(e.target.value)} />
+          <div className="row" style={{ justifyContent: 'space-between', marginTop: 10, flexWrap: 'wrap' }}>
+            <button className="btn ghost small" onClick={() => setShift((s) => s + 1)}>Show a different prompt</button>
+            <button className="btn primary" onClick={saveEntry}>{saved ? 'Update entry' : 'Save entry'}</button>
+          </div>
+        </section>
+        {preNov && <section className="card"><h2>30 Days, 9 Pillars starts Nov 1</h2><p className="sub" style={{ margin: '6px 0 0' }}>All November, your daily prompt comes from the challenge, starting with your list of 30 things you’re grateful for.</p></section>}
+        <section className="card"><div className="card-head"><h2>Past entries</h2><span className="sub">{past.length}</span></div>
+          {past.length ? past.map(([k, v]) => { const pp = P[v.pillar] || P.purpose; return (
+            <div className="goal" style={{ gridTemplateColumns: '4px 1fr' }} key={k}>
+              <span className="stripe" style={{ background: pp.color }} />
+              <div>
+                <div className="goal-meta">{fmtDate(k, { weekday: 'short', month: 'short', day: 'numeric' })}{v.example && <span className="example">Example</span>}</div>
+                <div className="sub" style={{ fontStyle: 'italic', margin: '3px 0' }}>{v.prompt}</div>
+                <div style={{ whiteSpace: 'pre-wrap' }}>{v.text}</div>
+              </div>
+            </div>); }) : <p className="empty">Your entries will show up here.</p>}
+        </section>
+      </div>
+    </>
+  );
+}
+
+/* ---------- Gratitude ---------- */
+export function Gratitude() {
+  const { S, act, toast } = useWW();
+  const [t, setT] = useState('');
+  const list = [...S.gratitude].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+  return (
+    <>
+      <header className="top"><div><div className="brand">Gratitude</div><h1>Things I’m grateful for</h1><div className="sub">One line a day adds up.</div></div></header>
+      <div className="stack">
+        <section className="card">
+          <form className="stack" style={{ gap: 8 }} onSubmit={(e) => { e.preventDefault(); const v = t.trim(); if (!v) return; act.addGratitude(v, false); setT(''); toast('Added to your gratitude list'); }}>
+            <label className="lbl" htmlFor="grat-new" style={{ margin: 0 }}>Add today’s line</label>
+            <div className="row"><input type="text" id="grat-new" placeholder="A person, a place, something small…" value={t} onChange={(e) => setT(e.target.value)} maxLength={1000} /><button className="btn primary" type="submit">Add</button></div>
+          </form>
+        </section>
+        <section className="card"><div className="card-head"><h2>My list</h2><span className="sub">{list.length} total</span></div>
+          {list.length ? <ol className="grat-list">{list.map((x, i) => (
+            <li key={x.id}><span className="n">{i + 1}</span><div>{x.text}{x.example && <span className="example">Example</span>}<div className="d">{fmtDate(x.date, { weekday: 'short', month: 'short', day: 'numeric' })}</div></div></li>
+          ))}</ol> : <p className="empty">Your list will show up here.</p>}
+        </section>
+      </div>
+    </>
+  );
+}
+
+/* ---------- Phase 2 & 3 placeholders ---------- */
+export function ComingSoon({ which }: { which: 'resources' | 'adventures' }) {
+  const r = which === 'resources';
+  return (
+    <>
+      <header className="top"><div><div className="brand">{r ? 'Resources' : 'Adventures'}</div><h1>{r ? 'Tools & worksheets' : 'Fun, travel & dreams'}</h1>
+        <div className="sub">{r ? 'Interactive versions of The Holistic Ecosystem workbooks.' : 'Where you’ve been, where you’re going, and what lights you up.'}</div></div></header>
+      <div className="stack">
+        <section className="card"><h2>Coming in the next update</h2><div className="rule" />
+          <p style={{ margin: 0 }}>{r
+            ? 'Money worksheets, the Sleep Journal, Meal & Grocery Planner, Coping Skills Library, CBT Thought Record, Burnout Source Worksheet, Self-Compassion and Prayer Journals, the Couples Workbook, and the Life Vision Planner.'
+            : 'Your World and United States travel maps, bucket lists, and hobbies, with photos.'}</p>
+        </section>
+      </div>
+    </>
+  );
+}
