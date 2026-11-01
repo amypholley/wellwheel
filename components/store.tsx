@@ -26,6 +26,7 @@ function useStoreValue() {
   const [toastMsg, setToastMsg] = useState({ text: '', n: 0 });
   const [plusInfo, setPlusInfo] = useState<PlusInfo>({ plus: false });
   const [plusOpen, setPlusOpen] = useState<string | null>(null); // why the upgrade sheet opened
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [guestFree, setGuestFree] = useState(false); // ?demo=free previews the app as a free account
   const loadedFor = useRef<string | null>(null);
   const queue = useRef<Promise<any>>(Promise.resolve());
@@ -222,6 +223,7 @@ function useStoreValue() {
 
   return {
     // Guests ("Look around") can preview everything; accounts follow their Plus status
+    feedbackOpen, setFeedbackOpen,
     isPlus: mode === 'guest' ? !guestFree : plusInfo.plus, plusInfo, plusOpen, setPlusOpen,
     intent, setIntent, mode, S, profile, recovery, setRecovery, loadError, view, setView, wizard, setWizard,
     profileOpen, setProfileOpen, authOpen, setAuthOpen, toastMsg, toast, act, loadUser,

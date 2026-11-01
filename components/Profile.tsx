@@ -4,6 +4,7 @@ import { fmtDate } from '@/lib/core';
 import { initials } from './ui';
 import { useWW } from './store';
 import { PlusStatus } from './Plus';
+import { FeedbackButton } from './Feedback';
 import { FREE_COUPLE } from '@/lib/plus';
 
 function Couple() {
@@ -83,6 +84,7 @@ export function Profile() {
       <button className="btn primary wide" onClick={() => { close(); setAuthOpen('signup'); }}>Create an account</button>
       <button className="btn wide" style={{ marginTop: 10 }} onClick={() => { close(); setAuthOpen('login'); }}>Log in</button>
       <button className="linkish" style={{ margin: '16px auto 0', display: 'block' }} onClick={() => act.logout()}>Leave guest mode</button>
+      <div style={{ textAlign: 'center', marginTop: 18 }}><FeedbackButton /></div>
     </>);
   } else {
     body = (<>
@@ -96,6 +98,7 @@ export function Profile() {
         <div className="row"><input type="text" id="pf-name" value={name} maxLength={60} onChange={(e) => setName(e.target.value)} />
           <button className="btn" onClick={() => { const n = name.trim(); if (!n) return; act.rename(n); toast('Name updated'); }}>Save</button></div>
         <div className="row" style={{ marginTop: 14, flexWrap: 'wrap' }}>
+          <FeedbackButton style={{ padding: '8px 14px', fontSize: 14 }} />
           <button className="btn" onClick={() => act.logout()}>Log out</button>
           <button className={`btn ${delArm ? 'primary' : 'ghost'}`} disabled={busy} onClick={async () => { if (!delArm) { setDelArm(true); return; } setBusy(true); await act.deleteAccount(); setBusy(false); }}>
             {busy ? 'Deleting…' : delArm ? 'Tap again to delete everything' : 'Delete account'}</button>

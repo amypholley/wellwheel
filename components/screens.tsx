@@ -5,6 +5,7 @@ import { Goal, dayVal, fmtDate, fmtNum, fromKey, goalWeekScore, key, pillarScore
 import { Icon, Wheel, initials } from './ui';
 import { firstName, useWW } from './store';
 import { PillarReport, PlusLock } from './Plus';
+import { FeedbackButton } from './Feedback';
 import { FREE_CHALLENGES } from '@/lib/plus';
 
 /* ---------- couple helpers ---------- */
@@ -294,6 +295,9 @@ export function Progress() {
         </section>
         <section className="card"><div className="card-head"><h2>Gratitude</h2></div><p style={{ margin: 0 }}>{thisMonth} line{thisMonth === 1 ? '' : 's'} this month, {S.gratitude.length} all time.</p></section>
         {isPlus ? <PillarReport /> : <PlusLock reason="report" title="Monthly pillar report" text="See which pillars got your energy this month, which ones got left out, and a suggested focus for next month. Includes every 30-day challenge and all worksheets." />}
+        <section className="card"><div className="card-head"><h2>Help make WellWheel better</h2></div>
+          <p className="sub" style={{ marginTop: 0 }}>Found a problem, or have an idea? We read every note.</p>
+          <FeedbackButton /></section>
         <section className="card"><h2>Example data</h2>
           <p className="hint">{mode === 'guest' ? 'You’re looking around. Nothing here is saved.' : 'Your goals are saved to your account and sync across your devices.'}</p>
           <div className="row" style={{ flexWrap: 'wrap', marginTop: 8 }}>

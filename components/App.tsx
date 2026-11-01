@@ -9,6 +9,7 @@ import { Auth } from './Auth';
 import { Profile } from './Profile';
 import { LogoWheel } from './ui';
 import { PlusSheet } from './Plus';
+import { FeedbackSheet } from './Feedback';
 
 const TABS: [View, string, string][] = [
   ['today', 'Today', '<circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6 5.6 18.4"/>'],
@@ -44,7 +45,7 @@ function Shell() {
             </button>))}
         </div></nav>
       </>)}
-      <Wizard /><Profile /><PlusSheet /><Auth /><Toast />
+      <Wizard /><Profile /><PlusSheet /><FeedbackSheet /><Auth /><Toast />
     </>
   );
 }
