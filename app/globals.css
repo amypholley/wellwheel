@@ -179,7 +179,9 @@ details.fold > summary{list-style:none;cursor:pointer;padding:14px 16px;display:
 details.fold > summary::-webkit-details-marker{display:none}
 details.fold > summary::after{content:'▾';color:var(--muted);margin-left:6px}
 details.fold[open] > summary::after{content:'▴'}
-details.fold > :not(summary){margin:0 16px 16px}
+details.fold > :not(summary){margin-left:16px;margin-right:16px}
+details.fold[open]{padding-bottom:16px}
+details.fold > input,details.fold > textarea,details.fold > select,details.fold > .stack,details.fold > div{width:calc(100% - 32px)}
 .items{display:flex;flex-direction:column;gap:2px}
 .item{padding:8px 0;border-top:1px solid var(--line)}
 .item:first-child{border-top:0}
