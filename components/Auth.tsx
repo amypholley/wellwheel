@@ -4,6 +4,23 @@ import { supabase } from '@/lib/supabase';
 import { LogoWheel } from './ui';
 import { useWW } from './store';
 
+// Password rules: 8+ characters, a lowercase letter, a capital letter, a number, and a symbol
+const PW_RULES: [string, (p: string) => boolean][] = [
+  ['8+ characters', (p) => p.length >= 8],
+  ['a lowercase letter', (p) => /[a-z]/.test(p)],
+  ['a capital letter', (p) => /[A-Z]/.test(p)],
+  ['a number', (p) => /[0-9]/.test(p)],
+  ['a symbol, like ! ? # $', (p) => /[^A-Za-z0-9]/.test(p)],
+];
+const pwProblem = (p: string) => { const miss = PW_RULES.filter(([, ok]) => !ok(p)).map(([l]) => l.replace(/,.*$/, '')); return miss.length ? 'Your password needs ' + (miss.length > 1 ? miss.slice(0, -1).join(', ') + ' and ' + miss[miss.length - 1] : miss[0]) + '.' : ''; };
+function PwChecklist({ pw }: { pw: string }) {
+  return (
+    <ul className="pwrules" aria-label="Password requirements">
+      {PW_RULES.map(([l, ok]) => <li key={l} className={ok(pw) ? 'ok' : ''}>{ok(pw) ? '✓' : '○'} {l}</li>)}
+    </ul>
+  );
+}
+
 type AuthMode = 'welcome' | 'signup' | 'login' | 'forgot' | 'checkemail' | 'newpw';
 
 export function Auth() {
@@ -31,7 +48,7 @@ export function Auth() {
     const msg = !name ? 'Add your name.'
       : !/^[a-z0-9_]{3,20}$/.test(user) ? 'Usernames are 3–20 letters, numbers, or underscores.'
       : !/^\S+@\S+\.\S+$/.test(email) ? 'Add a valid email. It’s used to reset your password.'
-      : f.pw.length < 8 ? 'Passwords need at least 8 characters.'
+      : pwProblem(f.pw) ? pwProblem(f.pw)
       : f.pw !== f.pw2 ? 'The passwords don’t match.' : '';
     if (msg) return setErr(msg);
     if (!supabase) return setErr(notReady);
@@ -46,7 +63,7 @@ export function Auth() {
       });
       if (error) {
         if (/already registered|already exists/i.test(error.message)) setErr('An account with that email already exists. Try logging in.');
-        else if (/password/i.test(error.message)) setErr(error.message);
+        else if (/password/i.test(error.message)) setErr('Your password needs 8+ characters, a lowercase letter, a capital letter, a number, and a symbol.');
         else setErr('We couldn’t create the account. ' + error.message);
         return;
       }
@@ -91,7 +108,7 @@ export function Auth() {
 
   async function newPw(e: React.FormEvent) {
     e.preventDefault();
-    if (f.pw.length < 8) return setErr('Passwords need at least 8 characters.');
+    if (pwProblem(f.pw)) return setErr(pwProblem(f.pw));
     if (f.pw !== f.pw2) return setErr('The passwords don’t match.');
     setBusy(true);
     const { error } = await supabase!.auth.updateUser({ password: f.pw });
@@ -123,7 +140,8 @@ export function Auth() {
       <label className="lbl" htmlFor="su-name" style={{ margin: 0 }}>Your name</label><input type="text" id="su-name" autoComplete="name" placeholder="e.g. Jamie" value={f.name} onChange={set('name')} />
       <label className="lbl" htmlFor="su-user" style={{ margin: 0 }}>Username</label><input type="text" id="su-user" autoComplete="username" autoCapitalize="none" placeholder="letters, numbers, or _" value={f.user} onChange={set('user')} />
       <label className="lbl" htmlFor="su-email" style={{ margin: 0 }}>Email</label><input type="email" id="su-email" autoComplete="email" autoCapitalize="none" placeholder="For password resets" value={f.email} onChange={set('email')} />
-      <label className="lbl" htmlFor="su-pw" style={{ margin: 0 }}>Password</label><input type="password" id="su-pw" autoComplete="new-password" placeholder="At least 8 characters" value={f.pw} onChange={set('pw')} />
+      <label className="lbl" htmlFor="su-pw" style={{ margin: 0 }}>Password</label><input type="password" id="su-pw" autoComplete="new-password" placeholder="8+ characters, Aa, 1, and a symbol" value={f.pw} onChange={set('pw')} />
+      <PwChecklist pw={f.pw} />
       <label className="lbl" htmlFor="su-pw2" style={{ margin: 0 }}>Confirm password</label><input type="password" id="su-pw2" autoComplete="new-password" value={f.pw2} onChange={set('pw2')} />
       <label className="ck"><input type="checkbox" checked={f.ex} onChange={set('ex')} /><span>Start with example goals so I can see how it works</span></label>
       {E}
@@ -162,7 +180,8 @@ export function Auth() {
   else body = (<>
     <h1>Choose a new password</h1>
     <form className="stack" style={{ gap: 10, marginTop: 12 }} onSubmit={newPw}>
-      <label className="lbl" htmlFor="np-1" style={{ margin: 0 }}>New password</label><input type="password" id="np-1" autoComplete="new-password" placeholder="At least 8 characters" value={f.pw} onChange={set('pw')} />
+      <label className="lbl" htmlFor="np-1" style={{ margin: 0 }}>New password</label><input type="password" id="np-1" autoComplete="new-password" placeholder="8+ characters, Aa, 1, and a symbol" value={f.pw} onChange={set('pw')} />
+      <PwChecklist pw={f.pw} />
       <label className="lbl" htmlFor="np-2" style={{ margin: 0 }}>Confirm new password</label><input type="password" id="np-2" autoComplete="new-password" value={f.pw2} onChange={set('pw2')} />
       {E}
       <button className="btn primary wide" type="submit" disabled={busy}>Save new password</button>
