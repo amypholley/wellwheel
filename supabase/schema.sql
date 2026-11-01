@@ -171,3 +171,14 @@ alter table public.journal enable row level security;
 drop policy if exists "journal: own" on public.journal;
 create policy "journal: own" on public.journal for all to authenticated
   using (user_id = auth.uid()) with check (user_id = auth.uid());
+
+-- ---------- Permissions for the app ----------
+-- Spelled out here so this works even when "Automatically expose new tables" is turned off.
+-- Row Level Security (above) still limits each person to their own rows.
+grant usage on schema public to anon, authenticated;
+grant select on public.profiles to authenticated;
+grant update (display_name, seed_examples) on public.profiles to authenticated;
+grant select, insert, update, delete on public.goals, public.goal_logs, public.gratitude, public.journal to authenticated;
+grant execute on function public.can_access_goal(uuid) to authenticated;
+grant execute on function public.username_available(text) to anon, authenticated;
+grant execute on function public.log_goal(uuid, date, numeric) to authenticated;
