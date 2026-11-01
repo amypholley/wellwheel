@@ -510,7 +510,8 @@ export function mountResources(root, api) {
     const highRate = debts.filter((d) => num(d.bal) > 0).sort((a, b) => num(b.rate) - num(a.rate))[0];
     const efCur = num(getP('efund.cur')) || num(getP('monthly.ef.cur')), efGoal = num(getP('efund.goal')) || num(getP('monthly.ef.goal'));
     const hist = getP('nw.hist') || []; const hasNw = nw.a || nw.l;
-    return { sp, income, expenses, left: income - expenses, cats, debts, debtTot, mins, sim, highRate, efCur, efGoal, nw, hist, hasNw, goals: api.financialGoals ? api.financialGoals() : [] };
+    const groc = { budget: num(getP('meals.budget')), spent: num(getP('meals.spent')), line: num(((getP('spending.items') || {}).Groceries || {}).on ? getP('spending.items.Groceries.cost') : 0) };
+    return { groc, sp, income, expenses, left: income - expenses, cats, debts, debtTot, mins, sim, highRate, efCur, efGoal, nw, hist, hasNw, goals: api.financialGoals ? api.financialGoals() : [] };
   }
   function suggestions(d) {
     const out = []; const go = (id, lbl) => `<button class="linkish" data-r="msec" data-v="${id === 'monthly' ? 'plan' : id}">${lbl} →</button>`;
@@ -520,6 +521,7 @@ export function mountResources(root, api) {
     else if (d.efGoal && d.efCur < d.efGoal) out.push(['Keep growing your emergency fund', `You’re ${money(d.efGoal - d.efCur)} from your goal.${d.left > 0 ? ` Setting aside part of the ${money(d.left)} left over each month would get you there faster.` : ''}`, go('efund', 'Emergency fund')]);
     if (d.highRate && num(d.highRate.rate) >= 15) out.push(['Target high-interest debt', `${esc(d.highRate.name || 'One debt')} charges ${num(d.highRate.rate)}% interest. Paying extra toward the highest rate first (the avalanche method) saves the most interest.`, go('debt', 'Debt')]);
     else if (!d.debts.length) out.push(['List any debts', 'If you have debts, add them to see your debt-free date and the order to pay them off.', go('debt', 'Debt')]);
+    if (d.groc.budget && d.groc.spent > d.groc.budget) out.push(['Over your grocery budget this week', `You’ve spent ${money(d.groc.spent - d.groc.budget)} more than you planned. Planning meals for the rest of the week and shopping from a list can help.`, `<button class="linkish" data-r="opentool" data-v="meals">Meal & Grocery Planner →</button>`]);
     if (!d.hasNw) out.push(['Take a net worth snapshot', 'Add what you own and owe, then save a check-in every few months to watch your progress.', go('networth', 'Net worth')]);
     if (!d.goals.length) out.push(['Set a money goal', 'Pick one specific goal, like a trip fund or paying off one card, and track it on Today.', `<button class="linkish" data-r="newgoal" data-v="financial">Set a money goal →</button>`]);
     if (d.income && d.left > 0 && d.efCur >= 500 && !(d.highRate && num(d.highRate.rate) >= 15)) out.push(['Give your extra money a job', `You have about ${money(d.left)} left each month. Decide ahead of time how much goes to savings, debt, and goals.`, go('monthly', 'Monthly plan')]);
@@ -553,6 +555,14 @@ export function mountResources(root, api) {
       ${d.efGoal ? `<div class="bar" style="height:12px"><span style="width:${Math.min(100, (d.efCur / d.efGoal) * 100)}%;background:${P.financial.color}"></span></div><div class="goal-meta" style="margin-top:4px">${money(d.efCur)} of ${money(d.efGoal)} (${Math.min(100, Math.round((d.efCur / d.efGoal) * 100))}%)</div>` : `<p class="empty">No goal set yet.</p>`}
       <h3 class="h3">Debt</h3>
       ${d.debtTot ? `<div class="kv"><span>Total owed</span><b>${money(d.debtTot)}</b></div><div class="kv"><span>Minimum payments</span><b>${money(d.mins)}/month</b></div>${d.sim && !d.sim.stuck ? `<div class="kv"><span>Debt-free (avalanche plan)</span><b>${mdate(d.sim.months)}</b></div><div class="kv"><span>Interest still to pay</span><b>${money(Math.round(d.sim.interest))}</b></div>` : d.sim && d.sim.stuck ? '<p class="note">At these payments the balances don’t go down. Add an extra monthly amount in the Debt section.</p>' : ''}` : `<p class="empty">No debts listed.</p>`}</section>
+    <section class="card"><div class="card-head"><h2>Groceries this week</h2><span class="sub">from the Meal & Grocery Planner</span></div>
+      ${d.groc.budget || d.groc.spent ? `${d.groc.budget ? `<div class="bar" style="height:12px"><span style="width:${Math.min(100, (d.groc.spent / d.groc.budget) * 100)}%;background:${d.groc.spent > d.groc.budget ? '#C0503A' : P.financial.color}"></span></div>` : ''}
+        <div class="kv"><span>Spent so far</span><b>${money(d.groc.spent)}</b></div>
+        ${d.groc.budget ? `<div class="kv"><span>Weekly budget</span><b>${money(d.groc.budget)}</b></div><div class="kv"><span>${d.groc.spent > d.groc.budget ? '⚠ Over budget by' : 'Left this week'}</span><b>${money(Math.abs(d.groc.budget - d.groc.spent))}</b></div>
+        <div class="kv"><span>About per month</span><b>${money(Math.round(d.groc.budget * 4.33))}</b></div>
+        ${d.groc.line ? `<p class="hint">Your Expenses list has ${money(d.groc.line)} a month for groceries${Math.abs(d.groc.line - d.groc.budget * 4.33) > 25 ? `, so your weekly budget works out ${d.groc.budget * 4.33 > d.groc.line ? 'higher' : 'lower'}. You may want to match them.` : ', which matches your weekly budget.'}</p>` : ''}` : ''}`
+      : `<p class="empty">Add a weekly grocery budget in the Meal & Grocery Planner to see it here.</p>`}
+      <button class="btn small" style="margin-top:10px" data-r="opentool" data-v="meals">Open the Meal & Grocery Planner</button></section>
     <section class="card"><h2>Money goals</h2><div class="rule"></div>
       ${d.goals.length ? d.goals.map((g) => { const pct = g.target ? Math.min(100, Math.round((g.total / g.target) * 100)) : 0; return `<div class="goal" style="grid-template-columns:4px 1fr"><span class="stripe" style="background:${P.financial.color}"></span><div><div class="goal-title">${esc(g.title)}</div>${g.type === 'target' && g.unit !== 'done' ? `<div class="bar"><span style="width:${pct}%;background:${P.financial.color}"></span></div><div class="goal-meta" style="margin-top:4px">${g.unit === '$' ? money(g.total) : g.total} of ${g.unit === '$' ? money(g.target) : g.target + ' ' + esc(g.unit)} (${pct}%)</div>` : `<div class="goal-meta">${g.type === 'habit' ? `${g.total} logged so far` : g.total >= 1 ? 'Done' : 'Not done yet'}</div>`}</div></div>`; }).join('') : '<p class="empty">No money goals yet.</p>'}
       <button class="btn small" style="margin-top:8px" data-r="newgoal" data-v="financial">+ New money goal</button></section>
