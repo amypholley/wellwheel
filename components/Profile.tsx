@@ -107,6 +107,7 @@ export function Profile() {
             {busy ? 'Deleting…' : delArm ? 'Tap again to delete everything' : 'Delete account'}</button>
         </div>
       </section>
+      <p className="hint" style={{ textAlign: 'center', marginTop: 16 }}><a href="/privacy" target="_blank" rel="noopener">Privacy Policy</a> · <a href="/terms" target="_blank" rel="noopener">Terms of Service</a></p>
     </>);
   }
   return (

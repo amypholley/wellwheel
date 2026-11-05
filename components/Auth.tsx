@@ -29,7 +29,7 @@ export function Auth() {
   const [err, setErr] = useState('');
   const [ok, setOk] = useState('');
   const [busy, setBusy] = useState(false);
-  const [f, setF] = useState({ name: '', user: '', email: '', pw: '', pw2: '', ex: false, id: '' });
+  const [f, setF] = useState({ name: '', user: '', email: '', pw: '', pw2: '', ex: false, agree: false, id: '' });
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement>) => setF({ ...f, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value });
 
   useEffect(() => { if (authOpen) { setAm(authOpen as AuthMode); setErr(''); setOk(''); } }, [authOpen]);
@@ -49,7 +49,8 @@ export function Auth() {
       : !/^[a-z0-9_]{3,20}$/.test(user) ? 'Usernames are 3–20 letters, numbers, or underscores.'
       : !/^\S+@\S+\.\S+$/.test(email) ? 'Add a valid email. It’s used to reset your password.'
       : pwProblem(f.pw) ? pwProblem(f.pw)
-      : f.pw !== f.pw2 ? 'The passwords don’t match.' : '';
+      : f.pw !== f.pw2 ? 'The passwords don’t match.'
+      : !f.agree ? 'Please confirm you’re 18 or older and agree to the Terms and Privacy Policy.' : '';
     if (msg) return setErr(msg);
     if (!supabase) return setErr(notReady);
     setBusy(true); setErr('');
@@ -144,6 +145,7 @@ export function Auth() {
       <PwChecklist pw={f.pw} />
       <label className="lbl" htmlFor="su-pw2" style={{ margin: 0 }}>Confirm password</label><input type="password" id="su-pw2" autoComplete="new-password" value={f.pw2} onChange={set('pw2')} />
       <label className="ck"><input type="checkbox" checked={f.ex} onChange={set('ex')} /><span>Start with example goals so I can see how it works</span></label>
+      <label className="ck"><input type="checkbox" checked={f.agree} onChange={set('agree')} /><span>I’m 18 or older and agree to the <a href="/terms" target="_blank" rel="noopener">Terms of Service</a> and <a href="/privacy" target="_blank" rel="noopener">Privacy Policy</a></span></label>
       {E}
       <button className="btn primary wide" type="submit" disabled={busy}>{busy ? 'Creating…' : 'Create account'}</button>
     </form>
@@ -191,6 +193,7 @@ export function Auth() {
   return (
     <div className="authwrap" role="dialog" aria-modal="true" aria-label="Account">
       <div className="authcard">{body}
+        <p className="protonote"><a href="/privacy" target="_blank" rel="noopener">Privacy Policy</a> · <a href="/terms" target="_blank" rel="noopener">Terms of Service</a></p>
         {!supabase && <p className="protonote">Preview copy: not connected to Supabase yet, so only “Look around first” works.</p>}
       </div>
     </div>

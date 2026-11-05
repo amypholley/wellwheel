@@ -433,3 +433,9 @@ nav.tabs .in{grid-template-columns:repeat(8,1fr);max-width:720px}
 .plans{display:grid;grid-template-columns:1fr;gap:12px;margin-top:12px}
 @media (min-width:560px){.plans{grid-template-columns:1fr 1fr}}
 .plan-price{font-family:var(--display);font-size:24px;font-weight:600;margin:0 0 12px}
+/* Privacy Policy and Terms pages */
+.legal{padding-bottom:40px}
+.legal .card p{margin:0 0 10px}
+.legal .card p:last-child{margin-bottom:0}
+.legal .card ul{margin:0 0 10px;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+.legal a,.authcard a,.plus-sheet a,.protonote a{color:var(--plum);font-weight:600}

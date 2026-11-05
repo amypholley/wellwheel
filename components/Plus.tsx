@@ -59,7 +59,8 @@ export function PlusSheet() {
             <button className="btn primary wide" disabled={!!busy} onClick={() => buy('couple')}>{busy === 'couple' ? 'Opening checkout…' : 'Get the couples plan'}</button>
           </section>
         </div>
-        <p className="hint" style={{ textAlign: 'center' }}>{mode === 'user' ? 'You’ll pay securely with Stripe. Cancel any time from your profile.' : 'Create a free account first, then upgrade from your profile.'}</p>
+        <p className="hint" style={{ textAlign: 'center' }}>{mode === 'user' ? 'You’ll pay securely with Stripe. Plus renews monthly until you cancel, which you can do any time from your profile.' : 'Create a free account first, then upgrade from your profile.'}</p>
+        <p className="hint" style={{ textAlign: 'center', marginTop: 0 }}><a href="/terms" target="_blank" rel="noopener">Terms of Service</a> · <a href="/privacy" target="_blank" rel="noopener">Privacy Policy</a></p>
       </div>
     </div>
   );
