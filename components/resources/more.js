@@ -247,16 +247,27 @@ export function makeMore(h) {
   const GROWTH = {
     render() {
       const ls = getP('growth.learn') || [], cnt = (s) => ls.filter((x) => (x.s || 'Want') === s).length;
-      const ms = [0, 1, 2], gt = (getP('growth.goal') || '').trim();
+      const old = (getP('growth.areas') || '').trim(), areas = getP('growth.areaList') || (old ? [old] : []);
+      const goals = getP('growth.goals') || [];
+      const dayOf = (start) => Math.min(90, Math.max(1, Math.floor((TODAY - fromKey(start)) / 864e5) + 1));
+      const goalCard = (g, i) => { const done = (g.ms || []).filter((m) => m.t && m.done).length, tot = (g.ms || []).filter((m) => m.t).length;
+        return `<div class="bbook"><div class="card-head" style="margin:0 0 4px"><b style="font-size:16px">${esc(g.goal)}</b><button class="x" data-r="del" data-path="growth.goals" data-i="${i}" aria-label="Delete this goal">×</button></div>
+        <p class="goal-meta" style="margin:0 0 8px">Started ${fmtDate(g.start, { month: 'short', day: 'numeric' })} · day ${dayOf(g.start)} of 90${tot ? ` · ${done} of ${tot} milestones` : ''}</p>
+        <div class="bar" style="height:8px;margin:0 0 10px"><span style="width:${(dayOf(g.start) / 90) * 100}%;background:${P.intellectual.color}"></span></div>
+        ${(g.ms || []).map((m, j) => (m.t ? `<div style="margin-top:6px">${chk(`growth.goals.${i}.ms.${j}.done`, `<span class="sub">${['Day 30', 'Day 60', 'Day 90'][j]}:</span> ${esc(m.t)}`, true)}</div>` : '')).join('')}
+        ${kv('Why it matters', g.why)}${kv('Each week', g.weekly)}
+        ${goalBtn({ pillar: 'intellectual', title: g.goal.slice(0, 200), type: 'target', count: 1, per: 'day', target: 1, unit: 'done', months: 3, why: g.why || '' }, 'Add to my WellWheel goals')}</div>`; };
       return `<div class="stack">
     <section class="card"><p style="margin:0">Growth happens in small, steady steps. Know your strengths, pick one area to grow, and give it 90 focused days.</p></section>
-    ${card('My strengths', `<p class="sub" style="margin-top:0">Choose the ones that sound like you. Ask a friend if you’re not sure.</p>${pick('growth.str', STRENGTHS, true)}
-      ${lbl('Areas I want to grow in')}${area('growth.areas', 'e.g. Speaking up in meetings, staying consistent, managing my time', 2)}`)}
-    ${card('My 90-day growth goal', `${lbl('In 90 days, I want to…', 1)}${inp('growth.goal', { ph: 'e.g. Finish an online Excel course' })}
-      ${lbl('Why it matters to me')}${area('growth.why', '', 2)}
-      ${lbl('Milestones')}${ms.map((i) => `<div class="bill" style="grid-template-columns:auto 1fr;align-items:center"><label class="ck" style="margin:0"><input type="checkbox" data-b="growth.ms.${i}.done" ${getP(`growth.ms.${i}.done`) ? 'checked' : ''} aria-label="Milestone done"><span></span></label>${inp(`growth.ms.${i}.t`, { ph: ['By day 30…', 'By day 60…', 'By day 90…'][i] })}</div>`).join('')}
-      ${lbl('What I’ll do each week')}${area('growth.weekly', 'e.g. Two 30-minute lessons on Tuesday and Saturday mornings', 2)}
-      ${gt ? goalBtn({ pillar: 'intellectual', title: gt.slice(0, 200), type: 'target', count: 1, per: 'day', target: 1, unit: 'done', months: 3, why: (getP('growth.why') || '').trim() }, 'Add to my WellWheel goals') : ''}`)}
+    ${card('My strengths', `<p class="sub" style="margin-top:0">Choose the ones that sound like you. Ask a friend if you’re not sure.</p>${pickOwn('growth.str', STRENGTHS, 'growth.ownStr', 'Add your own strength')}`)}
+    ${card('Areas I want to grow in', `<form class="row" data-r-form="garea"><input type="text" id="ga-new" placeholder="e.g. Discipline, speaking up, managing my time" aria-label="An area I want to grow in" maxlength="120"><button class="btn primary" type="submit">Add</button></form>
+      ${areas.length ? `<div class="chips" style="margin-top:12px">${areas.map((t, i) => `<span class="chip-own"><span class="chip static">${esc(t)}</span><button type="button" class="chip-x" data-r="garm" data-i="${i}" aria-label="Remove ${esc(t)}">×</button></span>`).join('')}</div>` : '<p class="empty" style="margin-bottom:0">Add the areas you want to work on. They’ll stay here.</p>'}`)}
+    ${goals.length ? card('My growth goals', goals.map(goalCard).join('')) : ''}
+    ${card(goals.length ? 'Add another 90-day goal' : 'My 90-day growth goal', `${lbl('In 90 days, I want to…', 1)}${inp('growth.gd.goal', { ph: 'e.g. Finish an online Excel course' })}
+      ${lbl('Why it matters to me')}${area('growth.gd.why', '', 2)}
+      ${lbl('Milestones')}${[0, 1, 2].map((i) => `<div style="margin-bottom:8px">${inp(`growth.gd.ms.${i}`, { ph: ['By day 30…', 'By day 60…', 'By day 90…'][i] })}</div>`).join('')}
+      ${lbl('What I’ll do each week')}${area('growth.gd.weekly', 'e.g. Two 30-minute lessons on Tuesday and Saturday mornings', 2)}
+      <button class="btn primary wide" style="margin-top:14px" data-r="gsave">Save this goal</button>`)}
     ${card('My learning list', `<div class="sumgrid" style="margin-bottom:12px"><div><div class="k">Want to</div><div class="v">${cnt('Want')}</div></div><div><div class="k">Doing</div><div class="v">${cnt('Doing')}</div></div><div><div class="k">Done</div><div class="v" style="color:var(--good)">${cnt('Done')}</div></div></div>
       <form class="grocadd" data-r-form="learn"><input type="text" id="ln-new" placeholder="A book, course, podcast, or skill" aria-label="Something to learn"><select id="ln-type" aria-label="Type">${LEARN_TYPES.map((t) => `<option>${t}</option>`).join('')}</select><button class="btn primary" type="submit">Add</button></form>
       ${ls.map((x, i) => `<div class="book"><div><b>${esc(x.t)}</b><div class="sub">${esc(x.type || '')}</div></div><div class="seg3">${['Want', 'Doing', 'Done'].map((o) => `<button data-r="lstat" data-i="${i}" data-v="${o}" aria-pressed="${(x.s || 'Want') === o}">${o}</button>`).join('')}<button class="x" data-r="del" data-path="growth.learn" data-i="${i}" aria-label="Remove">×</button></div></div>`).join('')}`)}
@@ -300,6 +311,8 @@ export function makeMore(h) {
       api.addGoal({ why: '', sure: 7, ...g, id: uid(), deadline: key(addMonths(TODAY, months)) }, 0); toast('Added to your goals'); return true;
     }
     if (a === 'ownrm') { setP(b.dataset.path, (getP(b.dataset.path) || []).filter((x) => x !== b.dataset.v)); save(); rerenderKeep(); return true; }
+    if (a === 'garm') { const old = (getP('growth.areas') || '').trim(); const l = getP('growth.areaList') || (old ? [old] : []); l.splice(+b.dataset.i, 1); setP('growth.areaList', l); save(); rerenderKeep(); return true; }
+    if (a === 'gsave') { const d = getP('growth.gd') || {}; const goal = (d.goal || '').trim(); if (!goal) { toast('Write your 90-day goal first'); return true; } const l = getP('growth.goals') || []; l.push({ goal, why: (d.why || '').trim(), weekly: (d.weekly || '').trim(), start: T, ms: [0, 1, 2].map((i) => ({ t: ((d.ms || {})[i] || '').trim(), done: false })) }); setP('growth.goals', l); setP('growth.gd', {}); save(); rerenderKeep(); toast('Goal saved'); return true; }
     if (a === 'dncat') { ui.dnCat = b.dataset.v; rerenderKeep(); return true; }
     if (a === 'dnrand') { const all = Object.values(DATE_IDEAS).flat(); let t; do { t = all[Math.floor(Math.random() * all.length)]; } while (t === ui.dnIdea); ui.dnIdea = t; rerenderKeep(); return true; }
     if (a === 'dnadd') { const l = getP('datenight.list') || []; const t = b.dataset.v; const i = l.findIndex((x) => x.t === t && !x.done); if (i >= 0) { l.splice(i, 1); toast('Removed from your list'); } else { l.push({ t }); toast('Added to your list'); } if (ui.dnIdea === t) ui.dnIdea = ''; setP('datenight.list', l); save(); rerenderKeep(); return true; }
@@ -316,6 +329,7 @@ export function makeMore(h) {
     if (form === 'addown') { const el = f.querySelector('input'), t = el.value.trim(); if (!t) return true; const own = getP(f.dataset.list) || []; if (!own.some((x) => x.toLowerCase() === t.toLowerCase())) own.push(t); setP(f.dataset.list, own); const sel = getP(f.dataset.sel) || []; if (!sel.includes(t)) sel.push(t); setP(f.dataset.sel, sel); save(); rerenderKeep(); toast('Added. It’ll be here next time too.'); return true; }
     const val = (id) => { const el = root.querySelector('#' + id); return el ? el.value.trim() : ''; };
     const push = (path, item) => { const l = getP(path) || []; l.push(item); setP(path, l); save(); rerenderKeep(); };
+    if (form === 'garea') { const t = val('ga-new'); if (t) { const old = (getP('growth.areas') || '').trim(); const l = getP('growth.areaList') || (old ? [old] : []); l.push(t); setP('growth.areaList', l); save(); rerenderKeep(); root.querySelector('#ga-new')?.focus(); } return true; }
     if (form === 'worry') { const t = val('wr-new'); if (t) push('anxiety.worries', { t, d: T }); root.querySelector('#wr-new')?.focus(); return true; }
     if (form === 'dn') { const t = val('dn-new'); if (t) push('datenight.list', { t }); return true; }
     if (form === 'bverse') { const r = val('bv-ref'), t = val('bv-txt'); if (r || t) push('bible.verses', { r: r || 'Verse', t }); return true; }
