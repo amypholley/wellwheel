@@ -6,6 +6,7 @@ import {
   SPEND_CATS, INC_KEYS, SAVE_KEYS, EF_WAYS, ASSETS, LIABS, BOOKS, COPING_CATS, COPING, BURN,
   SLEEP_FACTORS, MEALS, WEEK, AISLES, TRAPS, STARTERS, LOVE, VALUES, SOON,
 } from './content';
+import { makeMore } from './more';
 
 // Which saved record each worksheet uses
 const STORE_KEY = { networth: 'nw', burnout: 'burn' };
@@ -585,6 +586,7 @@ export function mountResources(root, api) {
   };
 
   /* ---------- registry ---------- */
+  const more = makeMore({ getP, setP, save, rerenderKeep: (...x) => rerenderKeep(...x), inp, area, chk, pick, out, esc, icon, num, fmtDate, entriesList, saveBtn, kv, T, TODAY, toast, api, uid, key, addMonths, P, ui, fromKey });
   const RES = [
     { id: 'money', pillar: 'financial', title: 'Financial Wellness Planner', desc: 'Your whole money picture on one page: budget, spending wheel, emergency fund, debt, net worth, goals, and next steps.', tag: 'Everything about your money on one page. Fill in your budget and the wheel shows where it goes.', tool: TOOL_MONEY, wide: true },
     { id: 'sleep', pillar: 'physical', title: 'Sleep Journal', desc: 'Log your nights, spot patterns, and build a wind-down routine.', tool: TOOL_SLEEP },
@@ -596,6 +598,7 @@ export function mountResources(root, api) {
     { id: 'couples', pillar: 'relationships', title: 'Couples Communication Workbook', desc: 'Conversation starters, weekly check-ins, and “I” statements.', tool: TOOL_COUPLES },
     { id: 'prayer', pillar: 'spiritual', title: 'Prayer Journal', desc: 'Daily prayers and a request list with answered prayers.', tool: TOOL_PRAYER },
     { id: 'vision', pillar: 'purpose', title: 'Life Vision Planner', desc: 'Values, mission, and a 5-year vision for every pillar.', tool: TOOL_VISION },
+    ...more.tools,
   ];
 
   function renderResources() {
@@ -604,10 +607,10 @@ export function mountResources(root, api) {
       const bar = r.noSave ? '' : `<div class="savebar"><span class="savestate ${dirty.size ? '' : 'ok'}" data-savestate>${dirty.size ? 'Saving…' : '✓ All changes saved'}</span><button class="btn primary small" data-r="savenow">Save</button></div>`;
       return toolHead(r) + r.tool.render() + bar;
     }
-    const groups = [['financial', 'Money'], ['physical', 'Body'], ['mental', 'Mind & coping'], ['emotional', 'Heart & stress'], ['relationships', 'Relationships'], ['spiritual', 'Spirit'], ['purpose', 'Purpose & vision']];
+    const groups = [['financial', 'Money'], ['physical', 'Body'], ['mental', 'Mind & coping'], ['emotional', 'Heart & stress'], ['relationships', 'Relationships'], ['spiritual', 'Spirit'], ['intellectual', 'Learning & growth'], ['environmental', 'Home & surroundings'], ['purpose', 'Purpose & vision']];
     return `<header class="top"><div><div class="brand">Resources</div><h1>Tools & worksheets</h1><div class="sub">Interactive versions of The Holistic Ecosystem workbooks. Everything you type is saved.</div></div></header>
   <div class="stack">${groups.map(([pid, lbl]) => { const rs = RES.filter((r) => r.pillar === pid); return `<section><div class="sec-l">${lbl}</div><div class="rgrid">${rs.map((r) => { const p = P[r.pillar]; const lock = api.isLocked && api.isLocked(r.id); return `<button class="tile rtile ${r.wide ? 'wide' : ''}" style="--c:${p.color}" data-r="opentool" data-v="${r.id}"><span class="ico">${icon(r.pillar)}</span><b>${esc(r.title)}${lock ? ' <span class="badge" style="vertical-align:2px">Plus</span>' : ''}</b><small>${esc(r.desc)}</small></button>`; }).join('')}</div></section>`; }).join('')}
-  <section><div class="sec-l">Coming soon</div><div class="chips">${SOON.map(([pid, t]) => `<span class="chip static soon" style="--c:${P[pid].color}"><span style="color:${P[pid].color};display:inline-flex;vertical-align:-3px;margin-right:4px">${icon(pid, 14)}</span>${t}</span>`).join('')}</div></section></div>`;
+  ${!SOON.length ? '' : `<section><div class="sec-l">Coming soon</div><div class="chips">${SOON.map(([pid, t]) => `<span class="chip static soon" style="--c:${P[pid].color}"><span style="color:${P[pid].color};display:inline-flex;vertical-align:-3px;margin-right:4px">${icon(pid, 14)}</span>${t}</span>`).join('')}</div></section>`}</div>`;
   }
   function updateOuts() {
     if (!ui.tool) return; const r = RES.find((x) => x.id === ui.tool); if (!r.tool.outs) return;
@@ -633,6 +636,7 @@ export function mountResources(root, api) {
   const refreshCope = () => { const y = window.scrollY; const cl = root.querySelector('#copelist'); if (cl) cl.innerHTML = copeList(); window.scrollTo(0, y); };
   const onClick = (e) => {
     const b = e.target.closest('[data-r]'); if (!b || !root.contains(b)) return; const a = b.dataset.r;
+    if (more.click(a, b)) return;
     if (a === 'opentool') { if (api.isLocked && api.isLocked(b.dataset.v)) { api.openPlus(b.dataset.v === 'money' ? 'portfolio' : 'tool'); return; } openTool(b.dataset.v); }
     else if (a === 'jump') { const el = root.querySelector('#' + b.dataset.v); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
     else if (a === 'savenow') { const k = curKey(); if (k) dirty.add(k); flush(); setSaveState('✓ All changes saved', 'ok'); toast('Saved'); }
@@ -666,6 +670,7 @@ export function mountResources(root, api) {
   };
   const onSubmit = (e) => {
     const f = e.target; if (!f.dataset.rForm) return; e.preventDefault();
+    if (more.submit(f.dataset.rForm, root)) return;
     if (f.dataset.rForm === 'groc') { const inpEl = root.querySelector('#g-item'); const t = inpEl.value.trim(); if (!t) return; const g = getP('meals.groc') || []; const a = root.querySelector('#g-aisle').value; ui.lastAisle = a; g.push({ t, a, done: false }); setP('meals.groc', g); save(); rerenderKeep(); root.querySelector('#g-item')?.focus(); }
     if (f.dataset.rForm === 'prayreq') { const t = root.querySelector('#pr-new').value.trim(); if (!t) return; const r = getP('prayer.reqs') || []; r.push({ t, d: T, ans: '' }); setP('prayer.reqs', r); save(); rerenderKeep(); }
   };
