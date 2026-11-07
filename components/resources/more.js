@@ -46,7 +46,12 @@ const DATE_IDEAS = {
   'Seasonal': ['Pick apples or berries', 'Drive to see holiday lights', 'Ice skating', 'Fair or festival', 'Beach day', 'Bonfire and s’mores'],
 };
 
-const BIBLE_PLANS = [['John', 'Gospel of John', 21], ['Mark', 'Gospel of Mark', 16], ['Psalms', 'Psalms 1–30', 30], ['Proverbs', 'Proverbs, a chapter a day', 31], ['Philippians', 'Philippians', 4], ['James', 'James', 5], ['Romans', 'Romans', 16], ['Genesis', 'Genesis', 50]];
+// Quick picks: [id, label, chapters, book]. Picking a whole book shares progress with the same book in the full list.
+const BIBLE_PLANS = [['John', 'Gospel of John', 21, 'John'], ['Mark', 'Gospel of Mark', 16, 'Mark'], ['Psalms30', 'Psalms 1–30', 30, 'Psalms'], ['Proverbs', 'Proverbs, a chapter a day', 31, 'Proverbs'], ['Philippians', 'Philippians', 4, 'Philippians'], ['James', 'James', 5, 'James'], ['Romans', 'Romans', 16, 'Romans'], ['Genesis', 'Genesis', 50, 'Genesis']];
+const OT = [['Genesis', 50], ['Exodus', 40], ['Leviticus', 27], ['Numbers', 36], ['Deuteronomy', 34], ['Joshua', 24], ['Judges', 21], ['Ruth', 4], ['1 Samuel', 31], ['2 Samuel', 24], ['1 Kings', 22], ['2 Kings', 25], ['1 Chronicles', 29], ['2 Chronicles', 36], ['Ezra', 10], ['Nehemiah', 13], ['Esther', 10], ['Job', 42], ['Psalms', 150], ['Proverbs', 31], ['Ecclesiastes', 12], ['Song of Solomon', 8], ['Isaiah', 66], ['Jeremiah', 52], ['Lamentations', 5], ['Ezekiel', 48], ['Daniel', 12], ['Hosea', 14], ['Joel', 3], ['Amos', 9], ['Obadiah', 1], ['Jonah', 4], ['Micah', 7], ['Nahum', 3], ['Habakkuk', 3], ['Zephaniah', 3], ['Haggai', 2], ['Zechariah', 14], ['Malachi', 4]];
+const NT = [['Matthew', 28], ['Mark', 16], ['Luke', 24], ['John', 21], ['Acts', 28], ['Romans', 16], ['1 Corinthians', 16], ['2 Corinthians', 13], ['Galatians', 6], ['Ephesians', 6], ['Philippians', 4], ['Colossians', 4], ['1 Thessalonians', 5], ['2 Thessalonians', 3], ['1 Timothy', 6], ['2 Timothy', 4], ['Titus', 3], ['Philemon', 1], ['Hebrews', 13], ['James', 5], ['1 Peter', 5], ['2 Peter', 3], ['1 John', 5], ['2 John', 1], ['3 John', 1], ['Jude', 1], ['Revelation', 22]];
+const BOOKS = [...OT, ...NT];
+const biblePlan = (id) => BIBLE_PLANS.find((p) => p[0] === id) || (BOOKS.find((b) => b[0] === id) ? [id, id, BOOKS.find((b) => b[0] === id)[1], id] : BIBLE_PLANS[0]);
 const STUDY_QS = ['What does this passage say? Retell it in your own words.', 'What does it show me about God?', 'What does it show me about people, or about me?', 'Is there a promise to hold, a command to follow, or a warning to heed?', 'How can I live this out this week?'];
 
 const STRENGTHS = ['Curious', 'Creative', 'Organized', 'Patient', 'Kind', 'Brave', 'Honest', 'Funny', 'Hardworking', 'Good listener', 'Leader', 'Problem solver', 'Encourager', 'Adaptable', 'Detail-oriented', 'Calm under pressure', 'Generous', 'Disciplined'];
@@ -203,18 +208,20 @@ export function makeMore(h) {
   /* ---------- Bible study ---------- */
   const BIBLE = {
     render() {
-      const plan = getP('bible.plan') || 'John', pl = BIBLE_PLANS.find((p) => p[0] === plan) || BIBLE_PLANS[0];
+      const plan = getP('bible.plan') || 'John', pl = biblePlan(plan);
       const read = getP(`bible.read.${pl[0]}`) || [], n = pl[2], nxt = Array.from({ length: n }, (_, i) => i + 1).find((c) => !read.includes(c));
       const vs = getP('bible.verses') || [];
       return `<div class="stack">
-    ${card('Reading plan', `<div class="chips">${BIBLE_PLANS.map(([id, t, c]) => `<button class="chip" data-r="set" data-path="bible.plan" data-v="${id}" aria-pressed="${plan === id}">${esc(t)}</button>`).join('')}</div>
+    ${card('Reading plan', `<label class="lbl" style="margin-top:0" for="bb-pick">Choose any book</label>
+      <select id="bb-pick" data-b="bible.plan" data-rr>${[['Old Testament', OT], ['New Testament', NT]].map(([g, l]) => `<optgroup label="${g}">${l.map(([bk, n]) => `<option value="${esc(bk)}" ${pl[0] === bk ? 'selected' : ''}>${esc(bk)} (${n} chapter${n === 1 ? '' : 's'})</option>`).join('')}</optgroup>`).join('')}${BOOKS.some((b) => b[0] === pl[0]) ? '' : `<option value="${esc(pl[0])}" selected>${esc(pl[1])}</option>`}</select>
+      <label class="lbl">Or start with one of these</label><div class="chips">${BIBLE_PLANS.map(([id, t]) => `<button class="chip" data-r="set" data-path="bible.plan" data-v="${esc(id)}" aria-pressed="${plan === id}">${esc(t)}</button>`).join('')}</div>
       <div class="card-head" style="margin:14px 0 6px"><b>${esc(pl[1])}</b><span class="sub">${read.length} of ${n} chapters</span></div>
       <div class="bar" style="height:10px;margin:0 0 12px"><span style="width:${(read.length / n) * 100}%;background:${P.spiritual.color}"></span></div>
       <div class="chips">${Array.from({ length: n }, (_, i) => i + 1).map((c) => `<button class="chip" style="min-width:42px;justify-content:center" data-r="bch" data-v="${c}" aria-pressed="${read.includes(c)}" aria-label="Chapter ${c}">${c}</button>`).join('')}</div>
-      <p class="hint">${nxt ? `Next up: <b>${esc(pl[0])} ${nxt}</b>. Tap a chapter when you’ve read it.` : 'You finished this plan! Pick another one above.'}</p>
+      <p class="hint">${nxt ? `Next up: <b>${esc(pl[3])} ${nxt}</b>. Tap a chapter when you’ve read it.` : 'You finished this plan! Pick another one above.'}</p>
       ${goalBtn({ pillar: 'spiritual', title: 'Read my Bible', type: 'habit', count: 1, per: 'day', unit: 'chapters', months: 2 }, 'Add a daily reading goal')}`)}
     ${card('Study a passage (SOAP)', `<p class="sub" style="margin-top:0">A simple way to study: Scripture, Observation, Application, Prayer.</p>
-      ${lbl('Passage', 1)}${inp('bible.draft.ref', { ph: `e.g. ${pl[0]} ${nxt || 1}` })}
+      ${lbl('Passage', 1)}${inp('bible.draft.ref', { ph: `e.g. ${pl[3]} ${nxt || 1}` })}
       ${lbl('<span class="letter">S</span>Scripture: the verse that stood out')}${area('bible.draft.s', 'Write it out word for word', 2)}
       ${lbl('<span class="letter">O</span>Observation: what does it say?')}${area('bible.draft.o', 'Who, what, when, where, why?', 2)}
       ${lbl('<span class="letter">A</span>Application: how does it apply to my life?')}${area('bible.draft.a', '', 2)}
