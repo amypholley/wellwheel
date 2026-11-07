@@ -4,33 +4,35 @@
 const BODY_SIGNS = ['Racing heart', 'Tight chest', 'Short of breath', 'Fast breathing', 'Shaky', 'Sweaty', 'Hot or flushed', 'Cold hands', 'Upset stomach', 'Nausea', 'Tense muscles', 'Clenched jaw', 'Tight throat', 'Tingling or numbness', 'Restless', 'Can’t focus', 'Headache', 'Dizzy', 'Feeling unreal', 'Tired or drained', 'Teary', 'Can’t sleep'];
 const ANX_HELP = ['Slow breathing', '5-4-3-2-1 grounding', 'Went for a walk', 'Went outside', 'Talked to someone', 'Hugged someone or a pet', 'Wrote it down', 'Journaled', 'Made a to-do list', 'Cold water', 'Took a shower or bath', 'Drank water', 'Ate something', 'Listened to music', 'Stretched or did yoga', 'Prayer or meditation', 'Counted backward', 'Watched something funny', 'Took a break from screens', 'Distracted myself', 'Challenged the thought', 'Took prescribed medicine', 'Rested'];
 
+// Each skill: [id, name, what it is, when to use it, practice fields]. A field is [key, label, placeholder, kind]
+// kind: 'a' big text box (default), 'i' one line, 's' 0–10 scale, 'c' checkbox, 'p:Opt1|Opt2' choices, 'm:Opt1|Opt2' several choices
 const DBT_MODS = [
   { id: 'mind', name: 'Mindfulness', sum: 'Being present in this moment, on purpose, without judging it.', skills: [
-    ['Wise mind', 'The balance between emotion mind (feelings in charge) and reasonable mind (logic in charge). Ask yourself: “What does my wise mind know?”'],
-    ['Observe', 'Notice what you see, hear, feel, and think, without reacting to it or holding on to it.'],
-    ['Describe', 'Put words to what you notice. “I notice a tight feeling in my chest.” Facts, not judgments.'],
-    ['Participate', 'Throw yourself fully into what you’re doing right now.'],
-    ['Don’t judge', 'Drop “good” and “bad.” Describe what happened instead.'],
-    ['One thing at a time', 'Do one thing with your full attention.'],
-    ['Do what works', 'Act in the way that gets you closer to your goals, not what feels “fair” in the moment.']] },
+    ['wise', 'Wise mind', 'The balance between emotion mind (feelings in charge) and reasonable mind (logic in charge). Wise mind is the calm, knowing place in the middle.', 'When you’re torn between what you feel and what you think.', [['emo', 'Emotion mind says…', 'What my feelings want me to do'], ['reason', 'Reasonable mind says…', 'What the facts and logic say'], ['wise', 'Wise mind knows…', 'Take a slow breath and ask: what do I know deep down?']]],
+    ['observe', 'Observe', 'Notice what you see, hear, feel, and think, without reacting to it or holding on to it.', 'When you’re on autopilot or caught up in your head.', [['see', 'I saw', '', 'i'], ['hear', 'I heard', '', 'i'], ['body', 'I felt in my body', '', 'i'], ['thoughts', 'Thoughts that passed through', '', 'a']]],
+    ['describe', 'Describe', 'Put words to what you notice. “I notice a tight feeling in my chest.” Facts, not judgments or guesses.', 'When feelings and stories get mixed up with what actually happened.', [['sit', 'What happened, facts only', 'What a video camera would have recorded'], ['add', 'Judgments or guesses I added', 'e.g. “She did it on purpose”'], ['feel', 'What I feel, in words', 'e.g. I notice sadness and a heavy feeling']]],
+    ['participate', 'Participate', 'Throw yourself fully into what you’re doing right now, without holding back or watching yourself.', 'When you feel self-conscious or like you’re watching life from the sidelines.', [['act', 'The activity', '', 'i'], ['how', 'How fully was I in it?', '', 's'], ['pulled', 'What pulled me out of it', '']]],
+    ['nonjudge', 'Don’t judge', 'Drop “good” and “bad,” “should” and “shouldn’t.” Describe what happened and how you feel instead.', 'When you’re being hard on yourself or someone else.', [['judg', 'The judgment', 'e.g. “I’m so stupid”', 'i'], ['facts', 'The facts instead', 'e.g. I forgot the appointment'], ['feel', 'How I feel about it', 'e.g. Embarrassed and frustrated']]],
+    ['onething', 'One thing at a time', 'Do one thing with your full attention. When your mind wanders, gently bring it back.', 'When you feel scattered or overwhelmed by everything at once.', [['thing', 'The one thing I focused on', '', 'i'], ['dist', 'Distractions that came up', ''], ['back', 'How I brought myself back', '']]],
+    ['effective', 'Do what works', 'Act in the way that gets you closer to your goals, not what feels “fair” or “right” in the moment.', 'When you want to prove a point more than get a good outcome.', [['goal', 'What I really want here', ''], ['right', 'What “being right” would look like', ''], ['works', 'What would actually work', '']]]] },
   { id: 'dist', name: 'Distress tolerance', sum: 'Getting through a hard moment without making it worse.', skills: [
-    ['STOP', 'Stop. Take a step back. Observe what’s happening. Proceed mindfully.'],
-    ['TIPP', 'Temperature (cold water on your face), Intense exercise, Paced breathing, Paired muscle relaxation. These calm your body fast.'],
-    ['ACCEPTS', 'Distract with Activities, Contributing, Comparisons, a different Emotion, Pushing the situation away for now, other Thoughts, and Sensations.'],
-    ['Self-soothe', 'Comfort yourself through your five senses: something to see, hear, smell, taste, and touch.'],
-    ['IMPROVE the moment', 'Imagery, Meaning, Prayer, Relaxation, One thing at a time, a short Vacation, Encouragement.'],
-    ['Pros and cons', 'Weigh acting on an urge against riding it out. See the pros and cons box below.'],
-    ['Radical acceptance', 'Accept reality as it is, fully, even when you don’t like it. Accepting isn’t the same as approving.']] },
+    ['stop', 'STOP', 'Stop. Take a step back. Observe what’s happening. Proceed mindfully.', 'The moment you feel an urge to react.', [['s', 'Stop: I froze and didn’t act right away', '', 'c'], ['t', 'Took a step back and breathed', '', 'c'], ['o', 'Observe: what’s happening inside me and around me?', ''], ['p', 'Proceed mindfully: what I chose to do', '']]],
+    ['tipp', 'TIPP', 'Change your body chemistry fast: Temperature (cold water on your face), Intense exercise, Paced breathing (breathe out longer than in), Paired muscle relaxation.', 'When emotions are so high you can’t think straight.', [['before', 'Distress before (0–10)', '', 's'], ['used', 'What I tried', 'Temperature|Intense exercise|Paced breathing|Paired muscle relaxation', 'm'], ['after', 'Distress after (0–10)', '', 's']]],
+    ['accepts', 'ACCEPTS', 'Distract yourself until the wave passes: Activities, Contributing, Comparisons, a different Emotion, Pushing it away for now, other Thoughts, Sensations.', 'When you can’t fix it right now and need to get through.', [['used', 'What I used', 'Activities|Contributing|Comparisons|Different emotion|Pushing away|Other thoughts|Sensations', 'm'], ['did', 'What I did', '']]],
+    ['soothe', 'Self-soothe', 'Comfort yourself through your five senses.', 'When you need comfort and kindness. Build your soothing kit ahead of time.', [['see', 'See', 'e.g. Photos, candles, the sky', 'i'], ['hear', 'Hear', 'e.g. A calm playlist', 'i'], ['smell', 'Smell', 'e.g. Lavender, coffee', 'i'], ['taste', 'Taste', 'e.g. Hot tea, peppermint', 'i'], ['touch', 'Touch', 'e.g. A soft blanket, a warm shower', 'i']]],
+    ['improve', 'IMPROVE the moment', 'Imagery, Meaning, Prayer, Relaxation, One thing at a time, a short Vacation, Encouragement.', 'When you’re stuck in pain you can’t change right now.', [['used', 'What I used', 'Imagery|Meaning|Prayer|Relaxation|One thing at a time|Short vacation|Encouragement', 'm'], ['did', 'What I did', '']]],
+    ['proscons', 'Pros and cons', 'Weigh acting on an urge against riding it out.', 'When an urge is strong and you’re tempted to act on it.', [['urge', 'The urge', 'e.g. Quit my job today', 'i'], ['ap', 'Pros of acting on it', ''], ['ac', 'Cons of acting on it', ''], ['rp', 'Pros of riding it out', ''], ['rc', 'Cons of riding it out', ''], ['dec', 'My wise-mind decision', '', 'i']]],
+    ['accept', 'Radical acceptance', 'Accept reality as it is, fully, even when you don’t like it. Accepting isn’t the same as approving.', 'When you keep fighting something you can’t change.', [['fight', 'What I’m fighting against', ''], ['cant', 'What I can’t change about it', ''], ['accept', 'Accepting it would sound like…', 'e.g. “This happened. I don’t like it, and I can handle what comes next.”'], ['can', 'What I can still do', '']]]] },
   { id: 'emo', name: 'Emotion regulation', sum: 'Understanding your emotions so you feel less at their mercy.', skills: [
-    ['Check the facts', 'Does my emotion, and how strong it is, fit the facts of the situation?'],
-    ['Opposite action', 'When an emotion doesn’t fit the facts, do the opposite of what it urges. Approach instead of avoid, be gentle instead of attack.'],
-    ['Problem solving', 'When the emotion does fit the facts, work on the problem itself.'],
-    ['ABC', 'Accumulate positive experiences, Build mastery (do something that makes you feel capable), Cope ahead of hard situations.'],
-    ['PLEASE', 'Treat PhysicaL illness, balanced Eating, Avoid mood-altering substances, balanced Sleep, get Exercise.']] },
+    ['facts', 'Check the facts', 'Ask whether your emotion, and how strong it is, fits the facts of the situation.', 'When a feeling seems bigger than the situation.', [['emo', 'The emotion and how strong (0–10)', 'e.g. Anger, 8', 'i'], ['event', 'What happened, facts only', ''], ['interp', 'What I’m telling myself about it', ''], ['other', 'Other ways to see it', ''], ['fits', 'Does my emotion fit the facts?', 'Yes|Partly|No', 'p']]],
+    ['opposite', 'Opposite action', 'When an emotion doesn’t fit the facts, do the opposite of what it urges. Approach instead of avoid, be gentle instead of attack.', 'When an emotion pushes you toward something that won’t help.', [['emo', 'The emotion', '', 'i'], ['urge', 'What it urges me to do', '', 'i'], ['opp', 'The opposite action I’ll take', '', 'i'], ['after', 'How I felt after', '']]],
+    ['problem', 'Problem solving', 'When your emotion does fit the facts, work on the problem itself.', 'When something real needs to change.', [['prob', 'The problem', ''], ['goal', 'What I want instead', ''], ['ideas', 'Ideas (list as many as I can)', ''], ['best', 'The best idea', '', 'i'], ['step', 'My first step', '', 'i']]],
+    ['abc', 'ABC', 'Accumulate positive experiences, Build mastery (do something that makes you feel capable), and Cope ahead of hard situations.', 'Every day, to build a life that’s less vulnerable to painful emotions.', [['a', 'Accumulate: one pleasant thing I did today', '', 'i'], ['b', 'Build mastery: one thing that made me feel capable', '', 'i'], ['c', 'Cope ahead: a hard situation coming up and how I’ll handle it', '']]],
+    ['please', 'PLEASE', 'Take care of your body so your emotions are easier to manage: treat PhysicaL illness, balanced Eating, Avoid mood-altering substances, balanced Sleep, get Exercise.', 'Every day. Low sleep, hunger, and illness make every emotion stronger.', [['pl', 'Took care of my physical health (meds, rest when sick)', '', 'c'], ['e', 'Ate balanced meals', '', 'c'], ['a', 'Avoided mood-altering substances', '', 'c'], ['s', 'Slept enough', '', 'c'], ['x', 'Moved my body', '', 'c'], ['note', 'Notes', '']]]] },
   { id: 'inter', name: 'Interpersonal effectiveness', sum: 'Asking for what you need and saying no, while keeping your relationships and self-respect.', skills: [
-    ['DEAR MAN', 'Describe, Express, Assert, Reinforce. Stay Mindful, Appear confident, Negotiate. For getting what you need. Try the builder below.'],
-    ['GIVE', 'Be Gentle, act Interested, Validate, use an Easy manner. For keeping the relationship.'],
-    ['FAST', 'Be Fair, no extra Apologies, Stick to your values, be Truthful. For keeping your self-respect.']] },
+    ['dearman', 'DEAR MAN', 'For getting what you need: Describe, Express, Assert, Reinforce. Then stay Mindful, Appear confident, and Negotiate.', 'Before asking for something or saying no.', [['d', 'Describe the situation (just the facts)', 'You’ve come home late three nights this week.', 'i'], ['e', 'Express how you feel', 'I feel worried and a little lonely', 'i'], ['a', 'Assert what you want', 'I’d like a text if you’ll be past 7', 'i'], ['r', 'Reinforce: why it’s good for them too', 'Then I won’t be upset when you get home', 'i'], ['how', 'How it went', '']]],
+    ['give', 'GIVE', 'For keeping the relationship: be Gentle, act Interested, Validate, use an Easy manner.', 'When the relationship matters as much as the request.', [['who', 'The person and the conversation', '', 'i'], ['g', 'How I’ll be gentle (no attacks, threats, or judging)', ''], ['i', 'How I’ll show interest', ''], ['v', 'What I can understand about their side', ''], ['e', 'How I’ll keep it easy (a smile, a light touch)', '']]],
+    ['fast', 'FAST', 'For keeping your self-respect: be Fair, no extra Apologies, Stick to your values, be Truthful.', 'When you tend to give in or over-apologize.', [['sit', 'The situation', ''], ['f', 'Fair to me and to them', ''], ['a', 'What I won’t apologize for', ''], ['s', 'The value I’m standing on', '', 'i'], ['t', 'The truth I need to say', '']]]] },
 ];
 const DBT_FEEL = ['Sad', 'Anxious', 'Angry', 'Ashamed', 'Lonely', 'Happy'];
 
@@ -80,7 +82,7 @@ const ENV_AREAS = [
 
 export function makeMore(h) {
   const { getP, setP, save, rerenderKeep, inp, area, chk, pick, out, esc, icon, num, fmtDate, entriesList, saveBtn, kv, T, TODAY, toast, api, uid, key, addMonths, P, ui, fromKey } = h;
-  const scale = (path, lo, hi, l1, l2) => `<div class="scale">${Array.from({ length: hi - lo + 1 }, (_, i) => i + lo).map((i) => `<button type="button" data-r="pick" data-path="${path}" data-v="${i}" aria-pressed="${String(getP(path)) === String(i)}">${i}</button>`).join('')}</div><div class="scale-l"><span>${l1}</span><span>${l2}</span></div>`;
+  const scale = (path, lo, hi, l1, l2) => `<div class="scale" style="grid-template-columns:repeat(${hi - lo + 1},1fr)">${Array.from({ length: hi - lo + 1 }, (_, i) => i + lo).map((i) => `<button type="button" data-r="pick" data-path="${path}" data-v="${i}" aria-pressed="${String(getP(path)) === String(i)}">${i}</button>`).join('')}</div><div class="scale-l"><span>${l1}</span><span>${l2}</span></div>`;
   // Several-choice chips plus options the person added themselves (saved at customPath for next time)
   const pickOwn = (path, base, customPath, ph) => {
     const own = getP(customPath) || [], sel = getP(path) || [];
@@ -140,32 +142,50 @@ export function makeMore(h) {
   };
 
   /* ---------- DBT ---------- */
+  const dbtField = (sk, [k, label, ph, kind = 'a']) => {
+    const path = `dbt.pd.${sk}.${k}`;
+    if (kind === 'c') return `<div style="margin-top:12px">${chk(path, esc(label))}</div>`;
+    const head = `<label class="lbl" style="margin-top:14px">${esc(label)}</label>`;
+    if (kind === 'i') return head + inp(path, { ph });
+    if (kind === 's') return head + scale(path, 0, 10, 'None', 'Extreme');
+    if (kind.startsWith('p:') || kind === 'p') return head + pick(path, (kind === 'p' ? ph : kind.slice(2)).split('|'));
+    if (kind === 'm') return head + pick(path, ph.split('|'), true);
+    return head + area(path, ph, 2);
+  };
+  const dbtFind = (id) => { for (const m of DBT_MODS) { const s = m.skills.find((x) => x[0] === id); if (s) return [m, s]; } return [DBT_MODS[0], DBT_MODS[0].skills[0]]; };
   const DBT = {
     render() {
-      const all = DBT_MODS.flatMap((m) => m.skills.map((s) => s[0]));
-      return `<div class="stack">
-    <section class="card"><p style="margin:0">DBT (Dialectical Behavior Therapy) teaches four sets of skills for handling strong emotions and relationships. This workbook is a place to learn and practice them. DBT works best alongside a trained therapist, so if you’re in DBT, bring this to your sessions.</p>${crisis}</section>
+      const all = DBT_MODS.flatMap((m) => m.skills.map((s) => s[1]));
+      const modId = ui.dbtMod || 'mind', mod = DBT_MODS.find((m) => m.id === modId);
+      const skId = ui.dbtSkill && mod.skills.some((x) => x[0] === ui.dbtSkill) ? ui.dbtSkill : mod.skills[0][0];
+      const [, [id, name, what, when, fields]] = dbtFind(skId);
+      const practiced = getP('dbt.practice') || [];
+      return `<div class="stack dbt">
+    <section class="card"><p style="margin:0">DBT (Dialectical Behavior Therapy) teaches four sets of skills for handling strong emotions and relationships. Pick a skill below to learn it and practice it. DBT works best alongside a trained therapist, so bring this to your sessions.</p>${crisis}</section>
+    <section class="card"><h2>Practice a skill</h2><div class="rule"></div>
+      <label class="lbl" style="margin-top:0">1. Choose a skill set</label>
+      <div class="dbt-mods">${DBT_MODS.map((m) => `<button data-r="dbtmod" data-v="${m.id}" aria-pressed="${m.id === modId}"><b>${m.name}</b><small>${m.sum}</small></button>`).join('')}</div>
+      <label class="lbl" style="margin-top:18px">2. Choose a skill</label>
+      <div class="chips">${mod.skills.map((x) => `<button class="chip" data-r="dbtskill" data-v="${x[0]}" aria-pressed="${x[0] === skId}">${esc(x[1])}</button>`).join('')}</div>
+      <div class="dbt-skill" id="dbt-skill">
+        <div class="pill" style="color:${P.mental.color}">${esc(mod.name)}</div>
+        <h3 class="dbt-name">${esc(name)}</h3>
+        <p style="margin:6px 0 0">${esc(what)}</p>
+        <p class="sub" style="margin:8px 0 0"><b>Use it:</b> ${esc(when)}</p>
+        <div class="dbt-try"><b>Try it now</b>${fields.filter((f) => !(id === 'dearman' && f[0] === 'how')).map((f) => dbtField(id, f)).join('')}
+        ${id === 'dearman' ? `<div class="summary" style="margin-top:14px">${out('dbt-dm')}</div><p class="hint">Then stay Mindful (don’t get pulled off topic), Appear confident, and be willing to Negotiate.</p>${dbtField(id, fields.find((f) => f[0] === 'how'))}` : ''}
+        <button class="btn primary wide" style="margin-top:16px" data-r="dbtsave" data-v="${id}">Save this practice</button></div>
+      </div></section>
     ${card('Today’s diary card', `<p class="sub" style="margin-top:0">Rate each feeling from 0 (none) to 5 (very strong).</p>
-      ${DBT_FEEL.map((f) => `<div class="r2" style="align-items:center;margin-top:6px"><span>${f}</span><div class="chips" style="margin:0">${[0, 1, 2, 3, 4, 5].map((n) => `<button class="chip" data-r="pick" data-path="dbt.draft.f.${f}" data-v="${n}" aria-pressed="${String(getP(`dbt.draft.f.${f}`)) === String(n)}">${n}</button>`).join('')}</div></div>`).join('')}
+      ${DBT_FEEL.map((f) => `<div class="dbt-feel"><span>${f}</span>${scale(`dbt.draft.f.${f}`, 0, 5, '', '').replace(/<div class="scale-l">.*?<\/div>$/, '')}</div>`).join('')}
       ${lbl('Urges I noticed')}${area('dbt.draft.urges', 'e.g. Wanted to shut down, yell, isolate…', 2)}
       ${lbl('Skills I used today')}${pick('dbt.draft.skills', all, true)}
       ${lbl('What helped most')}${inp('dbt.draft.best', { ph: '' })}
       ${saveBtn('dbt', 'Save diary card')}`)}
-    ${DBT_MODS.map((m) => `<details class="card fold" data-fold="dbt.open.${m.id}" ${getP('dbt.open.' + m.id) ? 'open' : ''}><summary><b>${m.name}</b><span class="sub">${m.skills.length} skills</span></summary>
-      <p class="sub" style="margin-top:0">${m.sum}</p><dl class="defs">${m.skills.map(([a, b]) => `<dt>${esc(a)}</dt><dd>${esc(b)}</dd>`).join('')}</dl>
-      ${lbl('How I practiced this')}${area(`dbt.mod.${m.id}`, '', 2)}</details>`).join('')}
-    ${card('DEAR MAN script', `<p class="sub" style="margin-top:0">Plan what you’ll say before a hard conversation.</p>
-      ${lbl('Describe the situation (just the facts)', 1)}${inp('dbt.dm.d', { ph: 'You’ve come home late three nights this week.' })}
-      ${lbl('Express how you feel')}${inp('dbt.dm.e', { ph: 'I feel worried and a little lonely' })}
-      ${lbl('Assert what you want')}${inp('dbt.dm.a', { ph: 'I’d like a text if you’ll be past 7' })}
-      ${lbl('Reinforce: why it’s good for them too')}${inp('dbt.dm.r', { ph: 'Then I won’t be upset when you get home' })}
-      <div class="summary" style="margin-top:12px">${out('dbt-dm')}</div>
-      <p class="hint">Then stay Mindful (don’t get pulled off topic), Appear confident, and be willing to Negotiate.</p>`)}
-    ${card('Pros and cons', `<p class="sub" style="margin-top:0">When an urge is strong, weigh it out before you act.</p>${inp('dbt.pc.urge', { ph: 'The urge, e.g. Quit my job today' })}
-      <div class="grid2b" style="margin-top:10px"><label>Pros of acting on it${area('dbt.pc.ap', '', 3)}</label><label>Cons of acting on it${area('dbt.pc.ac', '', 3)}</label><label>Pros of riding it out${area('dbt.pc.rp', '', 3)}</label><label>Cons of riding it out${area('dbt.pc.rc', '', 3)}</label></div>`)}
+    ${card('My practice log', practiced.length ? practiced.slice().reverse().map((e, ri) => { const i = practiced.length - 1 - ri; const [, sk] = dbtFind(e.skill); return `<div class="entry"><div class="card-head" style="margin-bottom:4px"><span class="goal-meta"><b style="color:var(--ink)">${esc(sk[1])}</b> · ${fmtDate(e.date, { weekday: 'short', month: 'short', day: 'numeric' })}</span><button class="x" data-r="del" data-path="dbt.practice" data-i="${i}" aria-label="Delete">×</button></div>${sk[4].map(([k, l, , kind = 'a']) => { const v = e.a[k]; if (v === undefined || v === '' || v === false || (Array.isArray(v) && !v.length)) return ''; return kv(l, kind === 'c' ? '✓ Yes' : Array.isArray(v) ? v.join(', ') : String(v)); }).join('')}</div>`; }).join('') : '<p class="empty">Skills you practice will show up here.</p>')}
     ${card('Past diary cards', entriesList('dbt', (e) => { const f = Object.entries(e.f || {}).filter(([, v]) => v !== '' && +v > 0); return `${f.length ? `<p class="goal-meta" style="margin:0">${f.map(([k, v]) => `${esc(k)} ${esc(v)}`).join(' · ')}</p>` : ''}${kv('Urges', e.urges)}${tags(e.skills)}${kv('Helped most', e.best)}`; }, 'Your diary cards will show up here.'))}</div>`;
     },
-    outs() { const g = (k) => (getP('dbt.dm.' + k) || '').trim(); const [d, e, a, r] = ['d', 'e', 'a', 'r'].map(g); return { 'dbt-dm': d || e || a ? [d && d.replace(/\.?$/, '.'), e && `${e}.`, a && `${a}.`, r && `${r}.`].filter(Boolean).join(' ') : 'Your script will appear here.' }; },
+    outs() { const g = (k) => (getP('dbt.pd.dearman.' + k) || '').trim(); const [d, e, a, r] = ['d', 'e', 'a', 'r'].map(g); return { 'dbt-dm': d || e || a ? [d && d.replace(/\.?$/, '.'), e && `${e}.`, a && `${a}.`, r && `${r}.`].filter(Boolean).join(' ') : 'Your script will appear here.' }; },
   };
 
   /* ---------- Fitness ---------- */
@@ -345,6 +365,9 @@ export function makeMore(h) {
     if (a === 'ownrm') { setP(b.dataset.path, (getP(b.dataset.path) || []).filter((x) => x !== b.dataset.v)); save(); rerenderKeep(); return true; }
     if (a === 'garm') { const old = (getP('growth.areas') || '').trim(); const l = getP('growth.areaList') || (old ? [old] : []); l.splice(+b.dataset.i, 1); setP('growth.areaList', l); save(); rerenderKeep(); return true; }
     if (a === 'gsave') { const d = getP('growth.gd') || {}; const goal = (d.goal || '').trim(); if (!goal) { toast('Write your 90-day goal first'); return true; } const l = getP('growth.goals') || []; l.push({ goal, why: (d.why || '').trim(), weekly: (d.weekly || '').trim(), start: T, ms: [0, 1, 2].map((i) => ({ t: ((d.ms || {})[i] || '').trim(), done: false })) }); setP('growth.goals', l); setP('growth.gd', {}); save(); rerenderKeep(); toast('Goal saved'); return true; }
+    if (a === 'dbtmod') { ui.dbtMod = b.dataset.v; ui.dbtSkill = ''; rerenderKeep(); return true; }
+    if (a === 'dbtskill') { ui.dbtSkill = b.dataset.v; rerenderKeep(); return true; }
+    if (a === 'dbtsave') { const id = b.dataset.v, d = getP(`dbt.pd.${id}`) || {}; const filled = Object.values(d).some((v) => (Array.isArray(v) ? v.length : v === true || String(v || '').trim())); if (!filled) { toast('Fill in at least one part first'); return true; } const l = getP('dbt.practice') || []; l.push({ skill: id, date: T, a: d }); setP('dbt.practice', l); setP(`dbt.pd.${id}`, {}); save(); rerenderKeep(); toast('Practice saved'); return true; }
     if (a === 'dncat') { ui.dnCat = b.dataset.v; rerenderKeep(); return true; }
     if (a === 'dnrand') { const all = Object.values(DATE_IDEAS).flat(); let t; do { t = all[Math.floor(Math.random() * all.length)]; } while (t === ui.dnIdea); ui.dnIdea = t; rerenderKeep(); return true; }
     if (a === 'dnadd') { const l = getP('datenight.list') || []; const t = b.dataset.v; const i = l.findIndex((x) => x.t === t && !x.done); if (i >= 0) { l.splice(i, 1); toast('Removed from your list'); } else { l.push({ t }); toast('Added to your list'); } if (ui.dnIdea === t) ui.dnIdea = ''; setP('datenight.list', l); save(); rerenderKeep(); return true; }
