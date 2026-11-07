@@ -670,7 +670,7 @@ export function mountResources(root, api) {
   };
   const onSubmit = (e) => {
     const f = e.target; if (!f.dataset.rForm) return; e.preventDefault();
-    if (more.submit(f.dataset.rForm, root)) return;
+    if (more.submit(f.dataset.rForm, root, f)) return;
     if (f.dataset.rForm === 'groc') { const inpEl = root.querySelector('#g-item'); const t = inpEl.value.trim(); if (!t) return; const g = getP('meals.groc') || []; const a = root.querySelector('#g-aisle').value; ui.lastAisle = a; g.push({ t, a, done: false }); setP('meals.groc', g); save(); rerenderKeep(); root.querySelector('#g-item')?.focus(); }
     if (f.dataset.rForm === 'prayreq') { const t = root.querySelector('#pr-new').value.trim(); if (!t) return; const r = getP('prayer.reqs') || []; r.push({ t, d: T, ans: '' }); setP('prayer.reqs', r); save(); rerenderKeep(); }
   };

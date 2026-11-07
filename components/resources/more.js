@@ -1,8 +1,8 @@
 // The seven worksheets that used to say "Coming soon".
 // makeMore() gets the engine's helpers and returns the tools plus their click and form handlers.
 
-const BODY_SIGNS = ['Racing heart', 'Tight chest', 'Short of breath', 'Shaky', 'Sweaty', 'Upset stomach', 'Tense muscles', 'Restless', 'Can’t focus', 'Headache', 'Dizzy', 'Can’t sleep'];
-const ANX_HELP = ['Slow breathing', '5-4-3-2-1 grounding', 'Went for a walk', 'Talked to someone', 'Wrote it down', 'Cold water', 'Prayer or meditation', 'Distracted myself', 'Challenged the thought', 'Rested'];
+const BODY_SIGNS = ['Racing heart', 'Tight chest', 'Short of breath', 'Fast breathing', 'Shaky', 'Sweaty', 'Hot or flushed', 'Cold hands', 'Upset stomach', 'Nausea', 'Tense muscles', 'Clenched jaw', 'Tight throat', 'Tingling or numbness', 'Restless', 'Can’t focus', 'Headache', 'Dizzy', 'Feeling unreal', 'Tired or drained', 'Teary', 'Can’t sleep'];
+const ANX_HELP = ['Slow breathing', '5-4-3-2-1 grounding', 'Went for a walk', 'Went outside', 'Talked to someone', 'Hugged someone or a pet', 'Wrote it down', 'Journaled', 'Made a to-do list', 'Cold water', 'Took a shower or bath', 'Drank water', 'Ate something', 'Listened to music', 'Stretched or did yoga', 'Prayer or meditation', 'Counted backward', 'Watched something funny', 'Took a break from screens', 'Distracted myself', 'Challenged the thought', 'Took prescribed medicine', 'Rested'];
 
 const DBT_MODS = [
   { id: 'mind', name: 'Mindfulness', sum: 'Being present in this moment, on purpose, without judging it.', skills: [
@@ -73,6 +73,13 @@ const TALLY = ['Keep', 'Donate', 'Toss', 'Sell'];
 export function makeMore(h) {
   const { getP, setP, save, rerenderKeep, inp, area, chk, pick, out, esc, icon, num, fmtDate, entriesList, saveBtn, kv, T, TODAY, toast, api, uid, key, addMonths, P, ui, fromKey } = h;
   const scale = (path, lo, hi, l1, l2) => `<div class="scale">${Array.from({ length: hi - lo + 1 }, (_, i) => i + lo).map((i) => `<button type="button" data-r="pick" data-path="${path}" data-v="${i}" aria-pressed="${String(getP(path)) === String(i)}">${i}</button>`).join('')}</div><div class="scale-l"><span>${l1}</span><span>${l2}</span></div>`;
+  // Several-choice chips plus options the person added themselves (saved at customPath for next time)
+  const pickOwn = (path, base, customPath, ph) => {
+    const own = getP(customPath) || [], sel = getP(path) || [];
+    const chip = (o, mine) => `<button type="button" class="chip" data-r="pick" data-path="${esc(path)}" data-v="${esc(o)}" data-multi aria-pressed="${sel.includes(o)}">${esc(o)}</button>${mine ? `<button type="button" class="chip-x" data-r="ownrm" data-path="${esc(customPath)}" data-v="${esc(o)}" aria-label="Remove ${esc(o)} from my options">×</button>` : ''}`;
+    return `<div class="chips" role="group">${base.map((o) => chip(o, false)).join('')}${own.map((o) => `<span class="chip-own">${chip(o, true)}</span>`).join('')}</div>
+      <form class="row addown" data-r-form="addown" data-list="${esc(customPath)}" data-sel="${esc(path)}"><input type="text" placeholder="${esc(ph)}" aria-label="${esc(ph)}" maxlength="60"><button class="btn small" type="submit">Add</button></form>`;
+  };
   const card = (title, body, extra = '') => `<section class="card"${extra}><h2>${title}</h2><div class="rule"></div>${body}</section>`;
   const lbl = (t, first) => `<label class="lbl"${first ? '' : ' style="margin-top:10px"'}>${t}</label>`;
   const sum = (items) => `<section class="card"><div class="sumgrid">${items.map(([k, v, c]) => `<div><div class="k">${k}</div><div class="v"${c ? ` style="color:${c}"` : ''}>${v}</div></div>`).join('')}</div></section>`;
@@ -99,9 +106,9 @@ export function makeMore(h) {
     ${es.length ? sum([['Moments logged', es.length], ['Average before', b != null ? b.toFixed(1) + ' / 10' : '—'], ['Average after', a != null ? a.toFixed(1) + ' / 10' : '—', P.mental.color]]) : ''}
     ${card('Log an anxious moment', `${lbl('What was happening?', 1)}${area('anxiety.draft.sit', 'Where were you, and what was going on?', 2)}
       ${lbl('How anxious did I feel?')}${scale('anxiety.draft.before', 0, 10, 'Calm', 'Panic')}
-      ${lbl('What I noticed in my body')}${pick('anxiety.draft.body', BODY_SIGNS, true)}
+      ${lbl('What I noticed in my body')}${pickOwn('anxiety.draft.body', BODY_SIGNS, 'anxiety.own.body', 'Something else? Add your own')}
       ${lbl('What was I worried would happen?')}${area('anxiety.draft.worry', 'e.g. “I’ll say something wrong and they’ll think I’m stupid.”', 2)}
-      ${lbl('What I did to cope')}${pick('anxiety.draft.help', ANX_HELP, true)}
+      ${lbl('What I did to cope')}${pickOwn('anxiety.draft.help', ANX_HELP, 'anxiety.own.help', 'Add your own coping skill')}
       ${lbl('How anxious do I feel now?')}${scale('anxiety.draft.after', 0, 10, 'Calm', 'Panic')}
       ${saveBtn('anxiety', 'Save this moment')}`)}
     ${es.length >= 2 ? card('My patterns', `${top(es.map((e) => e.body)).length ? `${lbl('My body’s most common warning signs', 1)}${tags(top(es.map((e) => e.body)))}` : ''}${top(es.map((e) => e.help)).length ? `${lbl('What I reach for most')}${tags(top(es.map((e) => e.help)))}` : ''}<p class="hint">The more moments you log, the clearer your patterns get.</p>`) : ''}
@@ -292,6 +299,7 @@ export function makeMore(h) {
       const g = JSON.parse(b.dataset.g); const months = g.months || 3; delete g.months;
       api.addGoal({ why: '', sure: 7, ...g, id: uid(), deadline: key(addMonths(TODAY, months)) }, 0); toast('Added to your goals'); return true;
     }
+    if (a === 'ownrm') { setP(b.dataset.path, (getP(b.dataset.path) || []).filter((x) => x !== b.dataset.v)); save(); rerenderKeep(); return true; }
     if (a === 'dncat') { ui.dnCat = b.dataset.v; rerenderKeep(); return true; }
     if (a === 'dnrand') { const all = Object.values(DATE_IDEAS).flat(); let t; do { t = all[Math.floor(Math.random() * all.length)]; } while (t === ui.dnIdea); ui.dnIdea = t; rerenderKeep(); return true; }
     if (a === 'dnadd') { const l = getP('datenight.list') || []; const t = b.dataset.v; const i = l.findIndex((x) => x.t === t && !x.done); if (i >= 0) { l.splice(i, 1); toast('Removed from your list'); } else { l.push({ t }); toast('Added to your list'); } if (ui.dnIdea === t) ui.dnIdea = ''; setP('datenight.list', l); save(); rerenderKeep(); return true; }
@@ -304,7 +312,8 @@ export function makeMore(h) {
     if (a === 'tallyclr') { setP('home.tally', {}); save(); rerenderKeep(); return true; }
     return false;
   };
-  const submit = (form, root) => {
+  const submit = (form, root, f) => {
+    if (form === 'addown') { const el = f.querySelector('input'), t = el.value.trim(); if (!t) return true; const own = getP(f.dataset.list) || []; if (!own.some((x) => x.toLowerCase() === t.toLowerCase())) own.push(t); setP(f.dataset.list, own); const sel = getP(f.dataset.sel) || []; if (!sel.includes(t)) sel.push(t); setP(f.dataset.sel, sel); save(); rerenderKeep(); toast('Added. It’ll be here next time too.'); return true; }
     const val = (id) => { const el = root.querySelector('#' + id); return el ? el.value.trim() : ''; };
     const push = (path, item) => { const l = getP(path) || []; l.push(item); setP(path, l); save(); rerenderKeep(); };
     if (form === 'worry') { const t = val('wr-new'); if (t) push('anxiety.worries', { t, d: T }); root.querySelector('#wr-new')?.focus(); return true; }
