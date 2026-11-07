@@ -490,3 +490,7 @@ html .example{text-transform:none;letter-spacing:0;font-weight:600;font-size:12p
 .chip-x{border:0;background:none;color:var(--muted);font-size:17px;line-height:1;width:26px;height:26px;border-radius:50%}
 .addown{margin-top:10px}
 .addown input{font-size:14px;padding:7px 10px}
+/* Worksheet save status: a quiet line under the title instead of a bar floating over the page */
+.savebar{position:static;bottom:auto;margin:0 0 14px;padding:0;background:none;border:0;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;justify-content:flex-start;gap:12px;width:auto}
+.savebar .savestate{font-size:13px}
+.savebar .btn{padding:3px 12px;font-size:12.5px}

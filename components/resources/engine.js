@@ -605,7 +605,7 @@ export function mountResources(root, api) {
     if (ui.tool) {
       const r = RES.find((x) => x.id === ui.tool);
       const bar = r.noSave ? '' : `<div class="savebar"><span class="savestate ${dirty.size ? '' : 'ok'}" data-savestate>${dirty.size ? 'Saving…' : '✓ All changes saved'}</span><button class="btn primary small" data-r="savenow">Save</button></div>`;
-      return toolHead(r) + r.tool.render() + bar;
+      return toolHead(r) + bar + r.tool.render();
     }
     const groups = [['financial', 'Money'], ['physical', 'Body'], ['mental', 'Mind & coping'], ['emotional', 'Heart & stress'], ['relationships', 'Relationships'], ['spiritual', 'Spirit'], ['intellectual', 'Learning & growth'], ['environmental', 'Home & surroundings'], ['purpose', 'Purpose & vision']];
     return `<header class="top"><div><div class="brand">Resources</div><h1>Tools & worksheets</h1><div class="sub">Interactive versions of The Holistic Ecosystem workbooks. Everything you type is saved.</div></div></header>
