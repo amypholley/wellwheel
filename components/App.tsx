@@ -29,6 +29,56 @@ function Toast() {
   return <div className={`toast ${show ? 'show' : ''}`} role="status">{toastMsg.text}</div>;
 }
 
+const tabIcon = (d: string, size = 21) => (
+  <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" dangerouslySetInnerHTML={{ __html: d }} />
+);
+
+// Phones: a top bar with a Menu button that slides open a list of every page (the bottom tabs are hidden on phones)
+function MobileMenu() {
+  const { view, setView, setProfileOpen, setFeedbackOpen } = useWW();
+  const [open, setOpen] = useState(false);
+  const current = TABS.find(([id]) => id === view);
+  useEffect(() => {
+    if (!open) return;
+    document.body.style.overflow = 'hidden';
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
+    document.addEventListener('keydown', onKey);
+    (document.querySelector('.mdrawer button[aria-current="page"]') as HTMLElement | null)?.focus();
+    return () => { document.body.style.overflow = ''; document.removeEventListener('keydown', onKey); };
+  }, [open]);
+  const go = (fn: () => void) => { setOpen(false); fn(); };
+  return (
+    <>
+      <div className="mtop">
+        <button className="mbtn" aria-label="Open menu" aria-expanded={open} aria-controls="mdrawer" onClick={() => setOpen(true)}>
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+          <span>Menu</span>
+        </button>
+        <span className="mtitle">{current ? current[1] : 'WellWheel'}</span>
+      </div>
+      {open && <div className="mscrim" onClick={() => setOpen(false)} />}
+      <nav id="mdrawer" className={`mdrawer ${open ? 'open' : ''}`} aria-label="Main" aria-hidden={!open}>
+        <div className="mdrawer-head">
+          <div><div className="brand">The Holistic Ecosystem</div><b className="mdrawer-name">WellWheel</b></div>
+          <button className="x" aria-label="Close menu" onClick={() => setOpen(false)} tabIndex={open ? 0 : -1}>×</button>
+        </div>
+        {TABS.map(([id, label, d]) => (
+          <button key={id} tabIndex={open ? 0 : -1} aria-current={view === id ? 'page' : undefined} onClick={() => go(() => setView(id))}>
+            {tabIcon(d)}<span>{label}</span>
+          </button>
+        ))}
+        <div className="mdrawer-sep" />
+        <button tabIndex={open ? 0 : -1} onClick={() => go(() => setProfileOpen(true))}>
+          {tabIcon('<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/>')}<span>Profile & account</span>
+        </button>
+        <button tabIndex={open ? 0 : -1} onClick={() => go(() => setFeedbackOpen(true))}>
+          {tabIcon('<path d="M4 5h16v11H8l-4 4z"/>')}<span>Send feedback</span>
+        </button>
+      </nav>
+    </>
+  );
+}
+
 function Shell() {
   const { mode, view, setView, isPlus } = useWW();
   if (mode === 'loading') return <div className="loading"><LogoWheel size={64} /></div>;
@@ -37,6 +87,7 @@ function Shell() {
   return (
     <>
       {mode !== 'auth' && (<>
+        <MobileMenu />
         <div className="app">{screen}</div>
         <nav className="tabs" aria-label="Main"><div className="in">
           {TABS.map(([id, label, d]) => (

@@ -439,3 +439,28 @@ nav.tabs .in{grid-template-columns:repeat(8,1fr);max-width:720px}
 .legal .card p:last-child{margin-bottom:0}
 .legal .card ul{margin:0 0 10px;padding-left:20px;display:flex;flex-direction:column;gap:6px}
 .legal a,.authcard a,.plus-sheet a,.protonote a{color:var(--plum);font-weight:600}
+
+/* ---------- Phones: top Menu button + slide-out page list instead of bottom tabs ---------- */
+.mtop,.mdrawer,.mscrim{display:none}
+@media (max-width:699px){
+  nav.tabs{display:none}
+  .app{padding-bottom:calc(32px + env(safe-area-inset-bottom))}
+  header.top{padding-top:10px}
+  .toast{bottom:calc(24px + env(safe-area-inset-bottom))}
+  .savebar{bottom:calc(12px + env(safe-area-inset-bottom))}
+  .mtop{display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:6;padding:calc(8px + env(safe-area-inset-top)) 12px 8px;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  .mbtn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:7px 14px 7px 10px;font-weight:700;font-size:14px}
+  .mtitle{font-family:var(--display);font-weight:600;font-size:17px;color:var(--ink)}
+  .mscrim{display:block;position:fixed;inset:0;background:rgba(20,14,28,.45);z-index:30}
+  .mdrawer{display:flex;flex-direction:column;position:fixed;top:0;bottom:0;left:0;width:min(300px,84vw);z-index:31;background:var(--surface);border-right:1px solid var(--line);padding:calc(14px + env(safe-area-inset-top)) 10px calc(14px + env(safe-area-inset-bottom));overflow-y:auto;transform:translateX(-102%);visibility:hidden;transition:transform .22s ease,visibility .22s;box-shadow:12px 0 32px -18px rgba(0,0,0,.45)}
+  .mdrawer.open{transform:none;visibility:visible}
+  .mdrawer-head{display:flex;justify-content:space-between;align-items:flex-start;padding:4px 8px 12px;margin-bottom:6px;border-bottom:1px solid var(--line)}
+  .mdrawer-name{font-family:var(--display);font-size:22px}
+  .mdrawer button:not(.x){display:flex;align-items:center;gap:14px;width:100%;border:0;background:none;color:var(--ink);text-align:left;padding:12px 12px;border-radius:12px;font-size:16px;font-weight:600}
+  .mdrawer button:not(.x) svg{color:var(--muted);flex:none}
+  .mdrawer button[aria-current="page"]{background:color-mix(in srgb,var(--plum) 12%,var(--surface));color:var(--plum)}
+  .mdrawer button[aria-current="page"] svg{color:var(--plum)}
+  .mdrawer-sep{height:1px;background:var(--line);margin:8px 6px}
+}
+@media (max-width:699px) and (prefers-reduced-motion:reduce){.mdrawer{transition:none}}
+@media (max-width:699px){.sticky-sum{top:calc(62px + env(safe-area-inset-top))}}
