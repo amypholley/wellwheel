@@ -400,14 +400,38 @@ export function mountResources(root, api) {
     <section class="card"><h2>My core values</h2><div class="rule"></div><p class="sub" style="margin-top:0">Choose up to 5. ${vals.length}/5 chosen.</p><div class="chips">${VALUES.map((v) => `<button class="chip" data-r="val" data-v="${v}" aria-pressed="${vals.includes(v)}">${v}</button>`).join('')}</div>
       <label class="lbl" style="margin-top:12px">My personal mission statement</label>${area('vision.mission', 'e.g. I live with faith and courage, help others find their footing, and build a life of freedom for my family.', 3)}
       <label class="lbl" style="margin-top:10px">My word for the year</label>${inp('vision.word', { ph: 'e.g. Rooted' })}</section>
-    ${Object.values(P).map((p) => `<details class="card fold vision" data-fold="vision.open.${p.id}" ${getP('vision.open.' + p.id) ? 'open' : ''} style="--c:${p.color}"><summary><b style="display:flex;align-items:center;gap:8px"><span style="color:${p.color};display:flex">${icon(p.id, 18)}</span>${p.name}</b><span class="sub">${getP(`vision.p.${p.id}.five`) ? '✓' : ''}</span></summary>
-      <label class="lbl">In 5 years, I see…</label>${area(`vision.p.${p.id}.five`, '', 2)}
-      <label class="lbl" style="margin-top:8px">One-year milestone</label>${inp(`vision.p.${p.id}.one`, { ph: 'By this time next year…' })}
-      <label class="lbl" style="margin-top:8px">First step this month</label>${inp(`vision.p.${p.id}.step`, { ph: 'One small action' })}
-      <button class="btn small" style="margin-top:10px" data-r="visgoal" data-v="${p.id}">Make the first step a goal</button></details>`).join('')}</div>`;
+    ${visionPillars()}</div>`;
     },
   };
-
+  const VIS_HINT = {
+    physical: 'Think about your energy, movement, sleep, food, and how your body feels.',
+    mental: 'Think about your stress, focus, and how you handle hard days.',
+    emotional: 'Think about how you want to feel most days, and how you care for your feelings.',
+    spiritual: 'Think about your faith, peace, and what grounds you.',
+    intellectual: 'Think about what you want to learn, read, or get better at.',
+    environmental: 'Think about your home, time in nature, and the world around you.',
+    financial: 'Think about savings, debt, income, and the freedom you want.',
+    relationships: 'Think about family, friends, your partner, and your community.',
+    purpose: 'Think about your work, your calling, and the difference you want to make.',
+  };
+  function visionPillars() {
+    const ps = Object.values(P), has = (id) => !!(getP(`vision.p.${id}.five`) || '').trim();
+    const sel = ui.visP || (ps.find((p) => !has(p.id)) || ps[0]).id, p = P[sel];
+    const i = ps.findIndex((x) => x.id === sel), nxt = ps[(i + 1) % ps.length];
+    const done = ps.filter((x) => has(x.id));
+    return `<section class="card"><div class="card-head"><h2>My vision, pillar by pillar</h2><span class="sub">${done.length} of 9</span></div>
+      <p class="sub" style="margin-top:0">Tap a pillar to write about it. Take your time. You don’t need to do them all at once.</p>
+      <div class="vgrid">${ps.map((x) => `<button data-r="visp" data-v="${x.id}" style="--c:${x.color}" aria-pressed="${x.id === sel}"><span style="color:${x.color};display:flex">${icon(x.id, 20)}</span><b>${x.name}</b><small>${has(x.id) ? '✓ Written' : 'Not yet'}</small></button>`).join('')}</div>
+      <div class="vedit" style="--c:${p.color}" id="vedit">
+        <h3 class="dbt-name" style="display:flex;align-items:center;gap:8px"><span style="color:${p.color};display:flex">${icon(p.id, 22)}</span>${p.name}</h3>
+        <p class="sub" style="margin:4px 0 0">${VIS_HINT[p.id] || ''}</p>
+        <label class="lbl" style="margin-top:16px">In 5 years, I see…</label>${area(`vision.p.${p.id}.five`, 'Describe it as if it’s already true', 3)}
+        <label class="lbl" style="margin-top:14px">One-year milestone</label>${inp(`vision.p.${p.id}.one`, { ph: 'By this time next year…' })}
+        <label class="lbl" style="margin-top:14px">First step this month</label>${inp(`vision.p.${p.id}.step`, { ph: 'One small action' })}
+        <div class="row" style="margin-top:16px;flex-wrap:wrap;gap:8px"><button class="btn small" data-r="visgoal" data-v="${p.id}">Make the first step a goal</button><button class="btn small primary" data-r="visp" data-v="${nxt.id}" data-top>Next: ${nxt.name} →</button></div>
+      </div></section>
+    ${done.length ? `<section class="card"><h2>My vision at a glance</h2><div class="rule"></div>${done.map((x) => { const v = (k) => (getP(`vision.p.${x.id}.${k}`) || '').trim(); return `<div class="vsum" style="--c:${x.color}"><b style="display:flex;align-items:center;gap:6px;color:color-mix(in srgb,${x.color} 80%,var(--ink))">${icon(x.id, 16)}${x.name}</b><p>${esc(v('five'))}</p>${v('one') ? `<div class="goal-meta">In a year: ${esc(v('one'))}</div>` : ''}${v('step') ? `<div class="goal-meta">This month: ${esc(v('step'))}</div>` : ''}</div>`; }).join('')}</section>` : ''}`;
+  }
 
   /* ---------- Financial portfolio (pulls from the money worksheets and goals) ---------- */
   const hbar = (label, value, max, note = '') => `<div class="hb" title="${esc(label)}: ${money(value)}"><span class="hb-l">${esc(label)}</span><span class="hb-t"><span style="width:${max > 0 ? Math.max(1.5, Math.min(100, (value / max) * 100)) : 0}%"></span></span><span class="hb-v">${money(value)}${note}</span></div>`;
@@ -666,6 +690,7 @@ export function mountResources(root, api) {
     else if (a === 'starter') { setP('couples.si', (getP('couples.si') || 0) + 1); save(); rerenderKeep(); }
     else if (a === 'prayans') { const reqs = getP('prayer.reqs'); const r = reqs[+b.dataset.i]; r.ans = r.ans ? '' : T; setP('prayer.reqs', reqs); save(); rerenderKeep(); if (r.ans) toast('Answered prayer recorded'); }
     else if (a === 'val') { const v = getP('vision.values') || []; const i = v.indexOf(b.dataset.v); if (i >= 0) v.splice(i, 1); else if (v.length < 5) v.push(b.dataset.v); else { toast('Pick up to 5. Remove one first.'); return; } setP('vision.values', v); save(); rerenderKeep(); }
+    else if (a === 'visp') { ui.visP = b.dataset.v; rerenderKeep(); if (b.hasAttribute('data-top')) root.querySelector('#vedit')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
     else if (a === 'visgoal') { const pid = b.dataset.v, st = (getP(`vision.p.${pid}.step`) || '').trim(); if (!st) { toast('Write a first step first'); return; } api.addGoal({ id: uid(), pillar: pid, title: st.slice(0, 200), type: 'target', count: 1, per: 'day', target: 1, unit: 'done', why: (getP(`vision.p.${pid}.five`) || '').trim(), deadline: key(addMonths(TODAY, 1)), sure: 7 }, 0); toast('Added to your goals'); }
   };
   const onSubmit = (e) => {

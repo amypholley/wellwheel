@@ -69,6 +69,14 @@ const ROOMS = [
 ];
 const DAILY_RESET = ['Make the bed', 'Dishes done or in the dishwasher', 'Wipe the kitchen counters', '10-minute pick-up', 'Quick bathroom wipe-down', 'Lay out tomorrow’s clothes'];
 const TALLY = ['Keep', 'Donate', 'Toss', 'Sell'];
+const ENV_AREAS = [
+  { id: 'home', short: 'Peaceful home', name: 'A peaceful home', color: '#1E9E78', q: 'How peaceful does my home feel?', intro: 'Your space shapes your mood. Small touches make a home feel calm and like yours.',
+    acts: ['Let natural light in', 'Opened a window for fresh air', 'Kept one calm corner clear', 'Put something I love where I can see it', 'Used soft lighting in the evening', 'Added a pleasant smell (candle, plants, fresh air)', 'Played calming music at home'], own: 'One change that would bring more peace', ownPh: 'e.g. A lamp by my reading chair' },
+  { id: 'nature', short: 'Nature', name: 'Time with nature', color: '#5BAE3C', q: 'How connected to nature do I feel?', intro: 'People are calmer and more grounded with a little nature every day, even a few minutes.',
+    acts: ['Stepped outside in the sun', 'Cared for a plant or garden', 'Noticed the season changing', 'Ate a meal outside', 'Watched the sky (sunrise, sunset, stars)', 'Brought something natural inside', 'Walked somewhere green'], own: 'My favorite place in nature', ownPh: 'e.g. The lake trail near home' },
+  { id: 'earth', short: 'Caring for the world', name: 'Caring for the world', color: '#2A9FD8', q: 'How well am I caring for the world around me?', intro: 'Small, steady habits add up, for the planet and your community.',
+    acts: ['Used a reusable bag or bottle', 'Cut down on food waste', 'Turned off lights and unplugged things', 'Recycled or composted', 'Bought something used or local', 'Picked up litter', 'Helped someone in my community'], own: 'One habit I want to build', ownPh: 'e.g. Bring my own coffee cup' },
+];
 
 export function makeMore(h) {
   const { getP, setP, save, rerenderKeep, inp, area, chk, pick, out, esc, icon, num, fmtDate, entriesList, saveBtn, kv, T, TODAY, toast, api, uid, key, addMonths, P, ui, fromKey } = h;
@@ -295,6 +303,29 @@ export function makeMore(h) {
     },
   };
 
+  /* ---------- Environment in balance ---------- */
+  const ENV = {
+    render() {
+      const wk = monday(), done = (a) => a.acts.filter((_, i) => getP(`env.wk.${wk}.${a.id}.${i}`)).length;
+      const rows = ENV_AREAS.map((a) => ({ a, n: done(a) }));
+      const low = rows.slice().sort((x, y) => x.n - y.n)[0], hi = Math.max(...rows.map((r) => r.n));
+      const es = getP('env.entries') || [];
+      return `<div class="stack">
+    <section class="card"><p style="margin:0">Environmental wellness is about balance between three things: a home that feels peaceful, time with nature, and caring for the world around you. You don’t need to do it all. Aim for a little of each.</p></section>
+    ${card('This week’s balance', `<div class="hbars envbars">${rows.map(({ a, n }) => `<div class="hb"><span class="hb-l">${a.short}</span><span class="hb-t"><span style="width:${Math.max(n ? 4 : 0, (n / a.acts.length) * 100)}%;background:${a.color}"></span></span><span class="hb-v">${n} of ${a.acts.length}</span></div>`).join('')}</div>
+      <p class="hint" style="margin-bottom:0">${hi === 0 ? 'Check off things below as you do them this week. The list starts fresh every Monday.' : low.n === hi ? 'Nicely balanced this week. Keep it up!' : `<b>${low.a.name}</b> could use a little attention this week. Try one small thing below.`}</p>`)}
+    ${ENV_AREAS.map((a) => `<section class="card"><div class="envsec" style="--c:${a.color}"><h2>${a.name}</h2><p class="sub" style="margin:6px 0 0">${a.intro}</p>
+      <label class="lbl" style="margin-top:16px">This week I…</label><div class="stack" style="gap:8px">${a.acts.map((t, i) => chk(`env.wk.${wk}.${a.id}.${i}`, esc(t), true)).join('')}</div>
+      <label class="lbl" style="margin-top:16px">${a.own}</label>${inp(`env.own.${a.id}`, { ph: a.ownPh })}</div></section>`).join('')}
+    ${card('Monthly check-in', `<p class="sub" style="margin-top:0">Once a month, rate how each area feels.</p>
+      ${ENV_AREAS.map((a) => `<label class="lbl" style="margin-top:14px">${a.q}</label>${scale(`env.draft.${a.id}`, 0, 10, 'Not at all', 'Very')}`).join('')}
+      <label class="lbl" style="margin-top:14px">What I want to change next month</label>${area('env.draft.note', '', 2)}
+      ${saveBtn('env', 'Save check-in')}`)}
+    ${es.length ? card('Past check-ins', entriesList('env', (e) => `<div class="sk-meta">${ENV_AREAS.map((a) => (e[a.id] !== undefined && e[a.id] !== '' ? `<span class="tag" style="color:${a.color}">${a.name}: ${esc(e[a.id])}/10</span>` : '')).join('')}</div>${kv('Next month', e.note)}`, '')) : ''}
+    ${card('Make it a habit', `<p style="margin-top:0">Put a little balance on your Today page.</p><div class="row" style="flex-wrap:wrap;gap:8px">${goalBtn({ pillar: 'environmental', title: 'Spend time in nature', type: 'habit', count: 3, per: 'week', unit: 'times', months: 2 }, 'Nature 3 times a week')}${goalBtn({ pillar: 'environmental', title: 'One small eco habit a day', type: 'habit', count: 1, per: 'day', unit: 'times', months: 2 }, 'One eco habit a day')}</div>`)}</div>`;
+    },
+  };
+
   const tools = [
     { id: 'anxiety', pillar: 'mental', title: 'Anxiety Management Workbook', desc: 'Calm your body, sort your worries, and face fears step by step.', tool: ANXIETY },
     { id: 'dbt', pillar: 'mental', title: 'DBT Skills Workbook', desc: 'Diary card, the four DBT skill sets, and a DEAR MAN script builder.', tool: DBT },
@@ -302,6 +333,7 @@ export function makeMore(h) {
     { id: 'datenight', pillar: 'relationships', title: 'Date Night Planner', desc: 'Idea bank, a “surprise me” button, a date list, budget, and memories.', tool: DATENIGHT },
     { id: 'bible', pillar: 'spiritual', title: 'Bible Study Workbook', desc: 'Reading plans, SOAP study, and memory verses.', tool: BIBLE },
     { id: 'growth', pillar: 'intellectual', title: 'Personal Development Workbook', desc: 'Your strengths, a 90-day growth goal, a learning list, and weekly reflection.', tool: GROWTH },
+    { id: 'env', pillar: 'environmental', title: 'Environment in Balance', desc: 'A peaceful home, time with nature, and caring for the world, with a weekly balance check.', tool: ENV },
     { id: 'home', pillar: 'environmental', title: 'Home Reset Checklist', desc: 'A daily 10-minute reset, room-by-room checklists, and a declutter tally.', tool: HOME },
   ];
 
