@@ -631,7 +631,7 @@ export function mountResources(root, api) {
     setP(el.dataset.b, el.type === 'checkbox' ? el.checked : el.value); save();
     if (el.hasAttribute('data-rr') && el.type === 'checkbox') rerenderKeep(); else updateOuts();
   };
-  const onChange = (e) => { const el = e.target; if (el.dataset.b && el.hasAttribute('data-rr') && el.type !== 'checkbox') rerenderKeep(); };
+  const onChange = (e) => { const el = e.target; if (more.change(el)) return; if (el.dataset.b && el.hasAttribute('data-rr') && el.type !== 'checkbox') rerenderKeep(); };
   const onToggle = (e) => { const d = e.target; if (d.dataset && d.dataset.fold) { setP(d.dataset.fold, d.open); save(); } };
   const refreshCope = () => { const y = window.scrollY; const cl = root.querySelector('#copelist'); if (cl) cl.innerHTML = copeList(); window.scrollTo(0, y); };
   const onClick = (e) => {

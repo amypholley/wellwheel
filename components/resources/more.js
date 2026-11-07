@@ -206,21 +206,24 @@ export function makeMore(h) {
   };
 
   /* ---------- Bible study ---------- */
+  const bibleReading = () => { const r = getP('bible.reading'); if (Array.isArray(r)) return r; const old = getP('bible.plan'); return old ? [old] : ['John']; };
   const BIBLE = {
     render() {
-      const plan = getP('bible.plan') || 'John', pl = biblePlan(plan);
-      const read = getP(`bible.read.${pl[0]}`) || [], n = pl[2], nxt = Array.from({ length: n }, (_, i) => i + 1).find((c) => !read.includes(c));
+      const reading = bibleReading();
+      const books = reading.map((id) => { const pl = biblePlan(id), read = getP(`bible.read.${pl[0]}`) || []; return { pl, read, nxt: Array.from({ length: pl[2] }, (_, i) => i + 1).find((c) => !read.includes(c)) }; });
+      const cur = books.find((x) => x.nxt) || books[0];
       const vs = getP('bible.verses') || [];
+      const bookCard = ({ pl, read, nxt }) => `<div class="bbook"><div class="card-head" style="margin:0 0 6px"><b>${esc(pl[1])}</b><span class="row" style="gap:4px;align-items:center"><span class="sub" ${nxt ? '' : 'style="color:var(--good);font-weight:600"'}>${nxt ? `${read.length} of ${pl[2]}` : '✓ Finished'}</span><button class="x" data-r="brm" data-v="${esc(pl[0])}" aria-label="Remove ${esc(pl[1])} from my list">×</button></span></div>
+        <div class="bar" style="height:8px;margin:0 0 10px"><span style="width:${(read.length / pl[2]) * 100}%;background:${P.spiritual.color}"></span></div>
+        <div class="chips">${Array.from({ length: pl[2] }, (_, i) => i + 1).map((c) => `<button class="chip" style="min-width:42px;justify-content:center" data-r="bch" data-p="${esc(pl[0])}" data-v="${c}" aria-pressed="${read.includes(c)}" aria-label="${esc(pl[3])} chapter ${c}">${c}</button>`).join('')}</div>
+        ${nxt ? `<p class="hint" style="margin-bottom:0">Next up: <b>${esc(pl[3])} ${nxt}</b></p>` : ''}</div>`;
       return `<div class="stack">
-    ${card('Reading plan', `<label class="lbl" style="margin-top:0" for="bb-pick">Which book are you reading?</label>
-      <select id="bb-pick" data-b="bible.plan" data-rr>${[['Old Testament', OT], ['New Testament', NT]].map(([g, l]) => `<optgroup label="${g}">${l.map(([bk, n]) => `<option value="${esc(bk)}" ${pl[0] === bk ? 'selected' : ''}>${esc(bk)} (${n} chapter${n === 1 ? '' : 's'})</option>`).join('')}</optgroup>`).join('')}${BOOKS.some((b) => b[0] === pl[0]) ? '' : `<option value="${esc(pl[0])}" selected>${esc(pl[1])}</option>`}</select>
-      <div class="card-head" style="margin:14px 0 6px"><b>${esc(pl[1])}</b><span class="sub">${read.length} of ${n} chapters</span></div>
-      <div class="bar" style="height:10px;margin:0 0 12px"><span style="width:${(read.length / n) * 100}%;background:${P.spiritual.color}"></span></div>
-      <div class="chips">${Array.from({ length: n }, (_, i) => i + 1).map((c) => `<button class="chip" style="min-width:42px;justify-content:center" data-r="bch" data-v="${c}" aria-pressed="${read.includes(c)}" aria-label="Chapter ${c}">${c}</button>`).join('')}</div>
-      <p class="hint">${nxt ? `Next up: <b>${esc(pl[3])} ${nxt}</b>. Tap a chapter when you’ve read it.` : 'You finished this book! Pick another one above.'}</p>
+    ${card('Books I’m reading', `${books.length ? `<p class="sub" style="margin-top:0">Tap a chapter when you’ve read it.</p>${books.map(bookCard).join('')}` : '<p class="empty" style="margin-top:0">Add a book below to start reading.</p>'}
+      <label class="lbl" for="bb-add" style="margin-top:14px">Add a book</label>
+      <select id="bb-add" data-bible-add><option value="">Choose a book…</option>${[['Old Testament', OT], ['New Testament', NT]].map(([g, l]) => `<optgroup label="${g}">${l.map(([bk, n]) => `<option value="${esc(bk)}" ${reading.includes(bk) ? 'disabled' : ''}>${esc(bk)} (${n} chapter${n === 1 ? '' : 's'})${reading.includes(bk) ? ' ✓' : ''}</option>`).join('')}</optgroup>`).join('')}</select>
       ${goalBtn({ pillar: 'spiritual', title: 'Read my Bible', type: 'habit', count: 1, per: 'day', unit: 'chapters', months: 2 }, 'Add a daily reading goal')}`)}
     ${card('Study a passage (SOAP)', `<p class="sub" style="margin-top:0">A simple way to study: Scripture, Observation, Application, Prayer.</p>
-      ${lbl('Passage', 1)}${inp('bible.draft.ref', { ph: `e.g. ${pl[3]} ${nxt || 1}` })}
+      ${lbl('Passage', 1)}${inp('bible.draft.ref', { ph: cur ? `e.g. ${cur.pl[3]} ${cur.nxt || 1}` : 'e.g. John 3' })}
       ${lbl('<span class="letter">S</span>Scripture: the verse that stood out')}${area('bible.draft.s', 'Write it out word for word', 2)}
       ${lbl('<span class="letter">O</span>Observation: what does it say?')}${area('bible.draft.o', 'Who, what, when, where, why?', 2)}
       ${lbl('<span class="letter">A</span>Application: how does it apply to my life?')}${area('bible.draft.a', '', 2)}
@@ -292,7 +295,8 @@ export function makeMore(h) {
     if (a === 'dncat') { ui.dnCat = b.dataset.v; rerenderKeep(); return true; }
     if (a === 'dnrand') { const all = Object.values(DATE_IDEAS).flat(); let t; do { t = all[Math.floor(Math.random() * all.length)]; } while (t === ui.dnIdea); ui.dnIdea = t; rerenderKeep(); return true; }
     if (a === 'dnadd') { const l = getP('datenight.list') || []; const t = b.dataset.v; const i = l.findIndex((x) => x.t === t && !x.done); if (i >= 0) { l.splice(i, 1); toast('Removed from your list'); } else { l.push({ t }); toast('Added to your list'); } if (ui.dnIdea === t) ui.dnIdea = ''; setP('datenight.list', l); save(); rerenderKeep(); return true; }
-    if (a === 'bch') { const plan = getP('bible.plan') || 'John', p = `bible.read.${plan}`; const r = [...(getP(p) || [])]; const c = +b.dataset.v, i = r.indexOf(c); i < 0 ? r.push(c) : r.splice(i, 1); setP(p, r); save(); rerenderKeep(); return true; }
+    if (a === 'bch') { const p = `bible.read.${b.dataset.p}`; const r = [...(getP(p) || [])]; const c = +b.dataset.v, i = r.indexOf(c); i < 0 ? r.push(c) : r.splice(i, 1); setP(p, r); save(); rerenderKeep(); return true; }
+    if (a === 'brm') { setP('bible.reading', bibleReading().filter((x) => x !== b.dataset.v)); save(); rerenderKeep(); toast('Removed. Your progress is kept if you add it back.'); return true; }
     if (a === 'bmem') { const v = getP('bible.verses'); const x = v[+b.dataset.i]; x.m = !x.m; setP('bible.verses', v); save(); rerenderKeep(); if (x.m) toast('Memorized!'); return true; }
     if (a === 'lstat') { setP(`growth.learn.${b.dataset.i}.s`, b.dataset.v); save(); rerenderKeep(); return true; }
     if (a === 'homeclr') { setP(`home.rooms.${b.dataset.v}`, {}); save(); rerenderKeep(); return true; }
@@ -309,6 +313,10 @@ export function makeMore(h) {
     if (form === 'learn') { const t = val('ln-new'); if (t) push('growth.learn', { t, type: val('ln-type'), s: 'Want' }); root.querySelector('#ln-new')?.focus(); return true; }
     return false;
   };
+  const change = (el) => {
+    if (el.hasAttribute('data-bible-add') && el.value) { const r = bibleReading(); if (!r.includes(el.value)) r.push(el.value); setP('bible.reading', r); save(); rerenderKeep(); return true; }
+    return false;
+  };
   const outs = { dbt: DBT.outs };
-  return { tools, click, submit, outs };
+  return { tools, click, submit, change, outs };
 }
