@@ -212,13 +212,12 @@ export function makeMore(h) {
       const read = getP(`bible.read.${pl[0]}`) || [], n = pl[2], nxt = Array.from({ length: n }, (_, i) => i + 1).find((c) => !read.includes(c));
       const vs = getP('bible.verses') || [];
       return `<div class="stack">
-    ${card('Reading plan', `<label class="lbl" style="margin-top:0" for="bb-pick">Choose any book</label>
+    ${card('Reading plan', `<label class="lbl" style="margin-top:0" for="bb-pick">Which book are you reading?</label>
       <select id="bb-pick" data-b="bible.plan" data-rr>${[['Old Testament', OT], ['New Testament', NT]].map(([g, l]) => `<optgroup label="${g}">${l.map(([bk, n]) => `<option value="${esc(bk)}" ${pl[0] === bk ? 'selected' : ''}>${esc(bk)} (${n} chapter${n === 1 ? '' : 's'})</option>`).join('')}</optgroup>`).join('')}${BOOKS.some((b) => b[0] === pl[0]) ? '' : `<option value="${esc(pl[0])}" selected>${esc(pl[1])}</option>`}</select>
-      <label class="lbl">Or start with one of these</label><div class="chips">${BIBLE_PLANS.map(([id, t]) => `<button class="chip" data-r="set" data-path="bible.plan" data-v="${esc(id)}" aria-pressed="${plan === id}">${esc(t)}</button>`).join('')}</div>
       <div class="card-head" style="margin:14px 0 6px"><b>${esc(pl[1])}</b><span class="sub">${read.length} of ${n} chapters</span></div>
       <div class="bar" style="height:10px;margin:0 0 12px"><span style="width:${(read.length / n) * 100}%;background:${P.spiritual.color}"></span></div>
       <div class="chips">${Array.from({ length: n }, (_, i) => i + 1).map((c) => `<button class="chip" style="min-width:42px;justify-content:center" data-r="bch" data-v="${c}" aria-pressed="${read.includes(c)}" aria-label="Chapter ${c}">${c}</button>`).join('')}</div>
-      <p class="hint">${nxt ? `Next up: <b>${esc(pl[3])} ${nxt}</b>. Tap a chapter when you’ve read it.` : 'You finished this plan! Pick another one above.'}</p>
+      <p class="hint">${nxt ? `Next up: <b>${esc(pl[3])} ${nxt}</b>. Tap a chapter when you’ve read it.` : 'You finished this book! Pick another one above.'}</p>
       ${goalBtn({ pillar: 'spiritual', title: 'Read my Bible', type: 'habit', count: 1, per: 'day', unit: 'chapters', months: 2 }, 'Add a daily reading goal')}`)}
     ${card('Study a passage (SOAP)', `<p class="sub" style="margin-top:0">A simple way to study: Scripture, Observation, Application, Prayer.</p>
       ${lbl('Passage', 1)}${inp('bible.draft.ref', { ph: `e.g. ${pl[3]} ${nxt || 1}` })}
