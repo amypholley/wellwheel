@@ -483,3 +483,18 @@ html .example{text-transform:none;letter-spacing:0;font-weight:600;font-size:12p
 /* A lone last worksheet tile fills the row instead of leaving a gap */
 .rgrid > .rtile:last-child:nth-child(odd){grid-column:1 / -1;min-height:0}
 .bbook + .bbook{border-top:1px solid color-mix(in srgb,var(--line) 55%,transparent);margin-top:16px;padding-top:16px}
+/* DBT workbook: skill-set menu and roomier practice area */
+.dbt-mods{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.dbt-mods button{text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:3px}
+.dbt-mods button b{font-size:14px}
+.dbt-mods button small{font-size:12.5px;color:var(--muted);line-height:1.35}
+.dbt-mods button[aria-pressed="true"]{border-color:var(--plum);background:color-mix(in srgb,var(--plum) 8%,var(--surface));box-shadow:0 0 0 1px var(--plum)}
+@media (max-width:420px){.dbt-mods{grid-template-columns:1fr}}
+.dbt-skill{margin-top:20px;padding-top:20px;border-top:1px solid color-mix(in srgb,var(--line) 70%,transparent)}
+.dbt-name{font-family:var(--display);font-size:22px;font-weight:600;margin:4px 0 0}
+.dbt-try{margin-top:16px;background:color-mix(in srgb,var(--chip) 60%,transparent);border-radius:12px;padding:16px}
+.dbt-try > b{font-size:15px}
+.dbt-try .lbl:first-of-type{margin-top:10px}
+.dbt-feel{margin-top:14px}
+.dbt-feel > span{display:block;font-weight:600;margin-bottom:6px}
+.dbt-feel .scale button{padding:9px 0;font-size:14px}
