@@ -160,6 +160,7 @@ export function Today() {
   const { S, act, profile, mode, setWizard, setProfileOpen, setAuthOpen, toast } = useWW();
   const { TODAY, T } = today();
   const [logOpen, setLogOpen] = useState<string | null>(null);
+  const [showLegend, setShowLegend] = useState(false);
   const [grat, setGrat] = useState('');
   const hr = new Date().getHours(), greet = hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening';
   const todays = S.gratitude.find((x) => x.date === T);
@@ -178,15 +179,16 @@ export function Today() {
       {/* Wide screens: wheel on the left, check-ins on the right, the rest underneath. Phones: one column. */}
       <div className="today-grid">
         <section className="card tg-wheel">
-          <div className="card-head"><h2>This week’s balance</h2><span className="sub">Tap a pillar to add a goal</span></div>
+          <div className="card-head"><h2>This week’s balance</h2><span className={`sub ${showLegend ? '' : 'calm-hide'}`}>Tap a pillar to add a goal</span></div>
           <div className="wheel-wrap"><Wheel S={S} />
-            <div className="legend">
+            <div className={`legend ${showLegend ? '' : 'calm-hide'}`}>
               {PILLARS.map((p) => { const sc = pillarScore(S, p.id); return (
                 <button key={p.id} onClick={() => setWizard({ pillar: p.id })} aria-label={sc === null ? 'Add a goal for ' + p.name : `${p.name} ${Math.round(sc * 100)} percent`}>
                   <span className="dot" style={{ background: p.color, opacity: sc === null ? 0.3 : 1 }} />{p.name}<span className="pct">{sc === null ? '+' : Math.round(sc * 100) + '%'}</span>
                 </button>); })}
             </div>
           </div>
+          <button className="linkish calm-only legend-toggle" aria-expanded={showLegend} onClick={() => setShowLegend(!showLegend)}>{showLegend ? 'Hide pillar details' : 'See each pillar'}</button>
         </section>
         <div className="tg-main stack">
         <TogetherCard />

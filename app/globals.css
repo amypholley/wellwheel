@@ -464,3 +464,25 @@ nav.tabs .in{grid-template-columns:repeat(8,1fr);max-width:720px}
 }
 @media (max-width:699px) and (prefers-reduced-motion:reduce){.mdrawer{transition:none}}
 @media (max-width:699px){.sticky-sum{top:calc(62px + env(safe-area-inset-top))}}
+
+/* ---------- Calmer look (design preview: ?calm=1). Same colors, more room, fewer lines and shouty labels. ---------- */
+.calm-only{display:none}
+html.calm body{line-height:1.55}
+html.calm .stack,html.calm .today-grid,html.calm .tg-under{gap:22px}
+html.calm header.top{padding-bottom:18px}
+html.calm .card{padding:22px;border-color:transparent;box-shadow:0 1px 2px rgba(45,41,51,.04),0 6px 20px rgba(45,41,51,.06)}
+@media (prefers-color-scheme: dark){html.calm:not([data-theme="light"]) .card{border-color:var(--line);box-shadow:none}}
+html.calm .card-head{margin-bottom:16px}
+html.calm .rule{display:none}
+html.calm .goal{padding:18px 0;gap:14px;border-top-color:color-mix(in srgb,var(--line) 55%,transparent)}
+html.calm .goal:first-of-type{padding-top:4px}
+html.calm .goal-title{margin-top:3px}
+html.calm .pill{text-transform:none;letter-spacing:0;font-weight:600;font-size:13px}
+html.calm .example{text-transform:none;letter-spacing:0;font-weight:600;font-size:12px;margin-left:8px}
+html.calm .calm-only{display:block}
+html.calm .calm-hide{display:none}
+html.calm .wheel-wrap{grid-template-columns:1fr;justify-items:center}
+html.calm .wheel-wrap svg{width:210px;height:210px}
+html.calm .legend{width:100%;grid-template-columns:1fr 1fr;gap:6px 18px;margin-top:8px}
+html.calm .legend-toggle{margin:14px auto 0}
+@media (max-width:699px){html.calm header.top .brand{display:none}}

@@ -81,6 +81,14 @@ function MobileMenu() {
 
 function Shell() {
   const { mode, view, setView, isPlus } = useWW();
+  // Design preview: ?calm=1 turns on the calmer look on this device, ?calm=0 turns it off. Everyone else sees the normal look.
+  useEffect(() => {
+    try {
+      const q = new URLSearchParams(window.location.search).get('calm');
+      if (q === '1') localStorage.setItem('ww-calm', '1'); else if (q === '0') localStorage.removeItem('ww-calm');
+      document.documentElement.classList.toggle('calm', localStorage.getItem('ww-calm') === '1');
+    } catch {}
+  }, []);
   if (mode === 'loading') return <div className="loading"><LogoWheel size={64} /></div>;
   const screen = view === 'today' ? <Today /> : view === 'goals' ? <Goals /> : view === 'progress' ? <Progress />
     : view === 'journal' ? <Journal /> : view === 'grateful' ? <Gratitude /> : view === 'portfolio' ? <Resources key={'portfolio' + isPlus} portfolio /> : view === 'resources' ? <Resources key={'resources' + isPlus} /> : <Adventures />;
