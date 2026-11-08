@@ -72,7 +72,7 @@ function MobileMenu() {
         ))}
         <div className="mdrawer-sep" />
         <button tabIndex={open ? 0 : -1} onClick={() => go(() => setProfileOpen(true))}>
-          {tabIcon('<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/>')}<span>Profile & account</span>
+          {tabIcon('<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/>')}<span>{t("Profile & account")}</span>
         </button>
         <button tabIndex={open ? 0 : -1} onClick={() => go(() => setFeedbackOpen(true))}>
           {tabIcon('<path d="M4 5h16v11H8l-4 4z"/>')}<span>{t("Send feedback")}</span>

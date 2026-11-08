@@ -9,7 +9,7 @@ import { FeedbackButton } from './Feedback';
 import { ShareCard } from './Share';
 import { FREE_CHALLENGES, FREE_PORTFOLIO, FREE_TOOLS } from '@/lib/plus';
 import { INTL_LINES, US_LINES, Line } from '@/lib/hotlines';
-import { loc, t } from '@/lib/i18n';
+import { lang, loc, t } from '@/lib/i18n';
 
 /* ---------- couple helpers ---------- */
 const partnerFirst = (S: any) => (S.couple?.partner_name || '').split(' ')[0];
@@ -287,7 +287,7 @@ function HelpLines() {
     <section className="card">
       <h2>{t("Need to talk to someone?")}</h2>
       <p style={{ margin: '8px 0 0' }}>{t("Call or text")} <a href="tel:988"><b>988</b></a> any time, day or night (US). In an emergency, call <b>911</b>.</p>
-      <details className="lines"><summary>📞 All crisis & support lines (US and international)</summary>
+      <details className="lines"><summary>📞 {t('All crisis & support lines (US and international)')}</summary>
         <h3 className="h3">{t("United States")}</h3><ul>{US_LINES.map(li)}</ul>
         <h3 className="h3">{t("Other countries")}</h3><ul>{INTL_LINES.map(li)}</ul>
         <p className="hint" style={{ marginBottom: 0 }}>{t("Numbers can change. If one doesn’t work, visit findahelpline.com.")}</p>
@@ -298,6 +298,7 @@ function HelpLines() {
 function PillarPage({ pid }: { pid: PillarId }) {
   const { S, act, toast, setWizard, openPillar, setIntent, setView, isPlus, setPlusOpen } = useWW();
   const p = P[pid];
+  const pn = lang() === 'en' ? p.name.toLowerCase() : p.name; // pillar name inside a sentence
   const [logOpen, setLogOpen] = useState<string | null>(null);
   const saved = ((S.tools.pillars || {})[pid] || {}).why || '';
   const [why, setWhy] = useState(saved);
@@ -328,28 +329,28 @@ function PillarPage({ pid }: { pid: PillarId }) {
       </header>
       <div className="stack">
         <section className="card" style={{ borderTop: `3px solid ${p.color}` }}>
-          <h2>Why {p.name.toLowerCase()} matters to me</h2>
-          <textarea style={{ marginTop: 10 }} rows={3} placeholder={`In your own words. What does a healthy ${p.name.toLowerCase()} life look like for you?`} value={why} onChange={(e) => setWhy(e.target.value)} onBlur={() => saveWhy(true)} />
+          <h2>{t('Why {x} matters to me', { x: pn })}</h2>
+          <textarea style={{ marginTop: 10 }} rows={3} placeholder={t('In your own words. What does a healthy {x} life look like for you?', { x: pn })} value={why} onChange={(e) => setWhy(e.target.value)} onBlur={() => saveWhy(true)} />
           <div className="secsave"><span className="sub">{t("Saves when you click away")}</span><button className="btn small" onClick={() => saveWhy()}>{t("Save")}</button></div>
         </section>
         {(pid === 'mental' || pid === 'emotional') && <HelpLines />}
         <section className="card">
-          <div className="card-head"><h2>My {p.name.toLowerCase()} goals</h2><button className="linkish" onClick={() => setWizard({ pillar: pid })}>{t("+ New goal")}</button></div>
-          {goals.length ? goals.map((g) => <GoalRowToday key={g.id} g={g} logOpen={logOpen} setLogOpen={setLogOpen} />) : <><p className="empty">No {p.name.toLowerCase()} goals yet. One small goal is a great start.</p><button className="btn primary" onClick={() => setWizard({ pillar: pid })}>Set a {p.name.toLowerCase()} goal</button></>}
+          <div className="card-head"><h2>{t('My {x} goals', { x: pn })}</h2><button className="linkish" onClick={() => setWizard({ pillar: pid })}>{t("+ New goal")}</button></div>
+          {goals.length ? goals.map((g) => <GoalRowToday key={g.id} g={g} logOpen={logOpen} setLogOpen={setLogOpen} />) : <><p className="empty">{t('No {x} goals yet. One small goal is a great start.', { x: pn })}</p><button className="btn primary" onClick={() => setWizard({ pillar: pid })}>{t('Set a {x} goal', { x: pn })}</button></>}
         </section>
         {goals.length > 0 && <GoalHistory only={pid} title={t("How it’s going")} />}
         <section className="card">
           <div className="card-head"><h2>{t("My vision")}</h2><button className="linkish" onClick={() => openTool('vision')}>{t("Open Life Vision ›")}</button></div>
           {vis.five || vis.one || vis.step ? <>{vis.five && <div className="said"><span>{t("In 5 years, I see")}</span><p>{vis.five}</p></div>}{vis.one && <div className="said"><span>{t("One-year milestone")}</span><p>{vis.one}</p></div>}{vis.step && <div className="said"><span>{t("First step this month")}</span><p>{vis.step}</p></div>}</>
-            : <p className="empty" style={{ margin: 0 }}>You haven’t written a vision for {p.name.toLowerCase()} yet. The Life Vision Planner walks you through it.</p>}
+            : <p className="empty" style={{ margin: 0 }}>{t('You haven’t written a vision for {x} yet. The Life Vision Planner walks you through it.', { x: pn })}</p>}
         </section>
         <section className="card">
           <div className="card-head"><h2>{t("My words")}</h2><span className="sub">{words.length}</span></div>
           {words.length ? <ul className="pwords">{words.slice(0, 20).map((w, k) => <li key={k}><small>{fmtDate(w.d, { weekday: 'short', month: 'short', day: 'numeric' })} · {w.head}</small><p>{w.t}</p></li>)}</ul>
-            : <p className="empty" style={{ margin: 0 }}>Journal prompts and goal answers about {p.name.toLowerCase()} will collect here.</p>}
+            : <p className="empty" style={{ margin: 0 }}>{t('Journal prompts and goal answers about {x} will collect here.', { x: pn })}</p>}
         </section>
         <section className="card">
-          <h2>Tools for {p.name.toLowerCase()}</h2><div className="rule" />
+          <h2>{t('Tools for {x}', { x: pn })}</h2><div className="rule" />
           <div className="rgrid">{PILLAR_TOOLS[pid].map(([id, ttl]) => { const locked = !isPlus && (id === 'money' ? !FREE_PORTFOLIO : !FREE_TOOLS.includes(id)); return <button key={id} className="tile rtile" style={{ ['--c' as any]: p.color, minHeight: 0 }} onClick={() => openTool(id)}><span className="ico"><Icon id={pid} size={20} /></span><b>{t(ttl)}{locked && <span className="badge" style={{ marginLeft: 6, verticalAlign: 2 }}>{t("Plus")}</span>}</b></button>; })}</div>
         </section>
         <div className="row" style={{ justifyContent: 'space-between' }}>
