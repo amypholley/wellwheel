@@ -282,7 +282,7 @@ export function Pillars() {
 }
 // Crisis and support lines (same list as the worksheets use)
 function HelpLines() {
-  const li = (l: Line) => <li key={l.name}><b>{l.name}</b><span>{l.tel ? <a href={'tel:' + l.tel}>{l.how}</a> : l.sms ? <a href={'sms:' + l.sms}>{l.how}</a> : /findahelpline/.test(l.how) ? <a href="https://findahelpline.com" target="_blank" rel="noopener">{l.how}</a> : l.how}</span>{l.note && <small>{l.note}</small>}</li>;
+  const li = (l: Line) => <li key={l.name}><b>{t(l.name)}</b><span>{l.tel ? <a href={'tel:' + l.tel}>{t(l.how)}</a> : l.sms ? <a href={'sms:' + l.sms}>{t(l.how)}</a> : /findahelpline/.test(l.how) ? <a href="https://findahelpline.com" target="_blank" rel="noopener">{t(l.how)}</a> : t(l.how)}</span>{l.note && <small>{t(l.note)}</small>}</li>;
   return (
     <section className="card">
       <h2>{t("Need to talk to someone?")}</h2>
@@ -309,7 +309,7 @@ function PillarPage({ pid }: { pid: PillarId }) {
   const vis = ((S.tools.vision || {}).p || {})[pid] || {};
   // Everything written in this pillar: prompt answers tagged to it, and answers from its goals
   const words = [
-    ...Object.entries(S.journal).filter(([, v]) => v.text && v.pillar === pid).map(([d, v]) => ({ d, head: v.prompt, t: v.text })),
+    ...Object.entries(S.journal).filter(([, v]) => v.text && v.pillar === pid).map(([d, v]) => ({ d, head: t(v.prompt), t: v.example ? t(v.text) : v.text })),
     ...goals.flatMap((g) => (((S.tools.gnotes || {})[g.id]) || []).map((n: { d: string; t: string }) => ({ d: n.d, head: `${g.title}: ${t(questionFor(S.tools, g) || 'Note')}`, t: n.t }))),
   ].sort((a, b) => (a.d < b.d ? 1 : -1));
   const openTool = (id: string) => {
@@ -379,7 +379,7 @@ export function Goals() {
             <span className="stripe" style={{ background: p.color }} />
             <div>
               <div className="goal-title">{g.example ? t(g.title) : g.title}{g.example && <span className="example">{t("Example")}</span>}<SharedTag g={g} /></div>
-              <p style={{ margin: '4px 0 6px', fontSize: 14 }}>{smartSentence(g)}</p>
+              <p style={{ margin: '4px 0 6px', fontSize: 14 }}>{smartSentence(g.example ? { ...g, title: t(g.title), why: t(g.why) } : g)}</p>
               <div className="goal-meta">Confidence {g.sure || '–'}/10 · Due {fmtDate(g.deadline)}</div>
               <Contrib g={g} />
               {!mine(g) ? <p className="hint" style={{ marginBottom: 0 }}>{first} created this shared goal. You can both log progress.</p> :
@@ -396,7 +396,7 @@ export function Goals() {
   });
   return (
     <>
-      <header className="top"><div><div className="brand">{t("My goals")}</div><h1>{t("Goals by pillar")}</h1><div className="sub">{S.goals.length} active · {9 - empty.length} of 9 pillars</div></div><button className="btn primary" onClick={() => setWizard({})}>{t("+ New goal")}</button></header>
+      <header className="top"><div><div className="brand">{t("My goals")}</div><h1>{t("Goals by pillar")}</h1><div className="sub">{t('{n} active · {p} of 9 pillars', { n: S.goals.length, p: 9 - empty.length })}</div></div><button className="btn primary" onClick={() => setWizard({})}>{t("+ New goal")}</button></header>
       <div className="stack">
         {S.goals.length ? groups : <p className="empty">{t("No goals yet.")}</p>}
         {empty.length > 0 && (
@@ -479,7 +479,7 @@ function GoalHistory({ only, title = 'My goals' }: { only?: PillarId; title?: st
           {body}
           {(() => { const fk = key(from), tk = key(to); const ns = (((S.tools.gnotes || {})[g.id]) || []).filter((n: any) => n.d >= fk && n.d <= tk).slice().reverse();
             return ns.length ? <details className="gnotes"><summary>{questionFor(S.tools, g) ? t('Your answers') : t('Your notes')} ({ns.length})</summary><ul>{ns.map((n: any, i: number) => <li key={i}><small>{fmtDate(n.d, { weekday: 'short', month: 'short', day: 'numeric' })}</small>{n.t}</li>)}</ul></details> : null; })()}
-          {daysLeft !== null && daysLeft >= 0 && <div className="goal-meta" style={{ marginTop: 6 }}>{daysLeft} day{daysLeft === 1 ? '' : 's'} left until {fmtDate(g.deadline, { month: 'short', day: 'numeric', year: 'numeric' })}</div>}
+          {daysLeft !== null && daysLeft >= 0 && <div className="goal-meta" style={{ marginTop: 6 }}>{t(daysLeft === 1 ? '{n} day left until {date}' : '{n} days left until {date}', { n: daysLeft, date: fmtDate(g.deadline, { month: 'short', day: 'numeric', year: 'numeric' }) })}</div>}
         </div>
       </div>
     );
@@ -505,8 +505,8 @@ export function Progress() {
       <header className="top"><div><div className="brand">{t("Progress")}</div><h1>{t("How it’s going")}</h1><div className="sub">{t("Your goals by week, month, and year")}</div></div></header>
       <div className="stack">
         <GoalHistory />
-        <section className="card"><div className="card-head"><h2>{t("Gratitude")}</h2></div><p style={{ margin: 0 }}>{thisMonth} line{thisMonth === 1 ? '' : 's'} this month, {S.gratitude.length} all time.</p></section>
-        {isPlus ? <PillarReport /> : <PlusLock reason="report" title={t("Monthly pillar report")} text="See which pillars got your energy this month, which ones got left out, and a suggested focus for next month. Includes every 30-day challenge and all worksheets." />}
+        <section className="card"><div className="card-head"><h2>{t("Gratitude")}</h2></div><p style={{ margin: 0 }}>{t(thisMonth === 1 ? '{n} line this month, {all} all time.' : '{n} lines this month, {all} all time.', { n: thisMonth, all: S.gratitude.length })}</p></section>
+        {isPlus ? <PillarReport /> : <PlusLock reason="report" title={t("Monthly pillar report")} text={t("See which pillars got your energy this month, which ones got left out, and a suggested focus for next month. Includes every 30-day challenge and all worksheets.")} />}
         <section className="card"><div className="card-head"><h2>{t("Help make WellWheel better")}</h2></div>
           <p className="sub" style={{ marginTop: 0 }}>{t("Found a problem, or have an idea? We read every note.")}</p>
           <FeedbackButton /></section>
@@ -644,7 +644,7 @@ export function Journal() {
               <span className="stripe" style={{ background: pp.color }} />
               <div>
                 <div className="goal-meta">{k === T ? <b style={{ color: 'var(--good)' }}>Today{v?.text ? ' ✓ Saved' : ''}</b> : fmtDate(k, { weekday: 'short', month: 'short', day: 'numeric' })}{v?.example && <span className="example">{t("Example")}</span>}</div>
-                {v?.text && <><div className="sub" style={{ fontStyle: 'italic', margin: '3px 0' }}>{v.prompt}</div><div style={{ whiteSpace: 'pre-wrap' }}>{v.text}</div></>}
+                {v?.text && <><div className="sub" style={{ fontStyle: 'italic', margin: '3px 0' }}>{t(v.prompt)}</div><div style={{ whiteSpace: 'pre-wrap' }}>{v.example ? t(v.text) : v.text}</div></>}
                 {fe.map((x) => <div key={x.id} className={`jfree ${v?.text ? '' : 'solo'}`}><div className="card-head" style={{ margin: 0 }}><b>{x.title || t('Journal entry')}</b><span className="row" style={{ gap: 4 }}><button className="linkish" onClick={() => { setEditId(x.id); document.getElementById('myjournal')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}>{t("Edit")}</button><button className="x" aria-label={t("Delete entry")} onClick={() => { if (confirm('Delete this journal entry?')) { act.saveTool('fjournal', free.filter((y) => y.id !== x.id)); if (editId === x.id) setEditId(null); toast("Entry deleted"); } }}>×</button></span></div><div style={{ whiteSpace: 'pre-wrap' }}>{x.text}</div></div>)}
                 {sn.map((x, i) => <div key={'s' + i} className={`jfree ${v?.text || fe.length ? '' : 'solo'}`}><b>📖 {x.title || x.ref || 'Sermon & study notes'}</b>{(x.who || (x.title && x.ref)) && <div className="sub">{[x.who, x.title ? x.ref : ''].filter(Boolean).join(' · ')}</div>}{x.notes && <div style={{ whiteSpace: 'pre-wrap', marginTop: 4 }}>{x.notes}</div>}{x.take && <div className="said"><span>{t("Key takeaway")}</span><p>{x.take}</p></div>}</div>)}
                 {ans.length > 0 && <div className={`jgoals ${v?.text || fe.length || sn.length ? "" : "solo"}`}>{ans.map((x, i) => <div key={i}><span className="pill" style={{ color: P[x.pillar].color }}><span className="dot" style={{ background: P[x.pillar].color }} />{x.goal}</span><div className="sub" style={{ fontStyle: 'italic' }}>{x.q}</div><div style={{ whiteSpace: 'pre-wrap' }}>{x.t}</div></div>)}</div>}
@@ -673,7 +673,7 @@ export function Gratitude() {
         </section>
         <section className="card"><div className="card-head"><h2>{t("My list")}</h2><span className="sub">{list.length} total</span></div>
           {list.length ? <ol className="grat-list">{list.map((x, i) => (
-            <li key={x.id}><span className="n">{i + 1}</span><div>{x.text}{x.example && <span className="example">{t("Example")}</span>}<div className="d">{fmtDate(x.date, { weekday: 'short', month: 'short', day: 'numeric' })}</div></div></li>
+            <li key={x.id}><span className="n">{i + 1}</span><div>{x.example ? t(x.text) : x.text}{x.example && <span className="example">{t("Example")}</span>}<div className="d">{fmtDate(x.date, { weekday: 'short', month: 'short', day: 'numeric' })}</div></div></li>
           ))}</ol> : <p className="empty">{t("Your list will show up here.")}</p>}
         </section>
       </div>

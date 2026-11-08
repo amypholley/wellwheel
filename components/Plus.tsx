@@ -6,7 +6,7 @@ import { P, PILLARS, PillarId } from '@/lib/data';
 import { fmtDate, key, today } from '@/lib/core';
 import { Icon } from './ui';
 import { useWW } from './store';
-import { loc, t } from '@/lib/i18n';
+import { lang, loc, t } from '@/lib/i18n';
 
 const REASONS: Record<string, string> = {
   pillars: 'Free accounts can set goals in 2 pillars. Plus opens all 9.',
@@ -105,8 +105,8 @@ export function PillarReport() {
   const jr = Object.keys(S.journal).filter((d) => d.startsWith(ym) && S.journal[d].text).length;
   return (
     <section className="card">
-      <div className="card-head"><h2>{monthName} pillar report</h2><span className="badge">{t("Plus")}</span></div>
-      <p className="sub" style={{ marginTop: 0 }}>Days you checked in on each pillar, out of {daysSoFar} day{daysSoFar === 1 ? '' : 's'} so far this month.</p>
+      <div className="card-head"><h2>{t('{month} pillar report', { month: monthName })}</h2><span className="badge">{t("Plus")}</span></div>
+      <p className="sub" style={{ marginTop: 0 }}>{t(daysSoFar === 1 ? 'Days you checked in on each pillar, out of {n} day so far this month.' : 'Days you checked in on each pillar, out of {n} days so far this month.', { n: daysSoFar })}</p>
       <div className="hbars">
         {rows.map((r) => (
           <div className="hb" key={r.p.id} title={`${r.p.name}: ${r.days} day${r.days === 1 ? '' : 's'}`}>
@@ -118,14 +118,14 @@ export function PillarReport() {
       </div>
       <div className="facts" style={{ marginTop: 14 }}>
         <div><b>{active.length ? active[0].p.name : '—'}</b><span>{t("got the most energy")}</span></div>
-        <div><b>{quiet.length + empty.length}</b><span>pillar{quiet.length + empty.length === 1 ? '' : 's'} left out so far</span></div>
-        <div><b>{jr}</b><span>journal entr{jr === 1 ? 'y' : 'ies'}</span></div>
-        <div><b>{grat}</b><span>gratitude line{grat === 1 ? '' : 's'}</span></div>
+        <div><b>{quiet.length + empty.length}</b><span>{t(quiet.length + empty.length === 1 ? 'pillar left out so far' : 'pillars left out so far')}</span></div>
+        <div><b>{jr}</b><span>{t(jr === 1 ? 'journal entry' : 'journal entries')}</span></div>
+        <div><b>{grat}</b><span>{t(grat === 1 ? 'gratitude line' : 'gratitude lines')}</span></div>
       </div>
       {focus && (
         <div className="said" style={{ marginTop: 14 }}><span>{t("Suggested focus for next month")}</span>
           <p><b style={{ color: focus.p.color }}>{focus.p.name}.</b> {focus.why}</p>
-          <button className="btn small" style={{ marginTop: 8 }} onClick={() => setWizard({ pillar: focus.p.id as PillarId })}>Set a {focus.p.name.toLowerCase()} goal</button>
+          <button className="btn small" style={{ marginTop: 8 }} onClick={() => setWizard({ pillar: focus.p.id as PillarId })}>{t('Set a {x} goal', { x: lang() === 'en' ? focus.p.name.toLowerCase() : focus.p.name })}</button>
         </div>
       )}
     </section>
