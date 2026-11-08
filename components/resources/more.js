@@ -1,3 +1,4 @@
+import { hotlinesHTML } from '@/lib/hotlines';
 // The seven worksheets that used to say "Coming soon".
 // makeMore() gets the engine's helpers and returns the tools plus their click and form handlers.
 
@@ -95,7 +96,7 @@ export function makeMore(h) {
   const sum = (items) => `<section class="card"><div class="sumgrid">${items.map(([k, v, c]) => `<div><div class="k">${k}</div><div class="v"${c ? ` style="color:${c}"` : ''}>${v}</div></div>`).join('')}</div></section>`;
   const tags = (arr) => (arr && arr.length ? `<div class="sk-meta" style="margin-top:6px">${arr.map((x) => `<span class="tag">${esc(x)}</span>`).join('')}</div>` : '');
   const goalBtn = (g, label) => `<button class="btn" style="margin-top:12px" data-r="mgoal" data-g="${esc(JSON.stringify(g))}">${label}</button>`;
-  const crisis = '<p class="note">If you’re in crisis or thinking about hurting yourself, call or text <b>988</b> (Suicide & Crisis Lifeline, US) any time, day or night.</p>';
+  const crisis = '<p class="note">If you’re in crisis or thinking about hurting yourself, call or text <b>988</b> (Suicide & Crisis Lifeline, US) any time, day or night.</p>' + hotlinesHTML(esc);
   // Weeks run Sunday to Saturday
   const weekStartKey = () => { const d = new Date(TODAY); d.setDate(d.getDate() - d.getDay()); return key(d); };
   const top = (lists, n = 3) => { const c = {}; lists.forEach((l) => (l || []).forEach((x) => (c[x] = (c[x] || 0) + 1))); return Object.entries(c).sort((a, b) => b[1] - a[1]).slice(0, n).map(([x]) => x); };
@@ -265,6 +266,19 @@ export function makeMore(h) {
       ${lbl('<span class="letter">A</span>Application: how does it apply to my life?')}${area('bible.draft.a', '', 2)}
       ${lbl('<span class="letter">P</span>Prayer')}${area('bible.draft.p', 'A short prayer in response', 2)}
       ${saveBtn('bible', 'Save study')}`)}
+    ${(() => { const sd = getP('bible.sd') || {}, ser = getP('bible.sermons') || [], ed = ui.sermEdit != null;
+      return card(ed ? 'Edit notes' : 'Sermon & study notes', `<p class="sub" style="margin-top:0">For church, a Bible study group, a podcast, or your own reading. Write as much as you like.</p>
+      <div class="grid2b"><label>Date<input type="date" data-b="bible.sd.d" value="${esc(sd.d || T)}"></label><label>Passage${inp('bible.sd.ref', { ph: 'e.g. Romans 8:28-39' })}</label></div>
+      ${lbl('Title or topic')}${inp('bible.sd.title', { ph: 'e.g. Faith over fear' })}
+      ${lbl('Speaker, church, or group')}${inp('bible.sd.who', { ph: 'e.g. Pastor Mike, Grace Church' })}
+      ${lbl('Notes')}${area('bible.sd.notes', 'Main points, verses, quotes, anything that stood out…', 8)}
+      ${lbl('Key takeaway')}${area('bible.sd.take', 'The one thing I want to remember', 2)}
+      ${lbl('This week I will…')}${inp('bible.sd.apply', { ph: 'One way to live it out' })}
+      ${lbl('Prayer')}${area('bible.sd.prayer', 'A short prayer in response', 2)}
+      <div class="row" style="justify-content:space-between;margin-top:12px;flex-wrap:wrap;gap:8px">${ed ? '<button class="btn ghost small" data-r="sermcancel">Cancel</button>' : '<span></span>'}<button class="btn primary" data-r="sermsave">${ed ? 'Save changes' : 'Save notes'}</button></div>
+      ${ser.length ? `<h3 class="h3" style="margin-top:20px">My notes (${ser.length})</h3>${ser.map((x, i) => [x, i]).reverse().map(([x, i]) => `<details class="card fold sermon"><summary><span><b>${esc(x.title || x.ref || 'Notes')}</b><small class="sub" style="display:block">${fmtDate(x.d, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}${x.who ? ' · ' + esc(x.who) : ''}${x.ref && x.title ? ' · ' + esc(x.ref) : ''}</small></span></summary>
+        ${x.notes ? `<p style="white-space:pre-wrap;margin:0 0 8px">${esc(x.notes)}</p>` : ''}${kv('Key takeaway', x.take)}${kv('This week I will', x.apply)}${kv('Prayer', x.prayer)}
+        <div class="row" style="justify-content:space-between;margin-top:10px"><button class="linkish" data-r="del" data-path="bible.sermons" data-i="${i}">Delete</button><button class="btn small" data-r="sermedit" data-i="${i}">Edit</button></div></details>`).join('')}` : ''}`); })()}
     ${card('Questions to ask any passage', `<ol class="principles">${STUDY_QS.map((q) => `<li>${q}</li>`).join('')}</ol>`)}
     ${card('Memory verses', `<form class="stack" style="gap:8px" data-r-form="bverse"><input type="text" id="bv-ref" placeholder="Reference, e.g. Joshua 1:9" aria-label="Verse reference"><textarea id="bv-txt" rows="2" placeholder="The verse" aria-label="Verse text"></textarea><button class="btn primary" type="submit" style="align-self:flex-start">Add verse</button></form>
       ${vs.map((v, i) => `<div class="bk ${v.m ? 'done' : ''}"><button class="bkchk" data-r="bmem" data-i="${i}" aria-pressed="${!!v.m}" aria-label="Mark memorized">${v.m ? '✓' : ''}</button><div class="bkmain"><div class="bkt">${esc(v.r)}</div>${v.t ? `<p style="margin:4px 0 0">${esc(v.t)}</p>` : ''}${v.m ? '<div class="sk-meta"><span class="tag used">Memorized</span></div>' : ''}</div><button class="x" data-r="del" data-path="bible.verses" data-i="${i}" aria-label="Remove">×</button></div>`).join('')}`)}
@@ -369,6 +383,9 @@ export function makeMore(h) {
     if (a === 'dbtmod') { ui.dbtMod = b.dataset.v; ui.dbtSkill = ''; rerenderKeep(); return true; }
     if (a === 'dbtskill') { ui.dbtSkill = b.dataset.v; rerenderKeep(); return true; }
     if (a === 'dbtsave') { const id = b.dataset.v, d = getP(`dbt.pd.${id}`) || {}; const filled = Object.values(d).some((v) => (Array.isArray(v) ? v.length : v === true || String(v || '').trim())); if (!filled) { toast('Fill in at least one part first'); return true; } const l = getP('dbt.practice') || []; l.push({ skill: id, date: T, a: d }); setP('dbt.practice', l); setP(`dbt.pd.${id}`, {}); save(); rerenderKeep(); toast('Practice saved'); return true; }
+    if (a === 'sermsave') { const d = { ...(getP('bible.sd') || {}) }; if (!['title', 'ref', 'notes', 'take', 'apply', 'prayer'].some((k) => String(d[k] || '').trim())) { toast('Write something first'); return true; } d.d = d.d || T; const l = getP('bible.sermons') || []; if (ui.sermEdit != null) l[ui.sermEdit] = d; else l.push(d); setP('bible.sermons', l); setP('bible.sd', {}); const was = ui.sermEdit != null; ui.sermEdit = null; save(); rerenderKeep(); toast(was ? 'Notes updated' : 'Notes saved'); return true; }
+    if (a === 'sermedit') { ui.sermEdit = +b.dataset.i; setP('bible.sd', { ...(getP('bible.sermons') || [])[ui.sermEdit] }); save(); rerenderKeep(); document.querySelector('[data-b="bible.sd.title"]')?.scrollIntoView({ behavior: 'smooth', block: 'center' }); return true; }
+    if (a === 'sermcancel') { ui.sermEdit = null; setP('bible.sd', {}); save(); rerenderKeep(); return true; }
     if (a === 'dncat') { ui.dnCat = b.dataset.v; rerenderKeep(); return true; }
     if (a === 'dnrand') { const all = Object.values(DATE_IDEAS).flat(); let t; do { t = all[Math.floor(Math.random() * all.length)]; } while (t === ui.dnIdea); ui.dnIdea = t; rerenderKeep(); return true; }
     if (a === 'dnadd') { const l = getP('datenight.list') || []; const t = b.dataset.v; const i = l.findIndex((x) => x.t === t && !x.done); if (i >= 0) { l.splice(i, 1); toast('Removed from your list'); } else { l.push({ t }); toast('Added to your list'); } if (ui.dnIdea === t) ui.dnIdea = ''; setP('datenight.list', l); save(); rerenderKeep(); return true; }

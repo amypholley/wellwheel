@@ -7,6 +7,7 @@ import {
   SLEEP_FACTORS, MEALS, WEEK, AISLES, TRAPS, STARTERS, LOVE, VALUES, SOON,
 } from './content';
 import { makeMore } from './more';
+import { hotlinesHTML } from '@/lib/hotlines';
 import { addSectionSaves } from '@/lib/sectionSave';
 
 // Which saved record each worksheet uses
@@ -217,7 +218,7 @@ export function mountResources(root, api) {
       const fav = (getP('coping.fav') || []).length;
       return `<div class="stack">
     <section class="card"><p style="margin:0">Different moments need different tools. Try a few, star the ones that help, and tap <b>I used this</b> to count it toward a coping skill goal.</p>
-      <p class="note">If you’re in crisis or thinking about hurting yourself, call or text <b>988</b> (Suicide & Crisis Lifeline, US) any time, day or night.</p></section>
+      <p class="note">If you’re in crisis or thinking about hurting yourself, call or text <b>988</b> (Suicide & Crisis Lifeline, US) any time, day or night.</p>${hotlinesHTML(esc)}</section>
     <section class="card filters"><input type="search" id="cope-q" placeholder="Search ${COPE_COUNT} skills, e.g. breathing, anger, sleep" aria-label="Search coping skills" value="${esc(ui.copeQ || '')}">
       <div class="chips scroll"><button class="chip" data-r="ccat" data-v="" aria-pressed="${!ui.copeCat}">All</button>${COPING_CATS.map((c) => `<button class="chip" data-r="ccat" data-v="${c.id}" aria-pressed="${ui.copeCat === c.id}">${c.name}</button>`).join('')}</div>
       <div class="chips"><button class="chip" data-r="ctime" data-v="q" aria-pressed="${ui.copeTime === 'q'}">Under 2 min</button><button class="chip" data-r="ctime" data-v="s" aria-pressed="${ui.copeTime === 's'}">5–15 min</button><button class="chip" data-r="ctime" data-v="l" aria-pressed="${ui.copeTime === 'l'}">Longer</button><button class="chip" data-r="cfav" aria-pressed="${!!ui.copeFav}">★ Favorites (${fav})</button></div></section>
@@ -634,7 +635,7 @@ export function mountResources(root, api) {
     }
     const groups = [['financial', 'Money'], ['physical', 'Body'], ['mental', 'Mind & coping'], ['emotional', 'Heart & stress'], ['relationships', 'Relationships'], ['spiritual', 'Spirit'], ['intellectual', 'Learning & growth'], ['environmental', 'Home & surroundings'], ['purpose', 'Purpose & vision']];
     return `<header class="top"><div><div class="brand">Resources</div><h1>Tools & worksheets</h1><div class="sub">Interactive versions of The Holistic Ecosystem workbooks. Everything you type is saved.</div></div></header>
-  <div class="stack">${groups.map(([pid, lbl]) => { const rs = RES.filter((r) => r.pillar === pid); return `<section><div class="sec-l">${lbl}</div><div class="rgrid">${rs.map((r) => { const p = P[r.pillar]; const lock = api.isLocked && api.isLocked(r.id); return `<button class="tile rtile ${r.wide ? 'wide' : ''}" style="--c:${p.color}" data-r="opentool" data-v="${r.id}"><span class="ico">${icon(r.pillar)}</span><b>${esc(r.title)}${lock ? ' <span class="badge" style="vertical-align:2px">Plus</span>' : ''}</b><small>${esc(r.desc)}</small></button>`; }).join('')}</div></section>`; }).join('')}
+  <div class="stack">${groups.map(([pid, lbl]) => { const rs = RES.filter((r) => r.pillar === pid); return `<section><div class="sec-l">${lbl}</div><div class="rgrid">${rs.map((r) => { const p = P[r.pillar]; const lock = api.isLocked && api.isLocked(r.id); return `<button class="tile rtile ${r.wide ? 'wide' : ''}" style="--c:${p.color}" data-r="opentool" data-v="${r.id}"><span class="ico">${icon(r.pillar)}</span><b>${esc(r.title)}${lock ? ' <span class="badge" style="vertical-align:2px">Plus</span>' : ''}</b><small>${esc(r.desc)}</small></button>`; }).join('')}</div>${pid === 'mental' ? `<div style="margin-top:12px">${hotlinesHTML(esc)}</div>` : ''}</section>`; }).join('')}
   ${!SOON.length ? '' : `<section><div class="sec-l">Coming soon</div><div class="chips">${SOON.map(([pid, t]) => `<span class="chip static soon" style="--c:${P[pid].color}"><span style="color:${P[pid].color};display:inline-flex;vertical-align:-3px;margin-right:4px">${icon(pid, 14)}</span>${t}</span>`).join('')}</div></section>`}</div>`;
   }
   function updateOuts() {

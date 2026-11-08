@@ -8,6 +8,7 @@ import { PillarReport, PlusLock } from './Plus';
 import { FeedbackButton } from './Feedback';
 import { ShareCard } from './Share';
 import { FREE_CHALLENGES, FREE_PORTFOLIO, FREE_TOOLS } from '@/lib/plus';
+import { INTL_LINES, US_LINES, Line } from '@/lib/hotlines';
 
 /* ---------- couple helpers ---------- */
 const partnerFirst = (S: any) => (S.couple?.partner_name || '').split(' ')[0];
@@ -278,6 +279,21 @@ export function Pillars() {
     </>
   );
 }
+// Crisis and support lines (same list as the worksheets use)
+function HelpLines() {
+  const li = (l: Line) => <li key={l.name}><b>{l.name}</b><span>{l.tel ? <a href={'tel:' + l.tel}>{l.how}</a> : l.sms ? <a href={'sms:' + l.sms}>{l.how}</a> : /findahelpline/.test(l.how) ? <a href="https://findahelpline.com" target="_blank" rel="noopener">{l.how}</a> : l.how}</span>{l.note && <small>{l.note}</small>}</li>;
+  return (
+    <section className="card">
+      <h2>Need to talk to someone?</h2>
+      <p style={{ margin: '8px 0 0' }}>Call or text <a href="tel:988"><b>988</b></a> any time, day or night (US). In an emergency, call <b>911</b>.</p>
+      <details className="lines"><summary>📞 All crisis & support lines (US and international)</summary>
+        <h3 className="h3">United States</h3><ul>{US_LINES.map(li)}</ul>
+        <h3 className="h3">Other countries</h3><ul>{INTL_LINES.map(li)}</ul>
+        <p className="hint" style={{ marginBottom: 0 }}>Numbers can change. If one doesn’t work, visit findahelpline.com.</p>
+      </details>
+    </section>
+  );
+}
 function PillarPage({ pid }: { pid: PillarId }) {
   const { S, act, toast, setWizard, openPillar, setIntent, setView, isPlus, setPlusOpen } = useWW();
   const p = P[pid];
@@ -293,6 +309,7 @@ function PillarPage({ pid }: { pid: PillarId }) {
   const words = [
     ...Object.entries(S.journal).filter(([, v]) => v.text && v.pillar === pid).map(([d, v]) => ({ d, head: v.prompt, t: v.text })),
     ...goals.flatMap((g) => (((S.tools.gnotes || {})[g.id]) || []).map((n: { d: string; t: string }) => ({ d: n.d, head: `${g.title}: ${questionFor(S.tools, g) || 'Note'}`, t: n.t }))),
+    ...(pid === 'spiritual' ? ((S.tools.bible || {}).sermons || []).filter((x: any) => x && x.d).map((x: any) => ({ d: x.d, head: `📖 ${x.title || x.ref || 'Sermon & study notes'}${x.who ? ' · ' + x.who : ''}`, t: [x.notes, x.take && 'Takeaway: ' + x.take].filter(Boolean).join('\n') })) : []),
   ].sort((a, b) => (a.d < b.d ? 1 : -1));
   const openTool = (id: string) => {
     const locked = !isPlus && (id === 'money' ? !FREE_PORTFOLIO : !FREE_TOOLS.includes(id));
@@ -315,6 +332,7 @@ function PillarPage({ pid }: { pid: PillarId }) {
           <textarea style={{ marginTop: 10 }} rows={3} placeholder={`In your own words. What does a healthy ${p.name.toLowerCase()} life look like for you?`} value={why} onChange={(e) => setWhy(e.target.value)} onBlur={() => saveWhy(true)} />
           <div className="secsave"><span className="sub">Saves when you click away</span><button className="btn small" onClick={() => saveWhy()}>Save</button></div>
         </section>
+        {(pid === 'mental' || pid === 'emotional') && <HelpLines />}
         <section className="card">
           <div className="card-head"><h2>My {p.name.toLowerCase()} goals</h2><button className="linkish" onClick={() => setWizard({ pillar: pid })}>+ New goal</button></div>
           {goals.length ? goals.map((g) => <GoalRowToday key={g.id} g={g} logOpen={logOpen} setLogOpen={setLogOpen} />) : <><p className="empty">No {p.name.toLowerCase()} goals yet. One small goal is a great start.</p><button className="btn primary" onClick={() => setWizard({ pillar: pid })}>Set a {p.name.toLowerCase()} goal</button></>}
@@ -558,6 +576,7 @@ export function Journal() {
   const [shift, setShift] = useState(0);
   const [editId, setEditId] = useState<string | null>(null);
   const free: FreeEntry[] = S.tools.fjournal || [];
+  const sermons: any[] = ((S.tools.bible || {}).sermons || []).filter((x: any) => x && x.d);
   const challengeOn = isPlus || FREE_CHALLENGES;
   const inChallenge = TODAY.getFullYear() === 2026 && TODAY.getMonth() === 10;
   const saved = S.journal[T];
@@ -567,7 +586,7 @@ export function Journal() {
   const past = Object.entries(S.journal).filter(([, v]) => v.text).sort((a, b) => (a[0] < b[0] ? 1 : -1));
   // Answers written when checking in on goals (see GoalRowToday), shown with the journal by day
   const goalAnswers = S.goals.flatMap((g) => (((S.tools.gnotes || {})[g.id]) || []).map((n: { d: string; t: string }) => ({ ...n, goal: g.title, pillar: g.pillar, q: questionFor(S.tools, g) || 'Note' })));
-  const entryDays = Array.from(new Set([...past.map(([k]) => k), ...goalAnswers.map((x) => x.d), ...free.map((x) => x.d)])).sort((a, b) => (a < b ? 1 : -1));
+  const entryDays = Array.from(new Set([...past.map(([k]) => k), ...goalAnswers.map((x) => x.d), ...free.map((x) => x.d), ...sermons.map((x) => x.d)])).sort((a, b) => (a < b ? 1 : -1));
   const preNov = TODAY < new Date(2026, 10, 1);
   // Saves automatically a moment after you stop typing, and when you leave the page.
   const [status, setStatus] = useState<'' | 'typing' | 'saved'>(saved?.text ? 'saved' : '');
@@ -618,7 +637,7 @@ export function Journal() {
         <FreeJournal editId={editId} setEditId={setEditId} /></div>
         <section className="card"><div className="card-head"><h2>My entries</h2><span className="sub">{entryDays.length}</span></div>
           <p className="sub" style={{ marginTop: 0 }}>Everything you’ve written, day by day: prompts, your own entries, and answers from your goals.</p>
-          {entryDays.length ? entryDays.map((k) => { const v = S.journal[k]; const ans = goalAnswers.filter((x) => x.d === k); const fe = free.filter((x) => x.d === k); const pp = v?.text ? (P[v.pillar] || P.purpose) : ans.length ? P[ans[0].pillar] : { color: 'var(--plum)' };
+          {entryDays.length ? entryDays.map((k) => { const v = S.journal[k]; const ans = goalAnswers.filter((x) => x.d === k); const fe = free.filter((x) => x.d === k); const sn = sermons.filter((x) => x.d === k); const pp = v?.text ? (P[v.pillar] || P.purpose) : ans.length ? P[ans[0].pillar] : sn.length && !fe.length ? P.spiritual : { color: 'var(--plum)' };
             return (
             <div className="goal" style={{ gridTemplateColumns: '4px 1fr' }} key={k}>
               <span className="stripe" style={{ background: pp.color }} />
@@ -626,7 +645,8 @@ export function Journal() {
                 <div className="goal-meta">{k === T ? <b style={{ color: 'var(--good)' }}>Today{v?.text ? ' ✓ Saved' : ''}</b> : fmtDate(k, { weekday: 'short', month: 'short', day: 'numeric' })}{v?.example && <span className="example">Example</span>}</div>
                 {v?.text && <><div className="sub" style={{ fontStyle: 'italic', margin: '3px 0' }}>{v.prompt}</div><div style={{ whiteSpace: 'pre-wrap' }}>{v.text}</div></>}
                 {fe.map((x) => <div key={x.id} className={`jfree ${v?.text ? '' : 'solo'}`}><div className="card-head" style={{ margin: 0 }}><b>{x.title || 'Journal entry'}</b><span className="row" style={{ gap: 4 }}><button className="linkish" onClick={() => { setEditId(x.id); document.getElementById('myjournal')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}>Edit</button><button className="x" aria-label="Delete entry" onClick={() => { if (confirm('Delete this journal entry?')) { act.saveTool('fjournal', free.filter((y) => y.id !== x.id)); if (editId === x.id) setEditId(null); toast('Entry deleted'); } }}>×</button></span></div><div style={{ whiteSpace: 'pre-wrap' }}>{x.text}</div></div>)}
-                {ans.length > 0 && <div className={`jgoals ${v?.text || fe.length ? "" : "solo"}`}>{ans.map((x, i) => <div key={i}><span className="pill" style={{ color: P[x.pillar].color }}><span className="dot" style={{ background: P[x.pillar].color }} />{x.goal}</span><div className="sub" style={{ fontStyle: 'italic' }}>{x.q}</div><div style={{ whiteSpace: 'pre-wrap' }}>{x.t}</div></div>)}</div>}
+                {sn.map((x, i) => <div key={'s' + i} className={`jfree ${v?.text || fe.length ? '' : 'solo'}`}><b>📖 {x.title || x.ref || 'Sermon & study notes'}</b>{(x.who || (x.title && x.ref)) && <div className="sub">{[x.who, x.title ? x.ref : ''].filter(Boolean).join(' · ')}</div>}{x.notes && <div style={{ whiteSpace: 'pre-wrap', marginTop: 4 }}>{x.notes}</div>}{x.take && <div className="said"><span>Key takeaway</span><p>{x.take}</p></div>}</div>)}
+                {ans.length > 0 && <div className={`jgoals ${v?.text || fe.length || sn.length ? "" : "solo"}`}>{ans.map((x, i) => <div key={i}><span className="pill" style={{ color: P[x.pillar].color }}><span className="dot" style={{ background: P[x.pillar].color }} />{x.goal}</span><div className="sub" style={{ fontStyle: 'italic' }}>{x.q}</div><div style={{ whiteSpace: 'pre-wrap' }}>{x.t}</div></div>)}</div>}
               </div>
             </div>); }) : <p className="empty">Your entries will show up here.</p>}
         </section>
