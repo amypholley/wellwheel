@@ -37,7 +37,7 @@ export const addDays = (d: Date, n: number) => { const x = new Date(d); x.setDat
 export const addMonths = (d: Date, n: number) => { const x = new Date(d); x.setMonth(x.getMonth() + n); return x; };
 export function today() {
   const TODAY = new Date(); TODAY.setHours(0, 0, 0, 0);
-  const dow = (TODAY.getDay() + 6) % 7;
+  const dow = TODAY.getDay(); // weeks run Sunday to Saturday
   const weekStart = addDays(TODAY, -dow);
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
   return { TODAY, T: key(TODAY), weekStart, weekDays };

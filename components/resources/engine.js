@@ -299,7 +299,7 @@ export function mountResources(root, api) {
   /* ---------- Meal & grocery ---------- */
   const TOOL_MEALS = {
     render() {
-      const g = getP('meals.groc') || [], d = ui.mealDay || WEEK[(TODAY.getDay() + 6) % 7];
+      const g = getP('meals.groc') || [], d = ui.mealDay || WEEK[TODAY.getDay()];
       const byA = AISLES.map((a) => [a, g.map((x, i) => [x, i]).filter(([x]) => x.a === a)]).filter(([, l]) => l.length);
       const left = g.filter((x) => !x.done).length;
       return `<div class="stack">

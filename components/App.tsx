@@ -80,7 +80,7 @@ function MobileMenu() {
 }
 
 function Shell() {
-  const { mode, view, setView, isPlus } = useWW();
+  const { mode, view, setView, isPlus, dayKey } = useWW();
   if (mode === 'loading') return <div className="loading"><LogoWheel size={64} /></div>;
   const screen = view === 'today' ? <Today /> : view === 'goals' ? <Goals /> : view === 'progress' ? <Progress />
     : view === 'journal' ? <Journal /> : view === 'grateful' ? <Gratitude /> : view === 'portfolio' ? <Resources key={'portfolio' + isPlus} portfolio /> : view === 'resources' ? <Resources key={'resources' + isPlus} /> : <Adventures />;
@@ -88,7 +88,7 @@ function Shell() {
     <>
       {mode !== 'auth' && (<>
         <MobileMenu />
-        <div className="app">{screen}</div>
+        <div className="app" key={dayKey}>{screen}</div>
         <nav className="tabs" aria-label="Main"><div className="in">
           {TABS.map(([id, label, d]) => (
             <button key={id} aria-current={view === id ? 'page' : undefined} onClick={() => setView(id)}>

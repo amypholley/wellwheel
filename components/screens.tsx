@@ -108,7 +108,7 @@ function GoalRowToday({ g, logOpen, setLogOpen }: { g: Goal; logOpen: string | n
   } else if (g.type === 'habit') {
     const n = g.per === 'day' ? dayVal(S, g, T) : weekSum(S, g);
     const done = n >= g.count;
-    meta = g.per === 'day' ? `${Math.min(n, g.count)} of ${g.count} today` : `${n} of ${g.count} this week`;
+    meta = g.per === 'day' ? `${Math.min(n, g.count)} of ${g.count} today` : `${n} of ${g.count} ${g.unit} this week`;
     ticks = g.count > 12
       ? <div className="bar"><span style={{ width: Math.min(100, Math.round((n / g.count) * 100)) + '%', background: p.color }} /></div>
       : <div className="ticks" aria-hidden="true">{Array.from({ length: g.count }, (_, i) => <span key={i} className={`tick ${i < n ? 'on' : ''}`} style={i < n ? { background: p.color } : undefined} />)}</div>;
@@ -237,6 +237,7 @@ export function Goals() {
               {!mine(g) ? <p className="hint" style={{ marginBottom: 0 }}>{first} created this shared goal. You can both log progress.</p> :
               <div className="row" style={{ marginTop: 8, flexWrap: 'wrap' }}>
                 {S.couple && <button className="btn small" onClick={() => { act.shareGoal(g.id, !g.coupleId); toast(g.coupleId ? 'Stopped sharing. It’s only on your goals now.' : `Shared with ${first}. You can both log progress.`); }}>{g.coupleId ? 'Stop sharing' : `💞 Share with ${first}`}</button>}
+                <button className="btn small" onClick={() => setWizard({ edit: g })}>Edit</button>
                 <button className={`btn small ${del === g.id ? 'primary' : ''}`} onClick={() => { if (del === g.id) { act.deleteGoal(g.id); setDel(null); toast('Goal deleted'); } else setDel(g.id); }}>{del === g.id ? 'Tap again to delete' : 'Delete'}</button>
               </div>}
             </div>
@@ -268,7 +269,7 @@ export function Progress() {
   const hasExamples = S.goals.some((g) => g.example) || S.gratitude.some((g) => g.example) || Object.values(S.journal).some((j) => j.example);
   return (
     <>
-      <header className="top"><div><div className="brand">Progress</div><h1>How it’s going</h1><div className="sub">Week of {weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div></div></header>
+      <header className="top"><div><div className="brand">Progress</div><h1>How it’s going</h1><div className="sub">{weekStart.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} – {weekDays[6].toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</div></div></header>
       <div className="stack">
         <section className="card"><div className="card-head"><h2>Goals this week</h2></div>
           {S.goals.length ? S.goals.map((g) => {

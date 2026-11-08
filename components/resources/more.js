@@ -38,7 +38,7 @@ const DBT_FEEL = ['Sad', 'Anxious', 'Angry', 'Ashamed', 'Lonely', 'Happy'];
 
 const WORKOUTS = ['Walk', 'Run', 'Strength', 'Yoga or stretch', 'Cycling', 'Swim', 'Class', 'Sports', 'HIIT', 'Other'];
 const FELT = ['Energized', 'Good', 'Tired', 'Sore', 'Proud'];
-const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 const DATE_IDEAS = {
   'At home': ['Cook a new recipe together', 'Movie night with a blanket fort', 'Board game or card tournament', 'Indoor picnic on the living room floor', 'Make homemade pizza', 'Stargaze from the backyard', 'Do a puzzle with music on', 'Dessert taste-test', 'Plan a dream trip together', 'Make a playlist of “our songs”', 'Look through old photos', 'Spa night at home'],
@@ -96,7 +96,8 @@ export function makeMore(h) {
   const tags = (arr) => (arr && arr.length ? `<div class="sk-meta" style="margin-top:6px">${arr.map((x) => `<span class="tag">${esc(x)}</span>`).join('')}</div>` : '');
   const goalBtn = (g, label) => `<button class="btn" style="margin-top:12px" data-r="mgoal" data-g="${esc(JSON.stringify(g))}">${label}</button>`;
   const crisis = '<p class="note">If you’re in crisis or thinking about hurting yourself, call or text <b>988</b> (Suicide & Crisis Lifeline, US) any time, day or night.</p>';
-  const monday = () => { const d = new Date(TODAY); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return key(d); };
+  // Weeks run Sunday to Saturday
+  const weekStartKey = () => { const d = new Date(TODAY); d.setDate(d.getDate() - d.getDay()); return key(d); };
   const top = (lists, n = 3) => { const c = {}; lists.forEach((l) => (l || []).forEach((x) => (c[x] = (c[x] || 0) + 1))); return Object.entries(c).sort((a, b) => b[1] - a[1]).slice(0, n).map(([x]) => x); };
   const avg = (xs) => { const v = xs.filter((x) => x !== '' && x != null).map(Number); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; };
 
@@ -191,7 +192,7 @@ export function makeMore(h) {
   /* ---------- Fitness ---------- */
   const FITNESS = {
     render() {
-      const es = getP('fitness.entries') || [], m = monday();
+      const es = getP('fitness.entries') || [], m = weekStartKey();
       const wk = es.filter((e) => (e.date || '') >= m && e.type !== 'Rest day');
       const mins = wk.reduce((a, e) => a + num(e.min), 0), goal = num(getP('fitness.goalmin')) || 150;
       const per = getP('fitness.perweek') || '3';
@@ -326,14 +327,14 @@ export function makeMore(h) {
   /* ---------- Environment in balance ---------- */
   const ENV = {
     render() {
-      const wk = monday(), done = (a) => a.acts.filter((_, i) => getP(`env.wk.${wk}.${a.id}.${i}`)).length;
+      const wk = weekStartKey(), done = (a) => a.acts.filter((_, i) => getP(`env.wk.${wk}.${a.id}.${i}`)).length;
       const rows = ENV_AREAS.map((a) => ({ a, n: done(a) }));
       const low = rows.slice().sort((x, y) => x.n - y.n)[0], hi = Math.max(...rows.map((r) => r.n));
       const es = getP('env.entries') || [];
       return `<div class="stack">
     <section class="card"><p style="margin:0">Environmental wellness is about balance between three things: a home that feels peaceful, time with nature, and caring for the world around you. You don’t need to do it all. Aim for a little of each.</p></section>
     ${card('This week’s balance', `<div class="hbars envbars">${rows.map(({ a, n }) => `<div class="hb"><span class="hb-l">${a.short}</span><span class="hb-t"><span style="width:${Math.max(n ? 4 : 0, (n / a.acts.length) * 100)}%;background:${a.color}"></span></span><span class="hb-v">${n} of ${a.acts.length}</span></div>`).join('')}</div>
-      <p class="hint" style="margin-bottom:0">${hi === 0 ? 'Check off things below as you do them this week. The list starts fresh every Monday.' : low.n === hi ? 'Nicely balanced this week. Keep it up!' : `<b>${low.a.name}</b> could use a little attention this week. Try one small thing below.`}</p>`)}
+      <p class="hint" style="margin-bottom:0">${hi === 0 ? 'Check off things below as you do them this week. The list starts fresh every Sunday.' : low.n === hi ? 'Nicely balanced this week. Keep it up!' : `<b>${low.a.name}</b> could use a little attention this week. Try one small thing below.`}</p>`)}
     ${ENV_AREAS.map((a) => `<section class="card"><div class="envsec" style="--c:${a.color}"><h2>${a.name}</h2><p class="sub" style="margin:6px 0 0">${a.intro}</p>
       <label class="lbl" style="margin-top:16px">This week I…</label><div class="stack" style="gap:8px">${a.acts.map((t, i) => chk(`env.wk.${wk}.${a.id}.${i}`, esc(t), true)).join('')}</div>
       <label class="lbl" style="margin-top:16px">${a.own}</label>${inp(`env.own.${a.id}`, { ph: a.ownPh })}</div></section>`).join('')}

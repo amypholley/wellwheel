@@ -3,7 +3,7 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState } f
 import { supabase } from '@/lib/supabase';
 import { db, loadPlus, loadProfile, loadState, Profile } from '@/lib/db';
 import { PlusInfo } from '@/lib/plus';
-import { Goal, JournalEntry, State, blankState, seedState, today, uid } from '@/lib/core';
+import { Goal, JournalEntry, State, blankState, key, seedState, today, uid } from '@/lib/core';
 import { PillarId } from '@/lib/data';
 
 export type Mode = 'loading' | 'auth' | 'guest' | 'user';
@@ -18,7 +18,7 @@ function useStoreValue() {
   const [recovery, setRecovery] = useState(false);
   const [loadError, setLoadError] = useState('');
   const [view, setViewRaw] = useState<View>('today');
-  const [wizard, setWizard] = useState<{ pillar?: PillarId; share?: boolean } | null>(null);
+  const [wizard, setWizard] = useState<{ pillar?: PillarId; share?: boolean; edit?: Goal } | null>(null);
   // Where to land when a shortcut opens another tab (e.g. "Our map" on Today)
   const [intent, setIntent] = useState<{ adv?: string; who?: string; tool?: string; joint?: boolean } | null>(null);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -91,6 +91,16 @@ function useStoreValue() {
     });
   };
 
+  // Notice when a new day (or a new Sunday-to-Saturday week) starts while the app is open or in the background,
+  // so daily and weekly goals roll over without having to reload
+  const [dayKey, setDayKey] = useState(() => key(new Date()));
+  useEffect(() => {
+    const check = () => { const k = key(new Date()); setDayKey((cur) => (cur === k ? cur : k)); };
+    const t = setInterval(check, 30000);
+    document.addEventListener('visibilitychange', check); window.addEventListener('focus', check);
+    return () => { clearInterval(t); document.removeEventListener('visibilitychange', check); window.removeEventListener('focus', check); };
+  }, []);
+
   // When you come back to the app, pick up your partner's latest changes
   useEffect(() => {
     const onShow = async () => {
@@ -106,6 +116,11 @@ function useStoreValue() {
     addGoal(g: Goal) {
       setS((s) => ({ ...s, goals: [...s.goals, g], logs: { ...s.logs, [g.id]: {} } }));
       persist(() => db.addGoals([g]));
+    },
+    // Change a goal's details. Check-ins already logged stay as they are.
+    updateGoal(g: Goal) {
+      setS((s) => ({ ...s, goals: s.goals.map((x) => (x.id === g.id ? g : x)) }));
+      persist(() => db.updateGoal(g));
     },
     deleteGoal(id: string) {
       setS((s) => { const logs = { ...s.logs }; delete logs[id]; return { ...s, goals: s.goals.filter((x) => x.id !== id), logs }; });
@@ -226,7 +241,7 @@ function useStoreValue() {
     feedbackOpen, setFeedbackOpen,
     isPlus: mode === 'guest' ? !guestFree : plusInfo.plus, plusInfo, plusOpen, setPlusOpen,
     intent, setIntent, mode, S, profile, recovery, setRecovery, loadError, view, setView, wizard, setWizard,
-    profileOpen, setProfileOpen, authOpen, setAuthOpen, toastMsg, toast, act, loadUser,
+    profileOpen, setProfileOpen, authOpen, setAuthOpen, toastMsg, toast, act, loadUser, dayKey,
   };
 }
 

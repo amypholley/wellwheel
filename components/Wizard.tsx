@@ -41,7 +41,9 @@ export function Wizard() {
   useEffect(() => {
     if (!wizard) return;
     if (wizard.pillar && pillarLocked(wizard.pillar)) { setWizard(null); setPlusOpen('pillars'); return; }
-    setPillar(wizard.pillar || null); setStep(wizard.pillar ? 2 : 1); setG(null); setErr(''); setShare(!!wizard.share);
+    if (wizard.edit) { const e = wizard.edit; setPillar(e.pillar); setStep(3); setErr(''); setShare(!!e.coupleId);
+      setG({ pillar: e.pillar, title: e.title, type: e.type, count: e.count, per: e.per, unit: e.unit, target: e.target ?? '', why: e.why || '', deadline: e.deadline, sure: e.sure || 7, amt: e.amt, step: e.step, stepLabel: e.stepLabel, options: null });
+    } else { setPillar(wizard.pillar || null); setStep(wizard.pillar ? 2 : 1); setG(null); setErr(''); setShare(!!wizard.share); }
     document.body.style.overflow = 'hidden';
     return () => { document.body.style.overflow = ''; };
   }, [wizard]);
@@ -50,7 +52,8 @@ export function Wizard() {
 
   const close = () => setWizard(null);
   const up = (f: Partial<Draft>) => setG((d) => ({ ...d!, ...f }));
-  const back = <button className="linkish" onClick={() => (step === 1 ? close() : setStep(step - 1))}>{step === 1 ? 'Cancel' : '← Back'}</button>;
+  const editing = wizard.edit;
+  const back = <button className="linkish" onClick={() => (step === 1 || editing ? close() : setStep(step - 1))}>{step === 1 || editing ? 'Cancel' : '← Back'}</button>;
   const steps = <div className="steps">{[1, 2, 3].map((i) => <span key={i} className={i <= step ? 'on' : ''} />)}</div>;
   const { T } = today();
   let body: React.ReactNode;
@@ -94,6 +97,10 @@ export function Wizard() {
       const n = normalize(g);
       if (!g.title.trim()) { setErr('Give your goal a name in the Specific box.'); return; }
       if (n.type === 'target' && !(n.target > 0)) { setErr('Pick or type an amount to reach.'); return; }
+      if (editing) {
+        act.updateGoal({ ...editing, title: g.title.trim(), type: n.type, count: n.count, per: n.per, unit: n.unit, target: n.type === 'target' ? n.target : undefined, why: (n.why || '').trim(), deadline: n.deadline, sure: n.sure, amt: n.type === 'habit' ? !!n.amt : false });
+        close(); toast('Goal updated'); return;
+      }
       act.addGoal({
         id: uid(), amt: !!n.amt, step: n.step, stepLabel: n.stepLabel, pillar: n.pillar, title: g.title.trim(), type: n.type,
         count: n.count, per: n.per, unit: n.unit, target: n.type === 'target' ? n.target : undefined, why: (n.why || '').trim(), deadline: n.deadline, sure: n.sure,
@@ -103,8 +110,9 @@ export function Wizard() {
     };
     body = (<>
       <header className="top"><div>
-        <div className="brand" style={{ color: `color-mix(in srgb,${p.color} 75%,var(--ink))`, display: 'flex', alignItems: 'center', gap: 6 }}><Icon id={p.id} size={16} />{p.name} · Step 3 of 3</div>
-        <h1>Make it SMART</h1></div>{back}</header>{steps}
+        <div className="brand" style={{ color: `color-mix(in srgb,${p.color} 75%,var(--ink))`, display: 'flex', alignItems: 'center', gap: 6 }}><Icon id={p.id} size={16} />{p.name} · {editing ? 'Edit goal' : 'Step 3 of 3'}</div>
+        <h1>{editing ? 'Edit your goal' : 'Make it SMART'}</h1></div>{back}</header>{!editing && steps}
+      {editing && <p className="hint" style={{ marginTop: 0 }}>Your check-ins so far stay the same. Changes apply from now on.</p>}
       <div className="card">
         <div className="field" style={{ borderTop: 0, paddingTop: 0 }}>
           <label className="lbl" htmlFor="w-title"><span className="letter">S</span>Specific: what exactly will you do?</label>
@@ -155,9 +163,9 @@ export function Wizard() {
         </div>
       </div>
       <div style={{ marginTop: 14 }}><div className="pill" style={{ marginBottom: 6 }}>Your goal</div><div className="summary">{smartSentence(normalize(g))}</div></div>
-      {S.couple && <label className="ck sharebox"><input type="checkbox" checked={share} onChange={(e) => setShare(e.target.checked)} /><span>💞 Share this goal with {first} so you both can track it and add progress</span></label>}
+      {S.couple && !editing && <label className="ck sharebox"><input type="checkbox" checked={share} onChange={(e) => setShare(e.target.checked)} /><span>💞 Share this goal with {first} so you both can track it and add progress</span></label>}
       <p className="hint" style={{ color: '#B3443A' }}>{err}</p>
-      <button className="btn primary wide" style={{ marginTop: 6 }} onClick={save}>Save goal</button>
+      <button className="btn primary wide" style={{ marginTop: 6 }} onClick={save}>{editing ? 'Save changes' : 'Save goal'}</button>
     </>);
   }
   return <div className="sheet" ref={ref} role="dialog" aria-modal="true" aria-label="New goal"><div className="app">{body}</div></div>;

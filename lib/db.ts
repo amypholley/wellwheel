@@ -75,6 +75,7 @@ export async function loadReferrals(): Promise<{ joined: number; rewarded: numbe
 
 export const db = {
   async addGoals(goals: Goal[]) { if (goals.length) check(await supabase!.from('goals').insert(goals.map(goalToRow))); },
+  async updateGoal(g: Goal) { const { id, example, ...row } = goalToRow(g) as any; check(await supabase!.from('goals').update(row).eq('id', g.id)); },
   async deleteGoal(id: string) { check(await supabase!.from('goals').delete().eq('id', id)); },
   async log(goalId: string, day: string, delta: number) { check(await supabase!.rpc('log_goal', { p_goal: goalId, p_day: day, p_delta: delta })); },
   async setLogs(goalId: string, days: Record<string, number>) {

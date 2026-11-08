@@ -113,7 +113,7 @@ export const PRESETS: Record<PillarId, Preset[]> = {
   environmental: [
     H('Declutter for 10 minutes', 1, 'day', 'times'),
     H('Get outside for 20 minutes', 1, 'day', 'times'),
-    H('Phone-free first hour of the day', 5, 'week', 'mornings'),
+    H('Phone-free first hour of the day', 1, 'day', 'mornings'),
     H('Make my bed', 1, 'day', 'days'),
     H('Open the blinds and let in fresh air', 1, 'day', 'days'),
     H('Tidy one room', 3, 'week', 'rooms'),
