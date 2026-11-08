@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { P, PILLARS, goalQuestion, questionFor } from '@/lib/data';
-import { Goal, addDays, addMonths, dayFrac, dayVal, fmtDate, fmtNum, fromKey, goalWeekScore, key, pillarScore, smartSentence, today, todaysPrompt, goalStart, sumDays, sundayOf, total, weekMet, weekSum } from '@/lib/core';
+import { Goal, addDays, addMonths, dayFrac, dayVal, fmtDate, fmtNum, fromKey, goalWeekScore, key, pillarScore, smartSentence, today, todaysPrompt, goalStart, sumDays, sundayOf, total, uid, weekMet, weekSum } from '@/lib/core';
 import { Icon, Wheel, initials } from './ui';
 import { firstName, useWW } from './store';
 import { PillarReport, PlusLock } from './Plus';
@@ -411,10 +411,59 @@ export function Progress() {
 }
 
 /* ---------- Journal ---------- */
+/* ---------- My journal: write about anything, as many entries as you like ---------- */
+type FreeEntry = { id: string; d: string; title: string; text: string };
+function FreeJournal({ editId, setEditId }: { editId: string | null; setEditId: (v: string | null) => void }) {
+  const { S, act, toast } = useWW();
+  const { TODAY, T } = today();
+  const list: FreeEntry[] = S.tools.fjournal || [];
+  const [cur, setCur] = useState<FreeEntry>({ id: '', d: T, title: '', text: '' });
+  const [status, setStatus] = useState<'' | 'typing' | 'saved'>('');
+  const latest = useRef({ cur, dirty: false, list });
+  latest.current = { ...latest.current, cur, list };
+  // Open an older entry for editing when asked from "My entries"
+  useEffect(() => { if (!editId) return; const e = list.find((x) => x.id === editId); if (e) { setCur(e); setStatus('saved'); } }, [editId]); // eslint-disable-line react-hooks/exhaustive-deps
+  const flush = () => {
+    const { cur: c, dirty, list: l } = latest.current;
+    if (!dirty || !(c.text.trim() || c.title.trim())) return;
+    const e = { ...c, id: c.id || uid() };
+    const next = l.some((x) => x.id === e.id) ? l.map((x) => (x.id === e.id ? e : x)) : [...l, e];
+    act.saveTool('fjournal', next);
+    latest.current.dirty = false; if (!c.id) setCur(e); setStatus('saved');
+  };
+  useEffect(() => { if (!latest.current.dirty) return; const t = setTimeout(flush, 1200); return () => clearTimeout(t); }, [cur]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    const onHide = () => { if (document.visibilityState === 'hidden') flush(); };
+    document.addEventListener('visibilitychange', onHide);
+    return () => { document.removeEventListener('visibilitychange', onHide); flush(); };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const up = (f: Partial<FreeEntry>) => { setCur((c) => ({ ...c, ...f })); latest.current.dirty = true; setStatus('typing'); };
+  const startNew = () => { flush(); setCur({ id: '', d: T, title: '', text: '' }); setStatus(''); setEditId(null); };
+  const save = () => { if (!cur.text.trim() && !cur.title.trim()) { toast('Write something first'); return; } latest.current.dirty = true; flush(); toast('Saved to your journal'); };
+  return (
+    <section className="card" id="myjournal">
+      <div className="card-head"><h2>My journal</h2></div>
+      <p className="sub" style={{ marginTop: 0 }}>Write about anything you like. It’s dated automatically.</p>
+      <div className="jdate">📅 {fromKey(cur.d).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}{cur.d !== T && <span className="sub"> · editing an earlier entry</span>}</div>
+      <label className="lbl" htmlFor="fj-title">Title <span className="sub">(optional)</span></label>
+      <input type="text" id="fj-title" maxLength={120} placeholder="e.g. A good day at the lake" value={cur.title} onChange={(e) => up({ title: e.target.value })} />
+      <label className="lbl" htmlFor="fj-text" style={{ marginTop: 12 }}>Entry</label>
+      <textarea id="fj-text" style={{ minHeight: 220 }} placeholder="What’s on your mind?" value={cur.text} onChange={(e) => up({ text: e.target.value })} />
+      <p className="hint" aria-live="polite" style={{ margin: '6px 0 0', minHeight: 18 }}>{status === 'typing' ? 'Saving…' : status === 'saved' ? '✓ Saved. It saves automatically as you write.' : 'Your entry saves automatically as you write.'}</p>
+      <div className="row" style={{ justifyContent: 'space-between', marginTop: 10, flexWrap: 'wrap' }}>
+        {cur.id ? <button className="btn ghost small" onClick={startNew}>Start a new entry</button> : <span />}
+        <button className="btn primary" onClick={save}>{cur.id ? 'Update entry' : 'Save entry'}</button>
+      </div>
+    </section>
+  );
+}
+
 export function Journal() {
   const { S, act, toast, isPlus } = useWW();
   const { TODAY, T } = today();
   const [shift, setShift] = useState(0);
+  const [editId, setEditId] = useState<string | null>(null);
+  const free: FreeEntry[] = S.tools.fjournal || [];
   const challengeOn = isPlus || FREE_CHALLENGES;
   const inChallenge = TODAY.getFullYear() === 2026 && TODAY.getMonth() === 10;
   const saved = S.journal[T];
@@ -424,7 +473,7 @@ export function Journal() {
   const past = Object.entries(S.journal).filter(([, v]) => v.text).sort((a, b) => (a[0] < b[0] ? 1 : -1));
   // Answers written when checking in on goals (see GoalRowToday), shown with the journal by day
   const goalAnswers = S.goals.flatMap((g) => (((S.tools.gnotes || {})[g.id]) || []).map((n: { d: string; t: string }) => ({ ...n, goal: g.title, pillar: g.pillar, q: questionFor(S.tools, g) || 'Note' })));
-  const entryDays = Array.from(new Set([...past.map(([k]) => k), ...goalAnswers.map((x) => x.d)])).sort((a, b) => (a < b ? 1 : -1));
+  const entryDays = Array.from(new Set([...past.map(([k]) => k), ...goalAnswers.map((x) => x.d), ...free.map((x) => x.d)])).sort((a, b) => (a < b ? 1 : -1));
   const preNov = TODAY < new Date(2026, 10, 1);
   // Saves automatically a moment after you stop typing, and when you leave the page.
   const [status, setStatus] = useState<'' | 'typing' | 'saved'>(saved?.text ? 'saved' : '');
@@ -454,9 +503,11 @@ export function Journal() {
   };
   return (
     <>
-      <header className="top"><div><div className="brand">Journal</div><h1>Today’s prompt</h1><div className="sub">{TODAY.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</div></div></header>
+      <header className="top"><div><div className="brand">Journal</div><h1>Write it down</h1><div className="sub">{TODAY.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</div></div></header>
       <div className="stack">
+        <div className="jgrid"><div className="stack">
         <section className="card">
+          <h2 style={{ marginBottom: 8 }}>Today’s prompt</h2>
           <div className="pill" style={{ color: p.color }}><Icon id={p.id} size={14} />{pr.label || p.name}</div><div className="rule" />
           <p className="prompt" style={{ margin: '0 0 12px' }}>{pr.text}</p>
           <label className="lbl" htmlFor="jtext">My entry</label>
@@ -469,16 +520,19 @@ export function Journal() {
         </section>
         {inChallenge && !challengeOn && <PlusLock reason="challenge" title="30 Days, 9 Pillars" text="All November, Plus members get a daily challenge prompt that walks through every pillar, starting with 30 things you’re grateful for." />}
         {preNov && <section className="card"><h2>30 Days, 9 Pillars starts Nov 1</h2><p className="sub" style={{ margin: '6px 0 0' }}>All November, your daily prompt comes from the challenge, starting with your list of 30 things you’re grateful for.</p></section>}
+        </div>
+        <FreeJournal editId={editId} setEditId={setEditId} /></div>
         <section className="card"><div className="card-head"><h2>My entries</h2><span className="sub">{entryDays.length}</span></div>
-          <p className="sub" style={{ marginTop: 0 }}>Your journal, plus answers from your goals, day by day.</p>
-          {entryDays.length ? entryDays.map((k) => { const v = S.journal[k]; const ans = goalAnswers.filter((x) => x.d === k); const pp = v?.text ? (P[v.pillar] || P.purpose) : P[ans[0].pillar];
+          <p className="sub" style={{ marginTop: 0 }}>Everything you’ve written, day by day: prompts, your own entries, and answers from your goals.</p>
+          {entryDays.length ? entryDays.map((k) => { const v = S.journal[k]; const ans = goalAnswers.filter((x) => x.d === k); const fe = free.filter((x) => x.d === k); const pp = v?.text ? (P[v.pillar] || P.purpose) : ans.length ? P[ans[0].pillar] : { color: 'var(--plum)' };
             return (
             <div className="goal" style={{ gridTemplateColumns: '4px 1fr' }} key={k}>
               <span className="stripe" style={{ background: pp.color }} />
               <div>
                 <div className="goal-meta">{k === T ? <b style={{ color: 'var(--good)' }}>Today{v?.text ? ' ✓ Saved' : ''}</b> : fmtDate(k, { weekday: 'short', month: 'short', day: 'numeric' })}{v?.example && <span className="example">Example</span>}</div>
                 {v?.text && <><div className="sub" style={{ fontStyle: 'italic', margin: '3px 0' }}>{v.prompt}</div><div style={{ whiteSpace: 'pre-wrap' }}>{v.text}</div></>}
-                {ans.length > 0 && <div className={`jgoals ${v?.text ? "" : "solo"}`}>{ans.map((x, i) => <div key={i}><span className="pill" style={{ color: P[x.pillar].color }}><span className="dot" style={{ background: P[x.pillar].color }} />{x.goal}</span><div className="sub" style={{ fontStyle: 'italic' }}>{x.q}</div><div style={{ whiteSpace: 'pre-wrap' }}>{x.t}</div></div>)}</div>}
+                {fe.map((x) => <div key={x.id} className={`jfree ${v?.text ? '' : 'solo'}`}><div className="card-head" style={{ margin: 0 }}><b>{x.title || 'Journal entry'}</b><span className="row" style={{ gap: 4 }}><button className="linkish" onClick={() => { setEditId(x.id); document.getElementById('myjournal')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}>Edit</button><button className="x" aria-label="Delete entry" onClick={() => { if (confirm('Delete this journal entry?')) { act.saveTool('fjournal', free.filter((y) => y.id !== x.id)); if (editId === x.id) setEditId(null); toast('Entry deleted'); } }}>×</button></span></div><div style={{ whiteSpace: 'pre-wrap' }}>{x.text}</div></div>)}
+                {ans.length > 0 && <div className={`jgoals ${v?.text || fe.length ? "" : "solo"}`}>{ans.map((x, i) => <div key={i}><span className="pill" style={{ color: P[x.pillar].color }}><span className="dot" style={{ background: P[x.pillar].color }} />{x.goal}</span><div className="sub" style={{ fontStyle: 'italic' }}>{x.q}</div><div style={{ whiteSpace: 'pre-wrap' }}>{x.t}</div></div>)}</div>}
               </div>
             </div>); }) : <p className="empty">Your entries will show up here.</p>}
         </section>
