@@ -45,7 +45,7 @@ export function mountAdventures(root, api) {
   const TODAY = new Date(); TODAY.setHours(0, 0, 0, 0);
   const T = key(TODAY), MKEY = T.slice(0, 7);
   const { WORLD, USA, worldSize, usaSize } = api.maps;
-  const A = JSON.parse(JSON.stringify(api.adv || ADV0()));
+  const A = JSON.parse(JSON.stringify(api.adv || ADV0())); A.cruises = A.cruises || [];
   A.places = A.places || {}; A.bucket = A.bucket || { me: [], us: [] }; A.bucket.me = A.bucket.me || []; A.bucket.us = A.bucket.us || []; A.hobbies = A.hobbies || [];
   const it = api.intent || {};
   const ui = { adv: it.adv || 'map', mapMode: 'world', place: null, bk: it.adv === 'bucket' && it.who === 'us' ? 'us' : 'me', mapWho: it.who === 'us' ? 'us' : 'me' };
@@ -114,7 +114,7 @@ export function mountAdventures(root, api) {
     const spots = pl.spots || [], name = placeName(id), have = new Set(spots.map((x) => x.name.toLowerCase()));
     const ideas = (SPOT_IDEAS[name] || []).filter((t) => !have.has(t.toLowerCase()));
     const pp = together() ? ((pPlaces()[id] || {}).spots || []) : [];
-    const row = (x, j) => { const open = ui.spot === j, c = x.status === 'been' ? BEEN : WANT; const meta = [x.status === 'been' ? '✓ Been' : '★ Want to go', x.status === 'been' && x.date ? fmtDate(x.date, { month: 'short', year: 'numeric' }) : '', x.status === 'want' && x.year ? 'by ' + x.year : '', (x.photos || []).length ? (x.photos.length + ' photo' + (x.photos.length === 1 ? '' : 's')) : ''].filter(Boolean).join(' · ');
+    const row = (x, j) => { const open = ui.spot === j, c = x.status === 'been' ? BEEN : WANT; const meta = [x.status === 'been' ? '✓ Been' : '★ Want to go', x.status === 'been' && x.date ? fmtDate(x.date, { month: 'short', year: 'numeric' }) : '', x.status === 'want' && x.year ? 'by ' + x.year : '', (x.photos || []).length ? (x.photos.length + ' photo' + (x.photos.length === 1 ? '' : 's')) : '', x.cruise ? '🚢 ' + x.cruise : ''].filter(Boolean).join(' · ');
       return `<div class="spot ${open ? 'open' : ''}" style="--c:${c}"><button class="spot-h" data-a="spopen" data-i="${j}" aria-expanded="${open}"><span class="dot" style="background:${c}"></span><span class="spot-n"><b>${esc(x.name)}</b><small>${esc(meta)}</small></span><span class="sub">${open ? '▲' : '▼'}</span></button>
       ${open ? `<div class="spot-b"><div class="seg" role="group" aria-label="Status"><button data-a="spstatus" data-i="${j}" data-v="been" aria-pressed="${x.status === 'been'}">✓ Been here</button><button data-a="spstatus" data-i="${j}" data-v="want" aria-pressed="${x.status === 'want'}">★ Want to go</button></div>
         ${x.status === 'been' ? `<div class="grid2" style="margin-top:10px"><label class="sub">When I went</label><input type="date" data-av="spdate" data-i="${j}" value="${esc(x.date || '')}"></div>` : `<div class="grid2" style="margin-top:10px"><label class="sub">Target year</label><input type="number" data-av="spyear" data-i="${j}" placeholder="e.g. 2028" value="${esc(x.year || '')}"></div>`}
@@ -140,6 +140,30 @@ export function mountAdventures(root, api) {
   <section class="card"><h2>Only one of us has been</h2><div class="rule"></div>${t.one.length ? `<div class="chips">${t.one.map(([k, w]) => chip(k, ONE, w)).join('')}</div>` : '<p class="empty">None yet.</p>'}</section>
   <section class="card"><h2>Our wish list</h2><div class="rule"></div>${t.want.length ? `<div class="chips">${t.want.map(([k, w]) => chip(k, WANT, w)).join('')}</div>` : '<p class="empty">Mark places you want to go. Places either of you wants show up here.</p>'}</section>`;
   }
+  /* ---------- cruises: one trip, many ports. Each port also shows up as a place in its country or state ---------- */
+  const ALL_PLACES = () => [...WORLD.map((f) => ['W:' + f.id, f.name]), ...USA.map((f) => [MAPS.usa.prefix + f.id, f.name + ' (US state)'])];
+  function placeByName(n) { const t = n.trim().toLowerCase(); const hit = ALL_PLACES().find(([, nm]) => nm.toLowerCase() === t || nm.toLowerCase().replace(' (us state)', '') === t); return hit ? hit[0] : null; }
+  function renderCruises() {
+    const cs = A.cruises, been = cs.filter((c) => c.status === 'been').length;
+    const card = (c, i) => { const open = ui.cruise === i, col = c.status === 'been' ? BEEN : WANT, ports = c.ports || [];
+      const meta = [c.status === 'been' ? '✓ Sailed' : '★ Want to go', c.line, c.status === 'been' && c.date ? fmtDate(c.date, { month: 'short', year: 'numeric' }) : '', c.status === 'want' && c.year ? 'by ' + c.year : '', ports.length ? ports.length + ' port' + (ports.length === 1 ? '' : 's') : ''].filter(Boolean).join(' · ');
+      return `<div class="spot ${open ? 'open' : ''}" style="--c:${col}"><button class="spot-h" data-a="cropen" data-i="${i}" aria-expanded="${open}"><span style="font-size:18px">🚢</span><span class="spot-n"><b>${esc(c.name)}</b><small>${esc(meta)}</small></span><span class="sub">${open ? '▲' : '▼'}</span></button>
+      ${open ? `<div class="spot-b"><div class="seg" role="group" aria-label="Status"><button data-a="crstatus" data-i="${i}" data-v="been" aria-pressed="${c.status === 'been'}">✓ We sailed it</button><button data-a="crstatus" data-i="${i}" data-v="want" aria-pressed="${c.status === 'want'}">★ Want to go</button></div>
+        <label class="lbl" style="margin-top:12px">Cruise line & ship</label><input type="text" data-av="crline" data-i="${i}" placeholder="e.g. Carnival Breeze" value="${esc(c.line || '')}">
+        ${c.status === 'been' ? `<label class="lbl" style="margin-top:10px">Sailed on</label><input type="date" data-av="crdate" data-i="${i}" value="${esc(c.date || '')}">` : `<label class="lbl" style="margin-top:10px">Target year</label><input type="number" data-av="cryear" data-i="${i}" placeholder="e.g. 2027" value="${esc(c.year || '')}">`}
+        <label class="lbl" style="margin-top:10px">${c.status === 'been' ? 'Departed from' : 'Departing from'}</label><input type="text" data-av="crfrom" data-i="${i}" placeholder="e.g. Galveston, Texas" value="${esc(c.from || '')}">
+        <label class="lbl" style="margin-top:14px">Ports of call</label>
+        ${ports.length ? `<div class="chips">${ports.map((pt, j) => `<span class="chip-own"><span class="chip static">⚓ ${esc(pt.name)}${pt.place ? `<span class="sub" style="font-weight:500">&nbsp;· ${esc(placeName(pt.place))}</span>` : ''}</span><button type="button" class="chip-x" data-a="crportdel" data-i="${i}" data-j="${j}" aria-label="Remove ${esc(pt.name)}">×</button></span>`).join('')}</div>` : '<p class="sub" style="margin:0 0 6px">No ports yet.</p>'}
+        <form class="spotadd" data-av-form="crport" data-i="${i}"><div class="grid2b"><input type="text" id="crp-name" maxlength="60" placeholder="Port" aria-label="Port name"><input type="text" id="crp-place" list="crplaces" placeholder="Country/state" aria-label="Country or state"></div><button class="btn small" type="submit" style="align-self:flex-start">+ Add port</button></form>
+        <p class="hint" style="margin:6px 0 0">Ports also show up as places in their country or state, and on your map.</p>
+        <label class="lbl" style="margin-top:12px">${c.status === 'been' ? 'Memories' : 'What I’m looking forward to'}</label><textarea data-av="crnote" data-i="${i}" rows="2">${esc(c.note || '')}</textarea>
+        ${c.status === 'been' ? `<div style="margin-top:10px">${photoGrid(c.photos, 'cr:' + i)}${photoInput('cr:' + i)}</div>` : ''}
+        <div class="row" style="margin-top:10px;justify-content:space-between"><button class="linkish" data-a="crdel" data-i="${i}">Remove cruise</button><button class="btn small primary" data-a="crdone">Save</button></div></div>` : ''}</div>`; };
+    return `<section class="card"><div class="card-head"><h2>🚢 Cruises</h2><span class="sub">${been} sailed · ${cs.length - been} planned</span></div>
+      ${cs.map(card).join('')}
+      <form class="spotadd" data-av-form="cruise"><input type="text" id="cr-new" maxlength="80" placeholder="e.g. Western Caribbean, Alaska" aria-label="New cruise"><div class="row" style="gap:6px"><button class="btn small" type="submit" name="st" value="been">✓ We sailed it</button><button class="btn small" type="submit" name="st" value="want">★ Want to go</button></div></form>
+      <datalist id="crplaces">${ALL_PLACES().map(([, nm]) => `<option value="${esc(nm)}">`).join('')}</datalist></section>`;
+  }
   function renderMapTab() {
     const c = counts(), m = MAPS[ui.mapMode];
     return `<section class="card">
@@ -151,7 +175,8 @@ export function mountAdventures(root, api) {
     <input list="placelist" id="placesearch" placeholder="Search for a ${ui.mapMode === 'world' ? 'country' : 'state'}" aria-label="Search places"><datalist id="placelist">${m.data.map((f) => `<option value="${esc(f.name)}">`).join('')}</datalist>
     ${placePanel()}</section>
   ${together() ? togetherChips() : `<section class="card"><h2>Places I’ve been</h2><div class="rule"></div>${placeChips('been')}</section>
-  <section class="card"><h2>Places I want to go</h2><div class="rule"></div>${placeChips('want')}</section>`}`;
+  <section class="card"><h2>Places I want to go</h2><div class="rule"></div>${placeChips('want')}</section>`}
+  ${renderCruises()}`;
   }
 
   /* ---------- bucket lists ---------- */
@@ -194,6 +219,7 @@ export function mountAdventures(root, api) {
   function photoList(target) {
     if (target === 'none') return (pPlaces()[ui.place] || {}).photos || [];
     if (target === 'place') return (A.places[ui.place] || {}).photos || [];
+    if (target.startsWith('cr:')) return (A.cruises[+target.slice(3)] || {}).photos || [];
     if (target.startsWith('sp:')) return ((A.places[ui.place] || {}).spots || [])[+target.slice(3)]?.photos || [];
     const [k, i] = target.split(':'); if (k === 'bk') return A.bucket[ui.bk][+i].photos || []; if (k === 'hb') return A.hobbies[+i].photos || [];
     return [];
@@ -229,6 +255,11 @@ export function mountAdventures(root, api) {
     else if (a === 'mapwho') { ui.mapWho = b.dataset.v; rerenderKeep(); }
     else if (a === 'select') { ui.spot = null; ui.place = b.dataset.v; render(); root.querySelector('#map')?.scrollIntoView({ block: 'start' }); }
     else if (a === 'closeplace') { ui.place = null; rerenderKeep(); }
+    else if (a === 'cropen') { ui.cruise = ui.cruise === +b.dataset.i ? null : +b.dataset.i; rerenderKeep(); }
+    else if (a === 'crdone') { save(); flush(); ui.cruise = null; rerenderKeep(); toast('Cruise saved'); }
+    else if (a === 'crstatus') { const c = A.cruises[+b.dataset.i]; c.status = b.dataset.v; (c.ports || []).forEach((pt) => pt.place && portToPlace(pt, c)); save(); rerenderKeep(); }
+    else if (a === 'crdel') { const c = A.cruises[+b.dataset.i]; (c.photos || []).forEach((id) => api.deletePhoto(id)); A.cruises.splice(+b.dataset.i, 1); ui.cruise = null; save(); rerenderKeep(); toast('Cruise removed'); }
+    else if (a === 'crportdel') { A.cruises[+b.dataset.i].ports.splice(+b.dataset.j, 1); save(); rerenderKeep(); }
     else if (a === 'spopen') { ui.spot = ui.spot === +b.dataset.i ? null : +b.dataset.i; rerenderKeep(); }
     else if (a === 'spstatus') { const x = A.places[ui.place].spots[+b.dataset.i]; x.status = b.dataset.v; bumpParent(b.dataset.v); save(); rerenderKeep(); }
     else if (a === 'spdel') { const l = A.places[ui.place].spots, x = l[+b.dataset.i]; (x.photos || []).forEach((id) => api.deletePhoto(id)); l.splice(+b.dataset.i, 1); ui.spot = null; save(); rerenderKeep(); }
@@ -252,6 +283,14 @@ export function mountAdventures(root, api) {
   };
   // A place inside a state/country also marks the state/country: "been" wins, "want" only fills an empty one
   function bumpParent(st) { const p = A.places[ui.place]; if (st === 'been' && p.status !== 'been') p.status = 'been'; else if (st === 'want' && !p.status) p.status = 'want'; }
+  // Put a cruise port into its country/state as a place, tagged with the cruise. "Been" upgrades a "want".
+  function portToPlace(pt, c) {
+    const p = A.places[pt.place] = A.places[pt.place] || { photos: [], status: '' }; p.spots = p.spots || []; delete p.example;
+    let x = p.spots.find((s) => s.name.toLowerCase() === pt.name.toLowerCase());
+    if (!x) { x = { name: pt.name, status: c.status, date: '', year: '', note: '', photos: [], cruise: c.name }; p.spots.push(x); }
+    else if (c.status === 'been') x.status = 'been';
+    if (c.status === 'been' && p.status !== 'been') p.status = 'been'; else if (c.status === 'want' && !p.status) p.status = 'want';
+  }
   function addSpot(name, st) {
     const id = ui.place; A.places[id] = A.places[id] || { photos: [], status: '' }; const p = A.places[id]; p.spots = p.spots || []; delete p.example;
     if (p.spots.some((x) => x.name.toLowerCase() === name.toLowerCase())) { toast('Already on your list'); return; }
@@ -264,6 +303,7 @@ export function mountAdventures(root, api) {
     else if (k === 'bkcat') A.bucket[ui.bk][+el.dataset.i].cat = el.value;
     else if (k === 'hgoal') A.hobbies[+el.dataset.i].goal = el.value;
     else if (k === 'hnote') A.hobbies[+el.dataset.i].note = el.value;
+    else if (k.startsWith('cr')) { const c = A.cruises[+el.dataset.i], f = { crline: 'line', crdate: 'date', cryear: 'year', crfrom: 'from', crnote: 'note' }[k]; if (f) c[f] = f === 'year' ? el.value.replace(/\D/g, '').slice(0, 4) : el.value; }
     else if (k === 'spdate' || k === 'spyear' || k === 'spnote') { const x = A.places[ui.place].spots[+el.dataset.i]; x[k.slice(2)] = k === 'spyear' ? el.value.replace(/\D/g, '').slice(0, 4) : el.value; }
     else if (ui.place && A.places[ui.place]) A.places[ui.place][k] = el.value;
     save();
@@ -274,16 +314,19 @@ export function mountAdventures(root, api) {
     if (el.dataset.ph) {
       const t = el.dataset.ph; let list;
       if (t === 'place') { const p = A.places[ui.place]; p.photos = p.photos || []; list = p.photos; }
+      else if (t.startsWith('cr:')) { const c = A.cruises[+t.slice(3)]; c.photos = c.photos || []; list = c.photos; }
       else if (t.startsWith('sp:')) { const x = A.places[ui.place].spots[+t.slice(3)]; x.photos = x.photos || []; list = x.photos; }
       else { const [k, i] = t.split(':'); const obj = k === 'bk' ? A.bucket[ui.bk][+i] : A.hobbies[+i]; obj.photos = obj.photos || []; list = obj.photos; }
       const files = [...el.files]; toast(files.length > 1 ? `Adding ${files.length} photos…` : 'Adding photo…');
-      const folder = t === 'place' || t.startsWith('sp:') ? 'places' : t.startsWith('bk:') && ui.bk === 'us' ? 'shared' : 'mine';
+      const folder = t === 'place' || t.startsWith('sp:') || t.startsWith('cr:') ? 'places' : t.startsWith('bk:') && ui.bk === 'us' ? 'shared' : 'mine';
       const n = await addPhotos(files, list, folder); if (n) toast(`${n} photo${n === 1 ? '' : 's'} added`);
     }
   };
   const onSubmit = (e) => {
     const f = e.target; if (!f.dataset.avForm) return; e.preventDefault();
     if (f.dataset.avForm === 'bucket') { const t = root.querySelector('#bk-text').value.trim(); if (!t) return; A.bucket[ui.bk].push({ text: t, cat: root.querySelector('#bk-cat').value, year: root.querySelector('#bk-year').value, done: false, photos: [] }); save(); rerenderKeep(); toast('Added to your list'); }
+    if (f.dataset.avForm === 'cruise') { const t = root.querySelector('#cr-new').value.trim(); if (!t) return; A.cruises.push({ name: t, status: (e.submitter && e.submitter.value) || 'want', line: '', date: '', year: '', from: '', note: '', ports: [], photos: [] }); ui.cruise = A.cruises.length - 1; save(); rerenderKeep(); toast(`${t} added`); return; }
+    if (f.dataset.avForm === 'crport') { const c = A.cruises[+f.dataset.i], n = f.querySelector('#crp-name').value.trim(), pn = f.querySelector('#crp-place').value.trim(); if (!n && !pn) return; const place = pn ? placeByName(pn) : null; if (pn && !place) { toast('Pick a country or state from the list'); return; } const pt = { name: n || placeName(place), place }; c.ports = c.ports || []; c.ports.push(pt); if (place) portToPlace(pt, c); save(); rerenderKeep(); toast(place ? `${pt.name} added, and to ${placeName(place)}` : `${pt.name} added`); return; }
     if (f.dataset.avForm === 'spot') { const t = root.querySelector('#sp-new').value.trim(); if (!t) return; addSpot(t, (e.submitter && e.submitter.value) || 'want'); return; }
     if (f.dataset.avForm === 'hobby') { const t = root.querySelector('#hb-name').value.trim(); if (!t) return; A.hobbies.push({ name: t, goal: '', note: '', photos: [], sessions: {} }); save(); rerenderKeep(); }
   };
@@ -297,7 +340,7 @@ export function mountAdventures(root, api) {
   const allPhotos = () => [
     ...Object.values(A.places).flatMap((p) => [...(p.photos || []), ...(p.spots || []).flatMap((x) => x.photos || [])]),
     ...A.bucket.me.flatMap((x) => x.photos || []), ...A.bucket.us.flatMap((x) => x.photos || []),
-    ...A.hobbies.flatMap((h) => h.photos || []),
+    ...A.hobbies.flatMap((h) => h.photos || []), ...A.cruises.flatMap((c) => c.photos || []),
     ...Object.values(pPlaces()).flatMap((p) => (p ? [...(p.photos || []), ...(p.spots || []).flatMap((x) => x.photos || [])] : [])),
   ];
   const ids = allPhotos(); if (ids.length) api.loadPhotos(ids).then(() => rerenderKeep()).catch(() => {});
