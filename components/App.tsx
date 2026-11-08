@@ -108,5 +108,29 @@ export default function App() {
     if (ref && /^[a-zA-Z0-9_]{3,20}$/.test(ref)) { try { localStorage.setItem('ww-ref', ref.toLowerCase()); } catch {} }
   }, []);
   useEffect(() => { if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('/sw.js').catch(() => {}); }, []);
+  // Phones keep the app asleep in the background and wake the old version. When you come back,
+  // check whether a newer version is live and, if so, reload once to pick it up.
+  useEffect(() => {
+    const mine = process.env.NEXT_PUBLIC_BUILD || '';
+    if (!mine) return;
+    const check = async () => {
+      if (document.visibilityState !== 'visible') return;
+      const el = document.activeElement as HTMLElement | null;
+      if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)) return; // never interrupt typing
+      try {
+        const r = await fetch('/api/version', { cache: 'no-store' });
+        const { v } = await r.json();
+        if (!v || v === mine) return;
+        const last = Number(sessionStorage.getItem('ww-reloaded') || 0);
+        if (Date.now() - last < 60000) return; // reload at most once a minute
+        sessionStorage.setItem('ww-reloaded', String(Date.now()));
+        location.reload();
+      } catch {}
+    };
+    document.addEventListener('visibilitychange', check);
+    window.addEventListener('pageshow', check);
+    const t = setInterval(check, 10 * 60 * 1000);
+    return () => { document.removeEventListener('visibilitychange', check); window.removeEventListener('pageshow', check); clearInterval(t); };
+  }, []);
   return <StoreProvider><Shell /></StoreProvider>;
 }
