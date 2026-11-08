@@ -1,6 +1,7 @@
 // The Adventures tab (travel map, bucket lists, hobbies), carried over from the WellWheel prototype.
 // mountAdventures() draws into one container and saves through the `api` it is given.
 import { key, fmtDate as fmtD } from '@/lib/core';
+import { addSectionSaves } from '@/lib/sectionSave';
 
 export const ADV0 = () => ({ places: {}, bucket: { me: [], us: [] }, partner: '', hobbies: [] });
 const BEEN = '#7B4FA3', WANT = '#F5C518', ONE = '#C9B3E0';
@@ -137,7 +138,7 @@ export function mountAdventures(root, api) {
   <div class="stack" style="margin-top:14px">${sub === 'map' ? renderMapTab() : sub === 'bucket' ? renderBucket() : renderHobbies()}</div>
   <div class="lightbox" id="lightbox" role="dialog" aria-label="Photo"></div>`;
   }
-  function render() { root.innerHTML = renderAdventures(); if (ui.adv === 'map') wireMap(); }
+  function render() { root.innerHTML = renderAdventures(); if (ui.adv === 'map') wireMap(); addSectionSaves(root, 'av', ['data-a', 'savenow']); }
   function rerenderKeep() { const y = window.scrollY; render(); window.scrollTo(0, y); }
 
   /* ---------- lightbox ---------- */
@@ -172,6 +173,7 @@ export function mountAdventures(root, api) {
   /* ---------- events ---------- */
   const onClick = (e) => {
     const b = e.target.closest('[data-a]'); if (!b || !root.contains(b)) return; const a = b.dataset.a;
+    if (a === 'savenow') { save(); flush(); toast('Saved'); return; }
     if (a === 'adv') { ui.adv = b.dataset.v; render(); }
     else if (a === 'mapmode') { ui.mapMode = b.dataset.v; ui.place = null; rerenderKeep(); }
     else if (a === 'mapwho') { ui.mapWho = b.dataset.v; rerenderKeep(); }

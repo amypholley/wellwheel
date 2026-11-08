@@ -7,6 +7,7 @@ import {
   SLEEP_FACTORS, MEALS, WEEK, AISLES, TRAPS, STARTERS, LOVE, VALUES, SOON,
 } from './content';
 import { makeMore } from './more';
+import { addSectionSaves } from '@/lib/sectionSave';
 
 // Which saved record each worksheet uses
 const STORE_KEY = { networth: 'nw', burnout: 'burn' };
@@ -643,7 +644,7 @@ export function mountResources(root, api) {
     if (o.__html) Object.entries(o.__html).forEach(([k, v]) => root.querySelectorAll(`[data-oh="${k}"]`).forEach((e) => (e.innerHTML = v)));
     if (r.tool.after) r.tool.after(root);
   }
-  function render() { root.innerHTML = renderResources(); updateOuts(); }
+  function render() { root.innerHTML = renderResources(); updateOuts(); addSectionSaves(root, 'b', ['data-r', 'savenow']); }
   function rerenderKeep() { const y = window.scrollY; render(); window.scrollTo(0, y); }
   const openTool = (id) => { flush(); ui.tool = id; render(); window.scrollTo(0, 0); api.onToolChange && api.onToolChange(id); };
 
