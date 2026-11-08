@@ -5,6 +5,35 @@ import { addSectionSaves } from '@/lib/sectionSave';
 
 export const ADV0 = () => ({ places: {}, bucket: { me: [], us: [] }, partner: '', hobbies: [] });
 const BEEN = '#7B4FA3', WANT = '#F5C518', ONE = '#C9B3E0';
+// Popular spots to suggest inside a state or country (by its name on the map)
+const SPOT_IDEAS = {
+  'New York': ['New York City', 'Niagara Falls', 'The Hamptons', 'Adirondacks', 'Finger Lakes', 'Lake Placid'],
+  'California': ['Los Angeles', 'San Francisco', 'San Diego', 'Yosemite', 'Napa Valley', 'Big Sur', 'Lake Tahoe', 'Disneyland', 'Joshua Tree', 'Palm Springs'],
+  'Texas': ['Dallas', 'Houston', 'San Antonio', 'Austin', 'Fort Worth', 'El Paso', 'Galveston', 'Big Bend', 'Fredericksburg', 'South Padre Island'],
+  'Florida': ['Orlando', 'Miami', 'Key West', 'Tampa', 'St. Augustine', 'Everglades', 'Destin'],
+  'Nevada': ['Las Vegas', 'Lake Tahoe', 'Reno', 'Red Rock Canyon'],
+  'Hawaii': ['Honolulu', 'Maui', 'Kauai', 'Big Island', 'Waikiki'],
+  'Arizona': ['Grand Canyon', 'Sedona', 'Phoenix', 'Scottsdale', 'Tucson', 'Page'],
+  'Colorado': ['Denver', 'Rocky Mountain National Park', 'Aspen', 'Colorado Springs', 'Vail', 'Boulder'],
+  'Tennessee': ['Nashville', 'Memphis', 'Gatlinburg', 'Great Smoky Mountains', 'Chattanooga'],
+  'Louisiana': ['New Orleans', 'Baton Rouge', 'Lafayette'],
+  'Illinois': ['Chicago', 'Springfield', 'Starved Rock'],
+  'Washington': ['Seattle', 'Mount Rainier', 'Olympic National Park', 'San Juan Islands', 'Leavenworth'],
+  'Massachusetts': ['Boston', 'Cape Cod', 'Martha’s Vineyard', 'Salem', 'Nantucket'],
+  'Utah': ['Zion', 'Arches', 'Bryce Canyon', 'Salt Lake City', 'Park City', 'Moab'],
+  'Italy': ['Rome', 'Florence', 'Venice', 'Sicily', 'Amalfi Coast', 'Milan', 'Tuscany', 'Cinque Terre', 'Lake Como', 'Naples'],
+  'France': ['Paris', 'Nice', 'Provence', 'Bordeaux', 'Lyon', 'Normandy', 'French Alps'],
+  'Spain': ['Barcelona', 'Madrid', 'Seville', 'Mallorca', 'Valencia', 'Granada', 'Ibiza'],
+  'United Kingdom': ['London', 'Edinburgh', 'Scottish Highlands', 'Bath', 'Cotswolds', 'Lake District'],
+  'Ireland': ['Dublin', 'Cliffs of Moher', 'Galway', 'Ring of Kerry', 'Killarney'],
+  'Greece': ['Athens', 'Santorini', 'Mykonos', 'Crete', 'Corfu'],
+  'Germany': ['Berlin', 'Munich', 'Neuschwanstein Castle', 'Black Forest', 'Hamburg'],
+  'Mexico': ['Cancún', 'Mexico City', 'Tulum', 'Cabo San Lucas', 'Puerto Vallarta', 'Oaxaca'],
+  'Canada': ['Toronto', 'Vancouver', 'Banff', 'Montreal', 'Quebec City', 'Niagara Falls'],
+  'Japan': ['Tokyo', 'Kyoto', 'Osaka', 'Mount Fuji', 'Hokkaido', 'Okinawa'],
+  'Australia': ['Sydney', 'Melbourne', 'Great Barrier Reef', 'Uluru', 'Gold Coast'],
+  'United States of America': ['New York City', 'Grand Canyon', 'Las Vegas', 'Yellowstone', 'Hawaii', 'Washington, D.C.'],
+};
 const BK_CATS = ['Travel', 'Adventure', 'Learn', 'Food', 'Give back', 'Milestone', 'Just for fun'];
 const BK_IDEAS = {
   me: ['See the Northern Lights', 'Visit all 50 states', 'Take a hot air balloon ride', 'Learn to swim or surf', 'Run a 5K', 'Publish a book', 'Start my own business', 'See the Grand Canyon at sunrise', 'Take a cooking class in another country', 'Go on a cruise', 'Learn a new language', 'Volunteer for a cause I love', 'Go whale watching', 'Ride in a helicopter', 'Pay off all my debt', 'Visit where my family came from', 'Sleep under the stars', 'Plant a garden', 'Go to a live taping of a show', 'Road trip Route 66'],
@@ -77,9 +106,29 @@ export function mountAdventures(root, api) {
     ${st === 'want' ? `<div class="grid2" style="margin-top:10px"><label class="sub" for="pyear">Target year</label><input type="number" id="pyear" data-av="year" placeholder="e.g. 2028" value="${esc(pl.year || '')}"></div>` : ''}
     ${st ? `<label class="lbl" style="margin-top:10px" for="pnote">${st === 'been' ? 'Memories' : 'What I want to see or do'}</label><textarea id="pnote" data-av="note" rows="2">${esc(pl.note || '')}</textarea>` : ''}
     ${st === 'been' ? `<div style="margin-top:10px">${photoGrid(pl.photos, 'place')}${photoInput('place')}</div>` : ''}
-    ${st ? `<div class="row" style="margin-top:14px;justify-content:space-between;align-items:center"><button class="linkish" data-a="status" data-v="">Clear this place</button><button class="btn primary" data-a="saveplace">Save</button></div>` : '<p class="hint" style="margin-bottom:0">Choose one to add it to your map.</p>'}</div>`;
+    ${spotsSection(id, pl)}
+    ${st || (pl.spots || []).length ? `<div class="row" style="margin-top:14px;justify-content:space-between;align-items:center"><button class="linkish" data-a="status" data-v="">Clear this place</button><button class="btn primary" data-a="saveplace">Save</button></div>` : '<p class="hint" style="margin-bottom:0">Choose one to add it to your map.</p>'}</div>`;
   }
-  function placeChips(status) { const ids = Object.keys(A.places).filter((k) => A.places[k].status === status && k.startsWith(MAPS[ui.mapMode].prefix)); return ids.length ? `<div class="chips">${ids.sort((a, b) => placeName(a).localeCompare(placeName(b))).map((k) => `<button class="chip" data-a="select" data-v="${esc(k)}"><span class="dot" style="background:${status === 'been' ? BEEN : WANT};margin-right:6px"></span>${esc(placeName(k))}${(A.places[k].photos || []).length ? ' 📷' : ''}</button>`).join('')}</div>` : '<p class="empty">None yet.</p>'; }
+  // Places inside a state or country: cities, parks, landmarks, each with its own status, notes and photos
+  function spotsSection(id, pl) {
+    const spots = pl.spots || [], name = placeName(id), have = new Set(spots.map((x) => x.name.toLowerCase()));
+    const ideas = (SPOT_IDEAS[name] || []).filter((t) => !have.has(t.toLowerCase()));
+    const pp = together() ? ((pPlaces()[id] || {}).spots || []) : [];
+    const row = (x, j) => { const open = ui.spot === j, c = x.status === 'been' ? BEEN : WANT; const meta = [x.status === 'been' ? '✓ Been' : '★ Want to go', x.status === 'been' && x.date ? fmtDate(x.date, { month: 'short', year: 'numeric' }) : '', x.status === 'want' && x.year ? 'by ' + x.year : '', (x.photos || []).length ? (x.photos.length + ' photo' + (x.photos.length === 1 ? '' : 's')) : ''].filter(Boolean).join(' · ');
+      return `<div class="spot ${open ? 'open' : ''}" style="--c:${c}"><button class="spot-h" data-a="spopen" data-i="${j}" aria-expanded="${open}"><span class="dot" style="background:${c}"></span><span class="spot-n"><b>${esc(x.name)}</b><small>${esc(meta)}</small></span><span class="sub">${open ? '▲' : '▼'}</span></button>
+      ${open ? `<div class="spot-b"><div class="seg" role="group" aria-label="Status"><button data-a="spstatus" data-i="${j}" data-v="been" aria-pressed="${x.status === 'been'}">✓ Been here</button><button data-a="spstatus" data-i="${j}" data-v="want" aria-pressed="${x.status === 'want'}">★ Want to go</button></div>
+        ${x.status === 'been' ? `<div class="grid2" style="margin-top:10px"><label class="sub">When I went</label><input type="date" data-av="spdate" data-i="${j}" value="${esc(x.date || '')}"></div>` : `<div class="grid2" style="margin-top:10px"><label class="sub">Target year</label><input type="number" data-av="spyear" data-i="${j}" placeholder="e.g. 2028" value="${esc(x.year || '')}"></div>`}
+        <label class="lbl" style="margin-top:10px">${x.status === 'been' ? 'Memories' : 'What I want to see or do'}</label><textarea data-av="spnote" data-i="${j}" rows="2">${esc(x.note || '')}</textarea>
+        ${x.status === 'been' ? `<div style="margin-top:10px">${photoGrid(x.photos, 'sp:' + j)}${photoInput('sp:' + j)}</div>` : ''}
+        <div class="row" style="margin-top:10px;justify-content:space-between"><button class="linkish" data-a="spdel" data-i="${j}">Remove</button><button class="btn small" data-a="spopen" data-i="${j}">Done</button></div></div>` : ''}</div>`; };
+    return `<div class="spots"><h3 class="h3" style="margin:18px 0 2px">Places in ${esc(name)}</h3><p class="sub" style="margin:0 0 10px">Cities, parks, landmarks, anywhere you’ve been or want to go.</p>
+      ${spots.map(row).join('')}
+      <form class="spotadd" data-av-form="spot"><input type="text" id="sp-new" maxlength="80" placeholder="e.g. ${esc((SPOT_IDEAS[name] || ['A city or landmark'])[0])}" aria-label="Add a place in ${esc(name)}"><div class="row" style="gap:6px"><button class="btn small" type="submit" name="st" value="been">✓ Been</button><button class="btn small" type="submit" name="st" value="want">★ Want to go</button></div></form>
+      ${ideas.length ? `<p class="sub" style="margin:12px 0 0;font-size:13px">Popular in ${esc(name)} (tap to add to your wish list)</p><div class="chips" style="margin-top:6px">${ideas.slice(0, 8).map((t) => `<button class="chip" data-a="spidea" data-v="${esc(t)}">+ ${esc(t)}</button>`).join('')}</div>` : ''}
+      ${pp.length ? `<p class="lbl" style="margin:14px 0 6px">${esc(partnerFirst())}’s places here</p><div class="chips">${pp.map((x) => `<span class="chip static"><span class="dot" style="background:${x.status === 'been' ? BEEN : WANT};margin-right:6px"></span>${esc(x.name)}</span>`).join('')}</div>` : ''}</div>`;
+  }
+  const spotsSuffix = (k) => { const n = (A.places[k].spots || []).length; return n ? ` <span class="sub" style="font-weight:500">· ${n} place${n === 1 ? '' : 's'}</span>` : ''; };
+  function placeChips(status) { const ids = Object.keys(A.places).filter((k) => A.places[k].status === status && k.startsWith(MAPS[ui.mapMode].prefix)); return ids.length ? `<div class="chips">${ids.sort((a, b) => placeName(a).localeCompare(placeName(b))).map((k) => `<button class="chip" data-a="select" data-v="${esc(k)}"><span class="dot" style="background:${status === 'been' ? BEEN : WANT};margin-right:6px"></span>${esc(placeName(k))}${spotsSuffix(k)}${(A.places[k].photos || []).length ? ' 📷' : ''}</button>`).join('')}</div>` : '<p class="empty">None yet.</p>'; }
   function togetherSets() {
     const pre = MAPS[ui.mapMode].prefix, mp = A.places, pp = pPlaces(); const ids = new Set([...Object.keys(mp), ...Object.keys(pp)].filter((k) => k.startsWith(pre)));
     const both = [], one = [], want = []; ids.forEach((k) => { const a = (mp[k] || {}).status, b = (pp[k] || {}).status; if (a === 'been' && b === 'been') both.push(k); else if (a === 'been' || b === 'been') one.push([k, a === 'been' ? 'You' : partnerFirst()]); else if (a === 'want' || b === 'want') want.push([k, a === 'want' && b === 'want' ? 'Both' : a === 'want' ? 'You' : partnerFirst()]); }); return { both, one, want };
@@ -145,6 +194,7 @@ export function mountAdventures(root, api) {
   function photoList(target) {
     if (target === 'none') return (pPlaces()[ui.place] || {}).photos || [];
     if (target === 'place') return (A.places[ui.place] || {}).photos || [];
+    if (target.startsWith('sp:')) return ((A.places[ui.place] || {}).spots || [])[+target.slice(3)]?.photos || [];
     const [k, i] = target.split(':'); if (k === 'bk') return A.bucket[ui.bk][+i].photos || []; if (k === 'hb') return A.hobbies[+i].photos || [];
     return [];
   }
@@ -165,7 +215,7 @@ export function mountAdventures(root, api) {
     let drag = null, moved = false;
     svg.addEventListener('pointerdown', (e) => { drag = { x: e.clientX, y: e.clientY, v: [...v] }; moved = false; });
     svg.addEventListener('pointermove', (e) => { if (!drag) return; const r = svg.getBoundingClientRect(), s = v[2] / r.width; const dx = (e.clientX - drag.x) * s, dy = (e.clientY - drag.y) * s; if (Math.abs(dx) + Math.abs(dy) > 3) { moved = true; if (!svg.hasPointerCapture(e.pointerId)) svg.setPointerCapture(e.pointerId); } if (moved) { v[0] = drag.v[0] - dx; v[1] = drag.v[1] - dy; svg.setAttribute('viewBox', v.join(' ')); } });
-    const end = (e) => { if (drag && !moved) { const t = document.elementFromPoint(e.clientX, e.clientY); const p = t && t.closest && t.closest('[data-place]'); if (p) { ui.place = p.dataset.place; rerenderKeep(); } } drag = null; };
+    const end = (e) => { if (drag && !moved) { const t = document.elementFromPoint(e.clientX, e.clientY); const p = t && t.closest && t.closest('[data-place]'); if (p) { ui.spot = null; ui.place = p.dataset.place; rerenderKeep(); } } drag = null; };
     svg.addEventListener('pointerup', end); svg.addEventListener('pointercancel', () => (drag = null));
   }
   function zoomMap(dir) { const v = vb[ui.mapMode], f = MAPS[ui.mapMode]; if (dir === 0) { v.splice(0, 4, 0, 0, f.w, f.h); } else { const k = dir > 0 ? 0.6 : 1 / 0.6; const cx = v[0] + v[2] / 2, cy = v[1] + v[3] / 2; const w = Math.min(f.w, Math.max(60, v[2] * k)), h = (w * f.h) / f.w; v.splice(0, 4, cx - w / 2, cy - h / 2, w, h); } const svg = root.querySelector('#map'); if (svg) svg.setAttribute('viewBox', v.join(' ')); }
@@ -177,12 +227,16 @@ export function mountAdventures(root, api) {
     if (a === 'adv') { ui.adv = b.dataset.v; render(); }
     else if (a === 'mapmode') { ui.mapMode = b.dataset.v; ui.place = null; rerenderKeep(); }
     else if (a === 'mapwho') { ui.mapWho = b.dataset.v; rerenderKeep(); }
-    else if (a === 'select') { ui.place = b.dataset.v; render(); root.querySelector('#map')?.scrollIntoView({ block: 'start' }); }
+    else if (a === 'select') { ui.spot = null; ui.place = b.dataset.v; render(); root.querySelector('#map')?.scrollIntoView({ block: 'start' }); }
     else if (a === 'closeplace') { ui.place = null; rerenderKeep(); }
+    else if (a === 'spopen') { ui.spot = ui.spot === +b.dataset.i ? null : +b.dataset.i; rerenderKeep(); }
+    else if (a === 'spstatus') { const x = A.places[ui.place].spots[+b.dataset.i]; x.status = b.dataset.v; bumpParent(b.dataset.v); save(); rerenderKeep(); }
+    else if (a === 'spdel') { const l = A.places[ui.place].spots, x = l[+b.dataset.i]; (x.photos || []).forEach((id) => api.deletePhoto(id)); l.splice(+b.dataset.i, 1); ui.spot = null; save(); rerenderKeep(); }
+    else if (a === 'spidea') addSpot(b.dataset.v, 'want');
     else if (a === 'saveplace') { const n = placeName(ui.place); save(); flush(); ui.place = null; rerenderKeep(); toast(`${n} saved`); }
     else if (a === 'status') {
       const id = ui.place, v = b.dataset.v;
-      if (!v) { const p = A.places[id]; if (p && (p.photos || []).length) p.status = ''; else delete A.places[id]; }
+      if (!v) { const p = A.places[id]; if (p && ((p.photos || []).length || (p.spots || []).length)) p.status = ''; else delete A.places[id]; }
       else { A.places[id] = A.places[id] || { photos: [] }; A.places[id].status = v; A.places[id].photos = A.places[id].photos || []; delete A.places[id].example; }
       save(); rerenderKeep(); if (v === 'been') toast(`${placeName(id)} added to places you’ve been`);
     }
@@ -196,6 +250,13 @@ export function mountAdventures(root, api) {
     else if (a === 'hbdel') { const h = A.hobbies[+b.dataset.i]; (h.photos || []).forEach((id) => api.deletePhoto(id)); A.hobbies.splice(+b.dataset.i, 1); save(); rerenderKeep(); }
     else if (a === 'hbplus') { const h = A.hobbies[+b.dataset.i]; h.sessions = h.sessions || {}; h.sessions[MKEY] = (h.sessions[MKEY] || 0) + 1; save(); rerenderKeep(); }
   };
+  // A place inside a state/country also marks the state/country: "been" wins, "want" only fills an empty one
+  function bumpParent(st) { const p = A.places[ui.place]; if (st === 'been' && p.status !== 'been') p.status = 'been'; else if (st === 'want' && !p.status) p.status = 'want'; }
+  function addSpot(name, st) {
+    const id = ui.place; A.places[id] = A.places[id] || { photos: [], status: '' }; const p = A.places[id]; p.spots = p.spots || []; delete p.example;
+    if (p.spots.some((x) => x.name.toLowerCase() === name.toLowerCase())) { toast('Already on your list'); return; }
+    p.spots.push({ name, status: st, date: '', year: '', note: '', photos: [] }); bumpParent(st); ui.spot = p.spots.length - 1; save(); rerenderKeep(); toast(`${name} added`);
+  }
   const onInput = (e) => {
     const el = e.target, k = el.dataset.av; if (!k) return;
     if (k === 'partner') A.partner = el.value;
@@ -203,24 +264,27 @@ export function mountAdventures(root, api) {
     else if (k === 'bkcat') A.bucket[ui.bk][+el.dataset.i].cat = el.value;
     else if (k === 'hgoal') A.hobbies[+el.dataset.i].goal = el.value;
     else if (k === 'hnote') A.hobbies[+el.dataset.i].note = el.value;
+    else if (k === 'spdate' || k === 'spyear' || k === 'spnote') { const x = A.places[ui.place].spots[+el.dataset.i]; x[k.slice(2)] = k === 'spyear' ? el.value.replace(/\D/g, '').slice(0, 4) : el.value; }
     else if (ui.place && A.places[ui.place]) A.places[ui.place][k] = el.value;
     save();
   };
   const onChange = async (e) => {
     const el = e.target;
-    if (el.id === 'placesearch') { const m = MAPS[ui.mapMode]; const f = m.data.find((x) => x.name.toLowerCase() === el.value.trim().toLowerCase()); if (f) { ui.place = m.prefix + f.id; rerenderKeep(); } return; }
+    if (el.id === 'placesearch') { const m = MAPS[ui.mapMode]; const f = m.data.find((x) => x.name.toLowerCase() === el.value.trim().toLowerCase()); if (f) { ui.spot = null; ui.place = m.prefix + f.id; rerenderKeep(); } return; }
     if (el.dataset.ph) {
       const t = el.dataset.ph; let list;
       if (t === 'place') { const p = A.places[ui.place]; p.photos = p.photos || []; list = p.photos; }
+      else if (t.startsWith('sp:')) { const x = A.places[ui.place].spots[+t.slice(3)]; x.photos = x.photos || []; list = x.photos; }
       else { const [k, i] = t.split(':'); const obj = k === 'bk' ? A.bucket[ui.bk][+i] : A.hobbies[+i]; obj.photos = obj.photos || []; list = obj.photos; }
       const files = [...el.files]; toast(files.length > 1 ? `Adding ${files.length} photos…` : 'Adding photo…');
-      const folder = t === 'place' ? 'places' : t.startsWith('bk:') && ui.bk === 'us' ? 'shared' : 'mine';
+      const folder = t === 'place' || t.startsWith('sp:') ? 'places' : t.startsWith('bk:') && ui.bk === 'us' ? 'shared' : 'mine';
       const n = await addPhotos(files, list, folder); if (n) toast(`${n} photo${n === 1 ? '' : 's'} added`);
     }
   };
   const onSubmit = (e) => {
     const f = e.target; if (!f.dataset.avForm) return; e.preventDefault();
     if (f.dataset.avForm === 'bucket') { const t = root.querySelector('#bk-text').value.trim(); if (!t) return; A.bucket[ui.bk].push({ text: t, cat: root.querySelector('#bk-cat').value, year: root.querySelector('#bk-year').value, done: false, photos: [] }); save(); rerenderKeep(); toast('Added to your list'); }
+    if (f.dataset.avForm === 'spot') { const t = root.querySelector('#sp-new').value.trim(); if (!t) return; addSpot(t, (e.submitter && e.submitter.value) || 'want'); return; }
     if (f.dataset.avForm === 'hobby') { const t = root.querySelector('#hb-name').value.trim(); if (!t) return; A.hobbies.push({ name: t, goal: '', note: '', photos: [], sessions: {} }); save(); rerenderKeep(); }
   };
   const onHide = () => { if (document.visibilityState === 'hidden') flush(); };
@@ -231,10 +295,10 @@ export function mountAdventures(root, api) {
 
   // Fetch viewing links for every saved photo, then redraw with them
   const allPhotos = () => [
-    ...Object.values(A.places).flatMap((p) => p.photos || []),
+    ...Object.values(A.places).flatMap((p) => [...(p.photos || []), ...(p.spots || []).flatMap((x) => x.photos || [])]),
     ...A.bucket.me.flatMap((x) => x.photos || []), ...A.bucket.us.flatMap((x) => x.photos || []),
     ...A.hobbies.flatMap((h) => h.photos || []),
-    ...Object.values(pPlaces()).flatMap((p) => (p && p.photos) || []),
+    ...Object.values(pPlaces()).flatMap((p) => (p ? [...(p.photos || []), ...(p.spots || []).flatMap((x) => x.photos || [])] : [])),
   ];
   const ids = allPhotos(); if (ids.length) api.loadPhotos(ids).then(() => rerenderKeep()).catch(() => {});
 

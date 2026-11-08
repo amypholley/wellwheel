@@ -526,3 +526,12 @@ html .example{text-transform:none;letter-spacing:0;font-weight:600;font-size:12p
 /* Save button added to sections where people type */
 .secsave{display:flex;justify-content:flex-end;align-items:center;gap:10px;margin-top:14px}
 .secsave .sub{font-size:12.5px}
+/* Places inside a state or country */
+.spots{border-top:1px solid color-mix(in srgb,var(--line) 70%,transparent);margin-top:16px}
+.spot{border:1px solid var(--line);border-left:4px solid var(--c);border-radius:10px;background:var(--surface);margin-bottom:8px}
+.spot-h{display:flex;align-items:center;gap:10px;width:100%;border:0;background:none;padding:10px 12px;text-align:left}
+.spot-n{flex:1;display:flex;flex-direction:column}
+.spot-n small{color:var(--muted);font-size:12.5px}
+.spot-b{padding:0 12px 12px}
+.spotadd{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+.spot-b .grid2{grid-template-columns:1fr;gap:4px}.spot-b input[type=date]{width:100%;min-width:0}
