@@ -45,6 +45,10 @@ function useStoreValue() {
         prof = { ...prof, seed_examples: false };
       }
       const s = await loadState();
+      // Goals picked from an older version of a ready-made goal: bring them up to date (logged check-ins stay)
+      const fixed = s.goals.filter((g) => (!g.ownerId || g.ownerId === s.me) && g.type === 'habit' && g.per === 'week' && g.count === 5 && /^phone-free first hour of the day$/i.test(g.title.trim()))
+        .map((g) => ({ ...g, per: 'day' as const, count: 1 }));
+      if (fixed.length) { s.goals = s.goals.map((g) => fixed.find((f) => f.id === g.id) || g); for (const g of fixed) { try { await db.updateGoal(g); } catch {} } }
       setProfile(prof); setS(s); setMode('user'); setViewRaw('today');
       setPlusInfo(await loadPlus());
       // Back from Stripe checkout: wait for Stripe to confirm, then unlock
