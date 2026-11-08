@@ -266,6 +266,18 @@ export function makeMore(h) {
       ${lbl('<span class="letter">A</span>Application: how does it apply to my life?')}${area('bible.draft.a', '', 2)}
       ${lbl('<span class="letter">P</span>Prayer')}${area('bible.draft.p', 'A short prayer in response', 2)}
       ${saveBtn('bible', 'Save study')}`)}
+    ${card('Sermon & study notes', `<p style="margin-top:0">Taking notes at church, in a Bible study, or from a podcast? They have their own page now.</p><button class="btn" data-r="opentool" data-v="sermons">Open Sermon & Study Notes →</button>`)}
+    ${card('Questions to ask any passage', `<ol class="principles">${STUDY_QS.map((q) => `<li>${q}</li>`).join('')}</ol>`)}
+    ${card('Memory verses', `<form class="stack" style="gap:8px" data-r-form="bverse"><input type="text" id="bv-ref" placeholder="Reference, e.g. Joshua 1:9" aria-label="Verse reference"><textarea id="bv-txt" rows="2" placeholder="The verse" aria-label="Verse text"></textarea><button class="btn primary" type="submit" style="align-self:flex-start">Add verse</button></form>
+      ${vs.map((v, i) => `<div class="bk ${v.m ? 'done' : ''}"><button class="bkchk" data-r="bmem" data-i="${i}" aria-pressed="${!!v.m}" aria-label="Mark memorized">${v.m ? '✓' : ''}</button><div class="bkmain"><div class="bkt">${esc(v.r)}</div>${v.t ? `<p style="margin:4px 0 0">${esc(v.t)}</p>` : ''}${v.m ? '<div class="sk-meta"><span class="tag used">Memorized</span></div>' : ''}</div><button class="x" data-r="del" data-path="bible.verses" data-i="${i}" aria-label="Remove">×</button></div>`).join('')}`)}
+    ${card('Past studies', entriesList('bible', (e) => `${e.ref ? `<p class="prompt" style="margin:0 0 4px;font-size:15px">${esc(e.ref)}</p>` : ''}${kv('Scripture', e.s)}${kv('Application', e.a)}${kv('Prayer', e.p)}`, 'Your studies will show up here.'))}</div>`;
+    },
+  };
+
+  /* ---------- Sermon & study notes ---------- */
+  const SERMONS = {
+    render() {
+      return `<div class="stack">
     ${(() => { const sd = getP('bible.sd') || {}, ser = getP('bible.sermons') || [], ed = ui.sermEdit != null;
       return card(ed ? 'Edit notes' : 'Sermon & study notes', `<p class="sub" style="margin-top:0">For church, a Bible study group, a podcast, or your own reading. Write as much as you like.</p>
       <div class="grid2b"><label>Date<input type="date" data-b="bible.sd.d" value="${esc(sd.d || T)}"></label><label>Passage${inp('bible.sd.ref', { ph: 'e.g. Romans 8:28-39' })}</label></div>
@@ -278,11 +290,7 @@ export function makeMore(h) {
       <div class="row" style="justify-content:space-between;margin-top:12px;flex-wrap:wrap;gap:8px">${ed ? '<button class="btn ghost small" data-r="sermcancel">Cancel</button>' : '<span></span>'}<button class="btn primary" data-r="sermsave">${ed ? 'Save changes' : 'Save notes'}</button></div>
       ${ser.length ? `<h3 class="h3" style="margin-top:20px">My notes (${ser.length})</h3>${ser.map((x, i) => [x, i]).reverse().map(([x, i]) => `<details class="card fold sermon"><summary><span><b>${esc(x.title || x.ref || 'Notes')}</b><small class="sub" style="display:block">${fmtDate(x.d, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}${x.who ? ' · ' + esc(x.who) : ''}${x.ref && x.title ? ' · ' + esc(x.ref) : ''}</small></span></summary>
         ${x.notes ? `<p style="white-space:pre-wrap;margin:0 0 8px">${esc(x.notes)}</p>` : ''}${kv('Key takeaway', x.take)}${kv('This week I will', x.apply)}${kv('Prayer', x.prayer)}
-        <div class="row" style="justify-content:space-between;margin-top:10px"><button class="linkish" data-r="del" data-path="bible.sermons" data-i="${i}">Delete</button><button class="btn small" data-r="sermedit" data-i="${i}">Edit</button></div></details>`).join('')}` : ''}`); })()}
-    ${card('Questions to ask any passage', `<ol class="principles">${STUDY_QS.map((q) => `<li>${q}</li>`).join('')}</ol>`)}
-    ${card('Memory verses', `<form class="stack" style="gap:8px" data-r-form="bverse"><input type="text" id="bv-ref" placeholder="Reference, e.g. Joshua 1:9" aria-label="Verse reference"><textarea id="bv-txt" rows="2" placeholder="The verse" aria-label="Verse text"></textarea><button class="btn primary" type="submit" style="align-self:flex-start">Add verse</button></form>
-      ${vs.map((v, i) => `<div class="bk ${v.m ? 'done' : ''}"><button class="bkchk" data-r="bmem" data-i="${i}" aria-pressed="${!!v.m}" aria-label="Mark memorized">${v.m ? '✓' : ''}</button><div class="bkmain"><div class="bkt">${esc(v.r)}</div>${v.t ? `<p style="margin:4px 0 0">${esc(v.t)}</p>` : ''}${v.m ? '<div class="sk-meta"><span class="tag used">Memorized</span></div>' : ''}</div><button class="x" data-r="del" data-path="bible.verses" data-i="${i}" aria-label="Remove">×</button></div>`).join('')}`)}
-    ${card('Past studies', entriesList('bible', (e) => `${e.ref ? `<p class="prompt" style="margin:0 0 4px;font-size:15px">${esc(e.ref)}</p>` : ''}${kv('Scripture', e.s)}${kv('Application', e.a)}${kv('Prayer', e.p)}`, 'Your studies will show up here.'))}</div>`;
+        <div class="row" style="justify-content:space-between;margin-top:10px"><button class="linkish" data-r="del" data-path="bible.sermons" data-i="${i}">Delete</button><button class="btn small" data-r="sermedit" data-i="${i}">Edit</button></div></details>`).join('')}` : ''}`); })()}</div>`;
     },
   };
 
@@ -366,6 +374,7 @@ export function makeMore(h) {
     { id: 'dbt', pillar: 'mental', title: 'DBT Skills Workbook', desc: 'Diary card, the four DBT skill sets, and a DEAR MAN script builder.', tool: DBT },
     { id: 'fitness', pillar: 'physical', title: 'Fitness Planner', desc: 'Plan your week, log workouts, and track minutes and personal bests.', tool: FITNESS },
     { id: 'datenight', pillar: 'relationships', title: 'Date Night Planner', desc: 'Idea bank, a “surprise me” button, a date list, budget, and memories.', tool: DATENIGHT },
+    { id: 'sermons', pillar: 'spiritual', title: 'Sermon & Study Notes', desc: 'Notes from church, Bible study, or podcasts, with takeaways and prayer.', tool: SERMONS },
     { id: 'bible', pillar: 'spiritual', title: 'Bible Study Workbook', desc: 'Reading plans, SOAP study, and memory verses.', tool: BIBLE },
     { id: 'growth', pillar: 'intellectual', title: 'Personal Development Workbook', desc: 'Your strengths, a 90-day growth goal, a learning list, and weekly reflection.', tool: GROWTH },
     { id: 'env', pillar: 'environmental', title: 'Environment in Balance', desc: 'A peaceful home, time with nature, and caring for the world, with a weekly balance check.', tool: ENV },

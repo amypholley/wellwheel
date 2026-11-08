@@ -257,7 +257,7 @@ const PILLAR_TOOLS: Record<PillarId, [string, string][]> = {
   physical: [['sleep', 'Sleep Journal'], ['meals', 'Meal & Grocery Planner'], ['fitness', 'Fitness Planner']],
   mental: [['coping', 'Coping Skills Library'], ['cbt', 'CBT Thought Record'], ['anxiety', 'Anxiety Management Workbook'], ['dbt', 'DBT Skills Workbook']],
   emotional: [['burnout', 'Burnout Source Worksheet'], ['selfc', 'Self-Compassion Journal']],
-  spiritual: [['prayer', 'Prayer Journal'], ['bible', 'Bible Study Workbook']],
+  spiritual: [['prayer', 'Prayer Journal'], ['bible', 'Bible Study Workbook'], ['sermons', 'Sermon & Study Notes']],
   intellectual: [['growth', 'Personal Development Workbook']],
   environmental: [['env', 'Environment in Balance'], ['home', 'Home Reset Checklist']],
   financial: [['money', 'Financial Wellness Planner']],
@@ -309,7 +309,6 @@ function PillarPage({ pid }: { pid: PillarId }) {
   const words = [
     ...Object.entries(S.journal).filter(([, v]) => v.text && v.pillar === pid).map(([d, v]) => ({ d, head: v.prompt, t: v.text })),
     ...goals.flatMap((g) => (((S.tools.gnotes || {})[g.id]) || []).map((n: { d: string; t: string }) => ({ d: n.d, head: `${g.title}: ${questionFor(S.tools, g) || 'Note'}`, t: n.t }))),
-    ...(pid === 'spiritual' ? ((S.tools.bible || {}).sermons || []).filter((x: any) => x && x.d).map((x: any) => ({ d: x.d, head: `📖 ${x.title || x.ref || 'Sermon & study notes'}${x.who ? ' · ' + x.who : ''}`, t: [x.notes, x.take && 'Takeaway: ' + x.take].filter(Boolean).join('\n') })) : []),
   ].sort((a, b) => (a.d < b.d ? 1 : -1));
   const openTool = (id: string) => {
     const locked = !isPlus && (id === 'money' ? !FREE_PORTFOLIO : !FREE_TOOLS.includes(id));
