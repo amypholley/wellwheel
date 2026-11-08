@@ -617,3 +617,15 @@ details.sermon{padding:12px 14px;margin-top:8px;box-shadow:none;border:1px solid
 [dir="rtl"] .stripe{order:0}
 [dir="rtl"] .said{border-left:0;border-right:3px solid var(--gold);padding-left:0;padding-right:12px}
 html,body{overflow-x:clip}
+/* Keep fields inside their boxes on phones (iPhone date boxes ignore width otherwise) */
+input,select,textarea{max-width:100%;min-width:0;box-sizing:border-box}
+input[type=date],input[type=time],input[type=month],input[type=datetime-local]{-webkit-appearance:none;appearance:none;display:block;min-width:0;max-width:100%;min-height:44px}
+input[type=date]::-webkit-date-and-time-value,input[type=time]::-webkit-date-and-time-value{text-align:left}
+.grid2>*,.grid2b>*,.grid3>*,.grid2b label>*{min-width:0}
+@media (max-width:440px){.grid2{grid-template-columns:1fr;gap:4px}}
+.today-grid>*,.stack>*,.tg-under>*{min-width:0}
+.card-head{flex-wrap:wrap}
+.goal{grid-template-columns:4px minmax(0,1fr) auto}
+@media (max-width:400px){.goal .counter{grid-column:2 / 4}}
+.book>div:first-child{min-width:0}
+@media (max-width:420px){.book{flex-wrap:wrap}.book .seg3{width:100%}}
