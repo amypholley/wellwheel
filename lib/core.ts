@@ -69,7 +69,8 @@ export function pillarScore(S: State, pid: PillarId): number | null {
 export function smartSentence(g: Partial<Goal>) {
   const by = g.deadline ? t(' by {date}', { date: fmtDate(g.deadline) }) : '';
   const raw = g.title || t('my goal');
-  const title = lang() === 'en' ? raw.toLowerCase() : raw;
+  // English lowercases the goal name mid-sentence; German keeps its capitals; other languages lowercase the first letter
+  const title = lang() === 'en' ? raw.toLowerCase() : lang() === 'de' ? raw : raw.charAt(0).toLowerCase() + raw.slice(1);
   let s: string;
   if (g.type === 'habit') {
     const c = Number(g.count).toLocaleString(loc());

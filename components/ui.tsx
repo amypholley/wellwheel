@@ -1,6 +1,7 @@
 'use client';
 import { ICONS, PILLARS, PillarId } from '@/lib/data';
 import { State, pillarScore } from '@/lib/core';
+import { t } from '@/lib/i18n';
 
 export function Icon({ id, size = 22 }: { id: PillarId; size?: number }) {
   return (
@@ -33,7 +34,7 @@ export function Wheel({ S }: { S: State }) {
         );
       })}
       <text x={cx} y={cy - 2} textAnchor="middle" fontFamily="Lora, serif" fontWeight={600} fontSize={20} fill="var(--ink)">{active}/9</text>
-      <text x={cx} y={cy + 14} textAnchor="middle" fontSize={10} fill="var(--muted)">pillars</text>
+      <text x={cx} y={cy + 14} textAnchor="middle" fontSize={10} fill="var(--muted)">{t('pillars')}</text>
     </svg>
   );
 }

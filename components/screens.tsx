@@ -128,7 +128,7 @@ function GoalRowToday({ g, logOpen, setLogOpen }: { g: Goal; logOpen: string | n
     ctrl = (
       <div className="counter">
         {n > 0 && <button className="round" onClick={minus} aria-label={t('Take back {x}', { x: t(g.stepLabel || '') })}>−</button>}
-        <button className="btn small primary" onClick={plus}>{g.stepLabel || '+' + g.step}</button>
+        <button className="btn small primary" onClick={plus}>{t(g.stepLabel || '') || '+' + g.step}</button>
         <button className="btn small" onClick={() => setLogOpen(logOpen === g.id ? null : g.id)}>{t("Other")}</button>
       </div>
     );
@@ -160,7 +160,7 @@ function GoalRowToday({ g, logOpen, setLogOpen }: { g: Goal; logOpen: string | n
       <span className="stripe" style={{ background: p.color }} />
       <div>
         <div className="pill"><span className="dot" style={{ background: p.color }} />{p.name}{g.example && <span className="example">{t("Example")}</span>}<SharedTag g={g} /></div>
-        <div className="goal-title">{g.title}</div>
+        <div className="goal-title">{g.example ? t(g.title) : g.title}</div>
         <div className="goal-meta">{meta}</div>
         {ticks}<Contrib g={g} />
         {q && todays.length === 0 && !askOpen && <button className="linkish askcue" onClick={() => setAskOpen(true)}>📝 {t(q)}</button>}
@@ -237,7 +237,7 @@ export function Today() {
         </div>
         <div className="tg-under">
         <section className="card">
-          <div className="card-head"><h2>{t("Grateful today")}</h2><span className="sub">{S.gratitude.length} so far</span></div>
+          <div className="card-head"><h2>{t("Grateful today")}</h2><span className="sub">{t('{n} so far', { n: S.gratitude.length })}</span></div>
           {todays ? (<><p className="prompt" style={{ margin: 0 }}>“{todays.text}”</p><button className="linkish" style={{ marginTop: 8 }} onClick={() => act.clearTodayGratitude()}>{t("Change it")}</button></>) : (
             <form className="row" onSubmit={(e) => { e.preventDefault(); const gv = grat.trim(); if (!gv) return; act.addGratitude(gv, true); setGrat(''); toast(t("Added to your gratitude list")); }}>
               <input type="text" placeholder={t("Today I’m grateful for…")} aria-label={t("Today I’m grateful for")} value={grat} onChange={(e) => setGrat(e.target.value)} maxLength={1000} />
@@ -377,7 +377,7 @@ export function Goals() {
           <div className="goal" style={{ gridTemplateColumns: '4px 1fr' }} key={g.id}>
             <span className="stripe" style={{ background: p.color }} />
             <div>
-              <div className="goal-title">{g.title}{g.example && <span className="example">{t("Example")}</span>}<SharedTag g={g} /></div>
+              <div className="goal-title">{g.example ? t(g.title) : g.title}{g.example && <span className="example">{t("Example")}</span>}<SharedTag g={g} /></div>
               <p style={{ margin: '4px 0 6px', fontSize: 14 }}>{smartSentence(g)}</p>
               <div className="goal-meta">Confidence {g.sure || '–'}/10 · Due {fmtDate(g.deadline)}</div>
               <Contrib g={g} />
@@ -473,7 +473,7 @@ function GoalHistory({ only, title = 'My goals' }: { only?: PillarId; title?: st
       <div className="goal" style={{ gridTemplateColumns: '4px 1fr' }} key={g.id}>
         <span className="stripe" style={{ background: p.color }} />
         <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}><span className="goal-title">{g.title}</span><span className="goal-meta" style={{ whiteSpace: 'nowrap' }}>{stat}</span></div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}><span className="goal-title">{g.example ? t(g.title) : g.title}</span><span className="goal-meta" style={{ whiteSpace: 'nowrap' }}>{stat}</span></div>
           <div className="goal-meta">{g.type === 'target' ? t('Reach a number') : g.per === 'day' ? (g.count > 1 ? t('{c} {unit} a day', { c: g.count, unit: t(g.unit) }) : t('Every day')) : t('{c} {unit} a week', { c: g.count, unit: t(g.unit) })}</div>
           {body}
           {(() => { const fk = key(from), tk = key(to); const ns = (((S.tools.gnotes || {})[g.id]) || []).filter((n: any) => n.d >= fk && n.d <= tk).slice().reverse();
