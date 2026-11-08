@@ -236,3 +236,33 @@ const PROMPT_GROUPS: [PillarId, string][] = [
 // interleave so each day lands on a different pillar
 export const PROMPTS: [PillarId, string][] = [];
 for (let r = 0; r < 3; r++) for (let p = 0; p < 9; p++) PROMPTS.push(PROMPT_GROUPS[p * 3 + r]);
+
+/* ---------- goals that ask a question when you check in ---------- */
+// Matched against the goal's name, so custom goals with similar wording get a question too
+const GOAL_QS: [RegExp, string][] = [
+  [/\bwin\b/i, 'What was your win?'],
+  [/fills my heart/i, 'What filled your heart?'],
+  [/reframe/i, 'What was the thought, and how did you reframe it?'],
+  [/name my feelings|my feelings/i, 'What are you feeling?'],
+  [/check in with my mood|\bmood\b/i, 'How’s your mood, and why?'],
+  [/journal/i, 'What’s on your mind?'],
+  [/gratitude|grateful|thankful/i, 'What are you grateful for?'],
+  [/appreciate/i, 'Who did you tell, and what did you say?'],
+  [/check on someone|reach out|call a family|talk with someone/i, 'Who did you connect with?'],
+  [/thank-you note|card or postcard/i, 'Who was it for?'],
+  [/try something new/i, 'What did you try?'],
+  [/teach it|learn something|curious/i, 'What did you learn?'],
+  [/kind thing to myself/i, 'What did you say to yourself?'],
+  [/kind thing for myself|makes me laugh|lifts me up/i, 'What was it?'],
+  [/business idea|work on my dream|step on/i, 'What step did you take?'],
+  [/meaningful|reflect/i, 'What felt meaningful?'],
+  [/serve someone|mentor or help|help someone|volunteer/i, 'Who did you help, and how?'],
+  [/share my story/i, 'Who did you share it with?'],
+  [/documentary|podcast/i, 'What did you watch or listen to, and what stuck with you?'],
+  [/take notes on what i read|read for|read books|read scripture|spiritual text/i, 'What did you read, and what stood out?'],
+  [/pray|meditate|silent reflection/i, 'Anything on your heart today?'],
+  [/say no/i, 'What did you say no to?'],
+  [/pause before reacting/i, 'What did you pause on?'],
+  [/coping skill/i, 'Which skill did you use?'],
+];
+export const goalQuestion = (title: string) => (GOAL_QS.find(([re]) => re.test(title)) || [null, ''])[1] as string;

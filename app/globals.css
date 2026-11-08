@@ -561,3 +561,13 @@ html .example{text-transform:none;letter-spacing:0;font-weight:600;font-size:12p
 .wkrows > div{display:grid;grid-template-columns:52px 1fr 44px;gap:8px;align-items:center}
 .wkrows .bar{margin:0;height:8px}
 .wkrows small{font-size:12px;color:var(--muted)}
+/* Goals that ask a question */
+.askrow{flex-direction:column;align-items:stretch;gap:8px;background:color-mix(in srgb,var(--chip) 60%,transparent);border-radius:12px;padding:12px;margin-top:8px}
+.askrow .lbl{margin:0}
+.gans{margin-top:8px;font-size:14px}
+.gans p{margin:0 0 4px;font-style:italic;color:var(--ink)}
+.gnotes{margin-top:10px}
+.gnotes summary{cursor:pointer;font-size:13.5px;font-weight:600;color:var(--plum)}
+.gnotes ul{list-style:none;padding:0;margin:8px 0 0;display:flex;flex-direction:column;gap:6px}
+.gnotes li{font-size:14px}
+.gnotes li small{color:var(--muted);margin-right:6px}

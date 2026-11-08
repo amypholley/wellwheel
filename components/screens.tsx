@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { P, PILLARS } from '@/lib/data';
+import { P, PILLARS, goalQuestion } from '@/lib/data';
 import { Goal, addDays, addMonths, dayFrac, dayVal, fmtDate, fmtNum, fromKey, goalWeekScore, key, pillarScore, smartSentence, today, todaysPrompt, goalStart, sumDays, sundayOf, total, weekMet, weekSum } from '@/lib/core';
 import { Icon, Wheel, initials } from './ui';
 import { firstName, useWW } from './store';
@@ -76,6 +76,19 @@ function GoalRowToday({ g, logOpen, setLogOpen }: { g: Goal; logOpen: string | n
   const inputRef = useRef<HTMLInputElement>(null);
   const [amount, setAmount] = useState('');
   useEffect(() => { if (logOpen === g.id) inputRef.current?.focus(); }, [logOpen, g.id]);
+  // Goals that ask a question: answer it when you check in, and it's saved with the day
+  const q = g.type === 'habit' && !g.amt ? goalQuestion(g.title) : '';
+  const [askOpen, setAskOpen] = useState(false);
+  const [ans, setAns] = useState('');
+  const notes: { d: string; t: string }[] = ((S.tools.gnotes || {})[g.id]) || [];
+  const todays = notes.filter((n) => n.d === T);
+  const doneNow = g.type === 'habit' && (g.per === 'day' ? dayVal(S, g, T) : weekSum(S, g)) >= g.count;
+  const saveAnswer = (logIt: boolean) => {
+    const t = ans.trim();
+    if (t) { const all = { ...(S.tools.gnotes || {}) }; all[g.id] = [...notes, { d: T, t: t.slice(0, 2000) }]; act.saveTool('gnotes', all); }
+    if (logIt) plus(); else if (t) toast('Saved');
+    setAns(''); setAskOpen(false);
+  };
 
   const plus = () => {
     const before = dayVal(S, g, T), inc = g.amt ? g.step : 1, after = before + inc;
@@ -128,7 +141,7 @@ function GoalRowToday({ g, logOpen, setLogOpen }: { g: Goal; logOpen: string | n
     ctrl = (
       <div className="counter">
         {dayVal(S, g, T) > 0 && <button className="round" onClick={minus} aria-label={`Undo one check-in for ${g.title}`}>−</button>}
-        <button className={`round ${done ? 'done' : 'plus'}`} onClick={plus} aria-label={`Check in ${g.title}`}>{done ? '✓' : '+'}</button>
+        <button className={`round ${done ? 'done' : 'plus'}`} onClick={q ? () => setAskOpen(!askOpen) : plus} aria-label={`Check in ${g.title}`}>{done ? '✓' : '+'}</button>
       </div>
     );
   } else {
@@ -148,8 +161,17 @@ function GoalRowToday({ g, logOpen, setLogOpen }: { g: Goal; logOpen: string | n
         <div className="goal-title">{g.title}</div>
         <div className="goal-meta">{meta}</div>
         {ticks}<Contrib g={g} />
+        {q && todays.length > 0 && !askOpen && <div className="gans">{todays.map((n, i) => <p key={i}>“{n.t}”</p>)}<button className="linkish" onClick={() => setAskOpen(true)}>+ Add another</button></div>}
       </div>
       {ctrl}{extra}
+      {q && askOpen && <div className="logrow askrow">
+        <label className="lbl" htmlFor={'ask-' + g.id}>{q}</label>
+        <textarea id={'ask-' + g.id} rows={2} value={ans} autoFocus maxLength={2000} placeholder="Write as much or as little as you want" onChange={(e) => setAns(e.target.value)} />
+        <div className="row" style={{ justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+          <button className="linkish" onClick={() => (ans.trim() ? saveAnswer(!doneNow) : (doneNow ? setAskOpen(false) : (plus(), setAskOpen(false))))}>{doneNow ? 'Cancel' : 'Skip, just check in'}</button>
+          <button className="btn small primary" disabled={!ans.trim()} onClick={() => saveAnswer(!doneNow)}>{doneNow ? 'Save answer' : 'Save & check in'}</button>
+        </div>
+      </div>}
     </div>
   );
 }
@@ -341,6 +363,8 @@ function GoalHistory() {
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}><span className="goal-title">{g.title}</span><span className="goal-meta" style={{ whiteSpace: 'nowrap' }}>{stat}</span></div>
           <div className="goal-meta">{g.type === 'target' ? 'Reach a number' : g.per === 'day' ? `${g.count > 1 ? g.count + ' ' + g.unit + ' a day' : 'Every day'}` : `${g.count} ${g.unit} a week`}</div>
           {body}
+          {(() => { const fk = key(from), tk = key(to); const ns = (((S.tools.gnotes || {})[g.id]) || []).filter((n: any) => n.d >= fk && n.d <= tk).slice().reverse();
+            return ns.length ? <details className="gnotes"><summary>{goalQuestion(g.title) ? 'Your answers' : 'Your notes'} ({ns.length})</summary><ul>{ns.map((n: any, i: number) => <li key={i}><small>{fmtDate(n.d, { weekday: 'short', month: 'short', day: 'numeric' })}</small>{n.t}</li>)}</ul></details> : null; })()}
           {daysLeft !== null && daysLeft >= 0 && <div className="goal-meta" style={{ marginTop: 6 }}>{daysLeft} day{daysLeft === 1 ? '' : 's'} left until {fmtDate(g.deadline, { month: 'short', day: 'numeric', year: 'numeric' })}</div>}
         </div>
       </div>
