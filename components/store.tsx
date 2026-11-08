@@ -7,7 +7,7 @@ import { Goal, JournalEntry, State, blankState, key, seedState, today, uid } fro
 import { PillarId } from '@/lib/data';
 
 export type Mode = 'loading' | 'auth' | 'guest' | 'user';
-export type View = 'today' | 'goals' | 'progress' | 'journal' | 'grateful' | 'portfolio' | 'resources' | 'adventures';
+export type View = 'today' | 'pillars' | 'goals' | 'progress' | 'journal' | 'grateful' | 'portfolio' | 'resources' | 'adventures';
 
 function useStoreValue() {
   const [mode, setModeRaw] = useState<Mode>('loading');
@@ -32,7 +32,10 @@ function useStoreValue() {
   const queue = useRef<Promise<any>>(Promise.resolve());
 
   const toast = useCallback((text: string) => setToastMsg((t) => ({ text, n: t.n + 1 })), []);
-  const setView = (v: View) => { setViewRaw(v); if (typeof window !== 'undefined') window.scrollTo(0, 0); };
+  // Which pillar page is open on "My pillars" (null = the grid of all nine)
+  const [pillarSel, setPillarSel] = useState<PillarId | null>(null);
+  const setView = (v: View) => { if (v === 'pillars') setPillarSel(null); setViewRaw(v); if (typeof window !== 'undefined') window.scrollTo(0, 0); };
+  const openPillar = (pid: PillarId | null) => { setPillarSel(pid); setViewRaw('pillars'); if (typeof window !== 'undefined') window.scrollTo(0, 0); };
 
   const loadUser = useCallback(async () => {
     setLoadError('');
@@ -246,7 +249,7 @@ function useStoreValue() {
     feedbackOpen, setFeedbackOpen,
     isPlus: mode === 'guest' ? !guestFree : plusInfo.plus, plusInfo, plusOpen, setPlusOpen,
     intent, setIntent, mode, S, profile, recovery, setRecovery, loadError, view, setView, wizard, setWizard,
-    profileOpen, setProfileOpen, authOpen, setAuthOpen, toastMsg, toast, act, loadUser, dayKey,
+    profileOpen, setProfileOpen, authOpen, setAuthOpen, toastMsg, toast, act, loadUser, dayKey, pillarSel, openPillar,
   };
 }
 

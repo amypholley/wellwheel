@@ -1,13 +1,13 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { P, PILLARS, goalQuestion, questionFor } from '@/lib/data';
+import { P, PILLARS, PillarId, goalQuestion, questionFor } from '@/lib/data';
 import { Goal, addDays, addMonths, dayFrac, dayVal, fmtDate, fmtNum, fromKey, goalWeekScore, key, pillarScore, smartSentence, today, todaysPrompt, goalStart, sumDays, sundayOf, total, uid, weekMet, weekSum } from '@/lib/core';
 import { Icon, Wheel, initials } from './ui';
 import { firstName, useWW } from './store';
 import { PillarReport, PlusLock } from './Plus';
 import { FeedbackButton } from './Feedback';
 import { ShareCard } from './Share';
-import { FREE_CHALLENGES } from '@/lib/plus';
+import { FREE_CHALLENGES, FREE_PORTFOLIO, FREE_TOOLS } from '@/lib/plus';
 
 /* ---------- couple helpers ---------- */
 const partnerFirst = (S: any) => (S.couple?.partner_name || '').split(' ')[0];
@@ -193,7 +193,7 @@ function JournalTeaser() {
 }
 
 export function Today() {
-  const { S, act, profile, mode, setWizard, setProfileOpen, setAuthOpen, toast } = useWW();
+  const { S, act, profile, mode, setWizard, setProfileOpen, setAuthOpen, toast, openPillar } = useWW();
   const { TODAY, T } = today();
   const [logOpen, setLogOpen] = useState<string | null>(null);
   const [grat, setGrat] = useState('');
@@ -214,11 +214,11 @@ export function Today() {
       {/* Wide screens: wheel on the left, check-ins on the right, the rest underneath. Phones: one column. */}
       <div className="today-grid">
         <section className="card tg-wheel">
-          <div className="card-head"><h2>This week’s balance</h2><span className="sub">Tap a pillar to add a goal</span></div>
+          <div className="card-head"><h2>This week’s balance</h2><span className="sub">Tap a pillar to open it</span></div>
           <div className="wheel-wrap"><Wheel S={S} />
             <div className="legend">
               {PILLARS.map((p) => { const sc = pillarScore(S, p.id); return (
-                <button key={p.id} onClick={() => setWizard({ pillar: p.id })} aria-label={sc === null ? 'Add a goal for ' + p.name : `${p.name} ${Math.round(sc * 100)} percent`}>
+                <button key={p.id} onClick={() => openPillar(p.id)} aria-label={sc === null ? `Open ${p.name}` : `Open ${p.name}, ${Math.round(sc * 100)} percent`}>
                   <span className="dot" style={{ background: p.color, opacity: sc === null ? 0.3 : 1 }} />{p.name}<span className="pct">{sc === null ? '+' : Math.round(sc * 100) + '%'}</span>
                 </button>); })}
             </div>
@@ -250,9 +250,102 @@ export function Today() {
   );
 }
 
+/* ---------- My pillars: a personal page for each of the nine ---------- */
+// The worksheets that belong to each pillar (same ids as Resources)
+const PILLAR_TOOLS: Record<PillarId, [string, string][]> = {
+  physical: [['sleep', 'Sleep Journal'], ['meals', 'Meal & Grocery Planner'], ['fitness', 'Fitness Planner']],
+  mental: [['coping', 'Coping Skills Library'], ['cbt', 'CBT Thought Record'], ['anxiety', 'Anxiety Management Workbook'], ['dbt', 'DBT Skills Workbook']],
+  emotional: [['burnout', 'Burnout Source Worksheet'], ['selfc', 'Self-Compassion Journal']],
+  spiritual: [['prayer', 'Prayer Journal'], ['bible', 'Bible Study Workbook']],
+  intellectual: [['growth', 'Personal Development Workbook']],
+  environmental: [['env', 'Environment in Balance'], ['home', 'Home Reset Checklist']],
+  financial: [['money', 'Financial Wellness Planner']],
+  relationships: [['couples', 'Couples Communication Workbook'], ['datenight', 'Date Night Planner']],
+  purpose: [['vision', 'Life Vision Planner']],
+};
+export function Pillars() {
+  const { S, pillarSel, openPillar } = useWW();
+  if (pillarSel) return <PillarPage pid={pillarSel} />;
+  return (
+    <>
+      <header className="top"><div><div className="brand">My pillars</div><h1>Your whole life, nine ways</h1><div className="sub">Tap a pillar for everything in that part of your life.</div></div></header>
+      <div className="pgrid">
+        {PILLARS.map((p) => { const sc = pillarScore(S, p.id as PillarId), n = S.goals.filter((g) => g.pillar === p.id).length;
+          return <button key={p.id} className="ptile" style={{ ['--c' as any]: p.color }} onClick={() => openPillar(p.id as PillarId)}>
+            <span className="ico" style={{ color: p.color }}><Icon id={p.id as PillarId} size={26} /></span><b>{p.name}</b><small>{p.desc}</small>
+            <span className="pmeta">{n ? `${n} goal${n === 1 ? '' : 's'} · ${sc === null ? '—' : Math.round(sc * 100) + '% this week'}` : 'No goals yet'}</span></button>; })}
+      </div>
+    </>
+  );
+}
+function PillarPage({ pid }: { pid: PillarId }) {
+  const { S, act, toast, setWizard, openPillar, setIntent, setView, isPlus, setPlusOpen } = useWW();
+  const p = P[pid];
+  const [logOpen, setLogOpen] = useState<string | null>(null);
+  const saved = ((S.tools.pillars || {})[pid] || {}).why || '';
+  const [why, setWhy] = useState(saved);
+  useEffect(() => { setWhy(saved); }, [pid]); // eslint-disable-line react-hooks/exhaustive-deps
+  const saveWhy = (quiet = false) => { if (why === saved) { if (!quiet) toast('Saved'); return; } act.saveTool('pillars', { ...(S.tools.pillars || {}), [pid]: { ...((S.tools.pillars || {})[pid] || {}), why: why.trim() } }); if (!quiet) toast('Saved'); };
+  const goals = S.goals.filter((g) => g.pillar === pid);
+  const sc = pillarScore(S, pid);
+  const vis = ((S.tools.vision || {}).p || {})[pid] || {};
+  // Everything written in this pillar: prompt answers tagged to it, and answers from its goals
+  const words = [
+    ...Object.entries(S.journal).filter(([, v]) => v.text && v.pillar === pid).map(([d, v]) => ({ d, head: v.prompt, t: v.text })),
+    ...goals.flatMap((g) => (((S.tools.gnotes || {})[g.id]) || []).map((n: { d: string; t: string }) => ({ d: n.d, head: `${g.title}: ${questionFor(S.tools, g) || 'Note'}`, t: n.t }))),
+  ].sort((a, b) => (a.d < b.d ? 1 : -1));
+  const openTool = (id: string) => {
+    const locked = !isPlus && (id === 'money' ? !FREE_PORTFOLIO : !FREE_TOOLS.includes(id));
+    if (locked) { setPlusOpen(id === 'money' ? 'portfolio' : 'tool'); return; }
+    if (id === 'money') { setView('portfolio'); return; }
+    setIntent({ tool: id }); setView('resources');
+  };
+  const i = PILLARS.findIndex((x) => x.id === pid), prev = PILLARS[(i + 8) % 9], next = PILLARS[(i + 1) % 9];
+  return (
+    <>
+      <header className="top"><div>
+        <button className="linkish" onClick={() => openPillar(null)}>← All pillars</button>
+        <div className="brand" style={{ marginTop: 10, color: `color-mix(in srgb,${p.color} 75%,var(--ink))`, display: 'flex', alignItems: 'center', gap: 6 }}><Icon id={pid} size={16} />My pillars</div>
+        <h1>{p.name}</h1><div className="sub">{p.desc}</div></div>
+        <div className="pscore" style={{ ['--c' as any]: p.color }}><b>{sc === null ? '—' : Math.round(sc * 100) + '%'}</b><small>this week</small></div>
+      </header>
+      <div className="stack">
+        <section className="card" style={{ borderTop: `3px solid ${p.color}` }}>
+          <h2>Why {p.name.toLowerCase()} matters to me</h2>
+          <textarea style={{ marginTop: 10 }} rows={3} placeholder={`In your own words. What does a healthy ${p.name.toLowerCase()} life look like for you?`} value={why} onChange={(e) => setWhy(e.target.value)} onBlur={() => saveWhy(true)} />
+          <div className="secsave"><span className="sub">Saves when you click away</span><button className="btn small" onClick={() => saveWhy()}>Save</button></div>
+        </section>
+        <section className="card">
+          <div className="card-head"><h2>My {p.name.toLowerCase()} goals</h2><button className="linkish" onClick={() => setWizard({ pillar: pid })}>+ New goal</button></div>
+          {goals.length ? goals.map((g) => <GoalRowToday key={g.id} g={g} logOpen={logOpen} setLogOpen={setLogOpen} />) : <><p className="empty">No {p.name.toLowerCase()} goals yet. One small goal is a great start.</p><button className="btn primary" onClick={() => setWizard({ pillar: pid })}>Set a {p.name.toLowerCase()} goal</button></>}
+        </section>
+        {goals.length > 0 && <GoalHistory only={pid} title="How it’s going" />}
+        <section className="card">
+          <div className="card-head"><h2>My vision</h2><button className="linkish" onClick={() => openTool('vision')}>Open Life Vision ›</button></div>
+          {vis.five || vis.one || vis.step ? <>{vis.five && <div className="said"><span>In 5 years, I see</span><p>{vis.five}</p></div>}{vis.one && <div className="said"><span>One-year milestone</span><p>{vis.one}</p></div>}{vis.step && <div className="said"><span>First step this month</span><p>{vis.step}</p></div>}</>
+            : <p className="empty" style={{ margin: 0 }}>You haven’t written a vision for {p.name.toLowerCase()} yet. The Life Vision Planner walks you through it.</p>}
+        </section>
+        <section className="card">
+          <div className="card-head"><h2>My words</h2><span className="sub">{words.length}</span></div>
+          {words.length ? <ul className="pwords">{words.slice(0, 20).map((w, k) => <li key={k}><small>{fmtDate(w.d, { weekday: 'short', month: 'short', day: 'numeric' })} · {w.head}</small><p>{w.t}</p></li>)}</ul>
+            : <p className="empty" style={{ margin: 0 }}>Journal prompts and goal answers about {p.name.toLowerCase()} will collect here.</p>}
+        </section>
+        <section className="card">
+          <h2>Tools for {p.name.toLowerCase()}</h2><div className="rule" />
+          <div className="rgrid">{PILLAR_TOOLS[pid].map(([id, t]) => { const locked = !isPlus && (id === 'money' ? !FREE_PORTFOLIO : !FREE_TOOLS.includes(id)); return <button key={id} className="tile rtile" style={{ ['--c' as any]: p.color, minHeight: 0 }} onClick={() => openTool(id)}><span className="ico"><Icon id={pid} size={20} /></span><b>{t}{locked && <span className="badge" style={{ marginLeft: 6, verticalAlign: 2 }}>Plus</span>}</b></button>; })}</div>
+        </section>
+        <div className="row" style={{ justifyContent: 'space-between' }}>
+          <button className="btn small" onClick={() => openPillar(prev.id as PillarId)}>‹ {prev.name}</button>
+          <button className="btn small" onClick={() => openPillar(next.id as PillarId)}>{next.name} ›</button>
+        </div>
+      </div>
+    </>
+  );
+}
+
 /* ---------- Goals ---------- */
 export function Goals() {
-  const { S, act, setWizard, toast } = useWW();
+  const { S, act, setWizard, toast, openPillar } = useWW();
   const [del, setDel] = useState<string | null>(null);
   const first = partnerFirst(S);
   const mine = (g: Goal) => !g.ownerId || g.ownerId === S.me;
@@ -261,7 +354,7 @@ export function Goals() {
     const gs = S.goals.filter((g) => g.pillar === p.id); if (!gs.length) return null;
     return (
       <section className="card" key={p.id}>
-        <div className="card-head"><h2 style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span style={{ color: p.color, display: 'flex' }}><Icon id={p.id} size={20} /></span>{p.name}</h2><button className="linkish" onClick={() => setWizard({ pillar: p.id })}>+ Add</button></div>
+        <div className="card-head"><h2 style={{ display: 'flex', alignItems: 'center', gap: 8 }}><button className="linkish pillar-link" onClick={() => openPillar(p.id)} style={{ display: 'flex', alignItems: 'center', gap: 8, font: 'inherit', color: 'inherit' }}><span style={{ color: p.color, display: 'flex' }}><Icon id={p.id} size={20} /></span>{p.name} <span className="sub" style={{ fontFamily: 'var(--body)', fontSize: 13 }}>›</span></button></h2><button className="linkish" onClick={() => setWizard({ pillar: p.id })}>+ Add</button></div>
         {gs.map((g) => (
           <div className="goal" style={{ gridTemplateColumns: '4px 1fr' }} key={g.id}>
             <span className="stripe" style={{ background: p.color }} />
@@ -300,8 +393,9 @@ export function Goals() {
 /* ---------- Goal history: week, month, year ---------- */
 type Period = 'week' | 'month' | 'year';
 const MON = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
-function GoalHistory() {
+function GoalHistory({ only, title = 'My goals' }: { only?: PillarId; title?: string } = {}) {
   const { S } = useWW();
+  const goals = only ? S.goals.filter((g) => g.pillar === only) : S.goals;
   const { TODAY } = today();
   const [per, setPer] = useState<Period>('week');
   const [off, setOff] = useState(0);
@@ -373,10 +467,10 @@ function GoalHistory() {
   };
   return (
     <section className="card">
-      <div className="card-head"><h2>My goals</h2></div>
+      <div className="card-head"><h2>{title}</h2></div>
       <div className="seg segp" role="group" aria-label="Show progress by">{(['week', 'month', 'year'] as Period[]).map((x) => <button key={x} aria-pressed={per === x} onClick={() => { setPer(x); setOff(0); }}>{x === 'week' ? 'Week' : x === 'month' ? 'Month' : 'Year'}</button>)}</div>
       <div className="pnav"><button className="round" aria-label="Earlier" onClick={() => setOff(off - 1)}>‹</button><b>{label}</b><button className="round" aria-label="Later" disabled={off >= 0} onClick={() => setOff(off + 1)}>›</button></div>
-      {S.goals.length ? S.goals.map(row) : <p className="empty">Add a goal to see progress.</p>}
+      {goals.length ? goals.map(row) : <p className="empty">Add a goal to see progress.</p>}
     </section>
   );
 }

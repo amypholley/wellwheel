@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { StoreProvider, useWW, View } from './store';
-import { Today, Goals, Progress, Journal, Gratitude } from './screens';
+import { Today, Goals, Progress, Journal, Gratitude , Pillars } from './screens';
 import { Wizard } from './Wizard';
 import { Resources } from './resources/Resources';
 import { Adventures } from './adventures/Adventures';
@@ -13,6 +13,7 @@ import { FeedbackSheet } from './Feedback';
 
 const TABS: [View, string, string][] = [
   ['today', 'Today', '<circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6 5.6 18.4"/>'],
+  ['pillars', 'My pillars', '<circle cx="12" cy="12" r="3"/><circle cx="12" cy="4.5" r="1.8"/><circle cx="12" cy="19.5" r="1.8"/><circle cx="4.5" cy="12" r="1.8"/><circle cx="19.5" cy="12" r="1.8"/><circle cx="6.7" cy="6.7" r="1.5"/><circle cx="17.3" cy="17.3" r="1.5"/><circle cx="17.3" cy="6.7" r="1.5"/><circle cx="6.7" cy="17.3" r="1.5"/>'],
   ['goals', 'Goals', '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/>'],
   ['progress', 'Progress', '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'],
   ['journal', 'Journal', '<path d="M5 4h11a2 2 0 0 1 2 2v14H7a2 2 0 0 1-2-2z"/><path d="M5 18a2 2 0 0 1 2-2h11M9 8h6M9 11h4"/>'],
@@ -82,7 +83,7 @@ function MobileMenu() {
 function Shell() {
   const { mode, view, setView, isPlus, dayKey } = useWW();
   if (mode === 'loading') return <div className="loading"><LogoWheel size={64} /></div>;
-  const screen = view === 'today' ? <Today /> : view === 'goals' ? <Goals /> : view === 'progress' ? <Progress />
+  const screen = view === 'today' ? <Today /> : view === 'pillars' ? <Pillars /> : view === 'goals' ? <Goals /> : view === 'progress' ? <Progress />
     : view === 'journal' ? <Journal /> : view === 'grateful' ? <Gratitude /> : view === 'portfolio' ? <Resources key={'portfolio' + isPlus} portfolio /> : view === 'resources' ? <Resources key={'resources' + isPlus} /> : <Adventures />;
   return (
     <>
