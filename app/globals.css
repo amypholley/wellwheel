@@ -571,3 +571,6 @@ html .example{text-transform:none;letter-spacing:0;font-weight:600;font-size:12p
 .gnotes ul{list-style:none;padding:0;margin:8px 0 0;display:flex;flex-direction:column;gap:6px}
 .gnotes li{font-size:14px}
 .gnotes li small{color:var(--muted);margin-right:6px}
+.jgoals{display:flex;flex-direction:column;gap:10px;margin-top:10px;padding-top:10px;border-top:1px dashed color-mix(in srgb,var(--line) 80%,transparent)}
+.jgoals .pill{text-transform:none;letter-spacing:0;font-size:13px}
+.jgoals.solo{border-top:0;padding-top:0;margin-top:6px}
