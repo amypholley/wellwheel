@@ -161,6 +161,7 @@ function GoalRowToday({ g, logOpen, setLogOpen }: { g: Goal; logOpen: string | n
         <div className="goal-title">{g.title}</div>
         <div className="goal-meta">{meta}</div>
         {ticks}<Contrib g={g} />
+        {q && todays.length === 0 && !askOpen && <button className="linkish askcue" onClick={() => setAskOpen(true)}>📝 {q}</button>}
         {q && todays.length > 0 && !askOpen && <div className="gans">{todays.map((n, i) => <p key={i}>“{n.t}”</p>)}<button className="linkish" onClick={() => setAskOpen(true)}>+ Add another</button></div>}
       </div>
       {ctrl}{extra}
