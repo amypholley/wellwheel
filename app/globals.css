@@ -536,3 +536,28 @@ html .example{text-transform:none;letter-spacing:0;font-weight:600;font-size:12p
 .spotadd{display:flex;flex-direction:column;gap:8px;margin-top:6px}
 .spot-b .grid2{grid-template-columns:1fr;gap:4px}.spot-b input[type=date]{width:100%;min-width:0}
 .port{margin-bottom:6px}
+/* Today: a daily goal's week at a glance */
+.wdots{display:flex;gap:6px;margin-top:6px}
+.wd{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10px;color:var(--muted);width:18px}
+.wd i{width:16px;height:16px;border-radius:50%;border:2px solid var(--line);box-sizing:border-box;display:block}
+.wd i[style]{border-color:transparent}
+.wd.today i{outline:2px solid var(--ink);outline-offset:1px}
+.wd.today{color:var(--ink);font-weight:700}
+.wd.fut{opacity:.5}
+/* Progress: week / month / year */
+.segp{grid-template-columns:repeat(3,1fr)}
+.pnav{display:flex;align-items:center;justify-content:space-between;margin:12px 0 4px}
+.pnav .round{width:34px;height:34px;font-size:20px}
+.pnav .round:disabled{opacity:.35}
+.week.month{row-gap:6px}
+.week .sq.fut{opacity:.4}
+.ybars{display:grid;grid-template-columns:repeat(12,1fr);gap:4px;height:70px;align-items:end;margin-top:8px}
+.ybars > div{height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:2px;background:color-mix(in srgb,var(--line) 45%,transparent);border-radius:4px;position:relative}
+.ybars > div > span{width:100%;border-radius:4px;display:block}
+.ybars > div > small{position:absolute;bottom:-16px;font-size:10px;color:var(--muted)}
+.ybars{margin-bottom:16px}
+.ybars > .fut{opacity:.45}
+.wkrows{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.wkrows > div{display:grid;grid-template-columns:52px 1fr 44px;gap:8px;align-items:center}
+.wkrows .bar{margin:0;height:8px}
+.wkrows small{font-size:12px;color:var(--muted)}

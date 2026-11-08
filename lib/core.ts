@@ -6,6 +6,7 @@ export type Goal = {
   count: number; per: 'day' | 'week'; unit: string;
   amt?: boolean; step?: number; stepLabel?: string;
   target?: number; why: string; deadline: string; sure: number; example?: boolean;
+  created?: string; // YYYY-MM-DD the goal was made
   coupleId?: string | null; ownerId?: string; // shared with a partner when coupleId is set
 };
 export type Gratitude = { id: string; date: string; text: string; example?: boolean };
@@ -129,3 +130,12 @@ export function seedState(): State {
   };
   return { ...blankState(), goals, logs, gratitude, journal, tools: { adv } };
 }
+
+/* ---------- goal history by week, month, year (weeks run Sunday to Saturday) ---------- */
+// How much of a day's goal was done, 0 to 1. Weekly goals count any check-in that day as done.
+export const dayFrac = (S: State, g: Goal, k: string) => { const v = dayVal(S, g, k); return g.per === 'day' ? Math.min(1, v / (g.count || 1)) : v > 0 ? 1 : 0; };
+export const sundayOf = (d: Date) => addDays(new Date(d.getFullYear(), d.getMonth(), d.getDate()), -d.getDay());
+export const sumDays = (S: State, g: Goal, from: Date, to: Date) => { let t = 0; for (let d = new Date(from); d <= to; d = addDays(d, 1)) t += dayVal(S, g, key(d)); return t; };
+export const weekMet = (S: State, g: Goal, sun: Date) => sumDays(S, g, sun, addDays(sun, 6)) >= g.count;
+// The first day a goal could count: when it was made, or its first check-in if that's earlier
+export const goalStart = (S: State, g: Goal) => { const ks = Object.keys(S.logs[g.id] || {}).filter((k) => (S.logs[g.id] || {})[k] > 0).sort(); const c = [g.created, ks[0]].filter(Boolean).sort()[0]; return c ? fromKey(c as string) : today().TODAY; };

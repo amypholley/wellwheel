@@ -118,6 +118,7 @@ function useStoreValue() {
 
   const act = {
     addGoal(g: Goal) {
+      g = { ...g, created: g.created || today().T };
       setS((s) => ({ ...s, goals: [...s.goals, g], logs: { ...s.logs, [g.id]: {} } }));
       persist(() => db.addGoals([g]));
     },

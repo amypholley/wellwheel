@@ -14,7 +14,7 @@ const rowToGoal = (r: any): Goal => ({
   id: r.id, pillar: r.pillar, title: r.title, type: r.type, count: Number(r.count ?? 1), per: r.per || 'day', unit: r.unit,
   amt: r.amt, step: r.step == null ? undefined : Number(r.step), stepLabel: r.step_label ?? undefined,
   target: r.target == null ? undefined : Number(r.target), why: r.why || '', deadline: r.deadline || '', sure: r.sure ?? 7, example: r.example,
-  coupleId: r.couple_id || null, ownerId: r.owner_id,
+  coupleId: r.couple_id || null, ownerId: r.owner_id, created: r.created_at ? String(r.created_at).slice(0, 10) : undefined,
 });
 
 let currentUserId = '';

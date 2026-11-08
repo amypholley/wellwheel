@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { P, PILLARS } from '@/lib/data';
-import { Goal, dayVal, fmtDate, fmtNum, fromKey, goalWeekScore, key, pillarScore, smartSentence, today, todaysPrompt, total, weekSum } from '@/lib/core';
+import { Goal, addDays, addMonths, dayFrac, dayVal, fmtDate, fmtNum, fromKey, goalWeekScore, key, pillarScore, smartSentence, today, todaysPrompt, goalStart, sumDays, sundayOf, total, weekMet, weekSum } from '@/lib/core';
 import { Icon, Wheel, initials } from './ui';
 import { firstName, useWW } from './store';
 import { PillarReport, PlusLock } from './Plus';
@@ -56,9 +56,22 @@ function TogetherCard() {
 }
 
 /* ---------- Today ---------- */
+// Sunday to Saturday at a glance for a daily goal: filled = done that day, ringed = today
+function WeekDots({ g, color }: { g: Goal; color: string }) {
+  const { S } = useWW();
+  const { TODAY, weekDays } = today();
+  return (
+    <div className="wdots" aria-hidden="true">
+      {weekDays.map((d) => { const k = key(d), f = dayFrac(S, g, k), fut = d > TODAY, isT = d.getTime() === TODAY.getTime();
+        return <span key={k} className={`wd ${isT ? 'today' : ''} ${fut ? 'fut' : ''}`}><i style={f > 0 ? { background: color, opacity: f >= 1 ? 1 : 0.45 } : undefined} />{d.toLocaleDateString('en-US', { weekday: 'narrow' })}</span>; })}
+    </div>
+  );
+}
+
 function GoalRowToday({ g, logOpen, setLogOpen }: { g: Goal; logOpen: string | null; setLogOpen: (v: string | null) => void }) {
   const { S, act, toast } = useWW();
   const { T } = today();
+  const daysMet = today().weekDays.filter((d) => dayFrac(S, g, key(d)) >= 1).length;
   const p = P[g.pillar];
   const inputRef = useRef<HTMLInputElement>(null);
   const [amount, setAmount] = useState('');
@@ -95,8 +108,8 @@ function GoalRowToday({ g, logOpen, setLogOpen }: { g: Goal; logOpen: string | n
   );
   if (g.type === 'habit' && g.amt) {
     const n = dayVal(S, g, T), pct = Math.min(100, Math.round((n / g.count) * 100));
-    meta = `${n.toLocaleString('en-US')} of ${Number(g.count).toLocaleString('en-US')} ${g.unit} today${n >= g.count ? ' ✓' : ''}`;
-    ticks = <div className="bar"><span style={{ width: pct + '%', background: p.color }} /></div>;
+    meta = `${n.toLocaleString('en-US')} of ${Number(g.count).toLocaleString('en-US')} ${g.unit} today${n >= g.count ? ' ✓' : ''} · ${daysMet} of 7 days this week`;
+    ticks = <><div className="bar"><span style={{ width: pct + '%', background: p.color }} /></div><WeekDots g={g} color={p.color} /></>;
     ctrl = (
       <div className="counter">
         {n > 0 && <button className="round" onClick={minus} aria-label={`Take back ${g.stepLabel}`}>−</button>}
@@ -108,8 +121,8 @@ function GoalRowToday({ g, logOpen, setLogOpen }: { g: Goal; logOpen: string | n
   } else if (g.type === 'habit') {
     const n = g.per === 'day' ? dayVal(S, g, T) : weekSum(S, g);
     const done = n >= g.count;
-    meta = g.per === 'day' ? `${Math.min(n, g.count)} of ${g.count} today` : `${n} of ${g.count} ${g.unit} this week`;
-    ticks = g.count > 12
+    meta = g.per === 'day' ? `${Math.min(n, g.count)} of ${g.count} today · ${daysMet} of 7 days this week` : `${n} of ${g.count} ${g.unit} this week`;
+    ticks = g.per === 'day' ? <WeekDots g={g} color={p.color} /> : g.count > 12
       ? <div className="bar"><span style={{ width: Math.min(100, Math.round((n / g.count) * 100)) + '%', background: p.color }} /></div>
       : <div className="ticks" aria-hidden="true">{Array.from({ length: g.count }, (_, i) => <span key={i} className={`tick ${i < n ? 'on' : ''}`} style={i < n ? { background: p.color } : undefined} />)}</div>;
     ctrl = (
@@ -261,6 +274,88 @@ export function Goals() {
   );
 }
 
+/* ---------- Goal history: week, month, year ---------- */
+type Period = 'week' | 'month' | 'year';
+const MON = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
+function GoalHistory() {
+  const { S } = useWW();
+  const { TODAY } = today();
+  const [per, setPer] = useState<Period>('week');
+  const [off, setOff] = useState(0);
+  // The period being shown
+  let from: Date, to: Date, label: string;
+  if (per === 'week') { from = addDays(sundayOf(TODAY), 7 * off); to = addDays(from, 6); label = off === 0 ? 'This week' : `${from.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – ${to.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`; }
+  else if (per === 'month') { from = new Date(TODAY.getFullYear(), TODAY.getMonth() + off, 1); to = new Date(from.getFullYear(), from.getMonth() + 1, 0); label = from.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }); }
+  else { from = new Date(TODAY.getFullYear() + off, 0, 1); to = new Date(from.getFullYear(), 11, 31); label = String(from.getFullYear()); }
+  const end = to < TODAY ? to : TODAY; // only count days that have happened
+  const days: Date[] = []; for (let d = new Date(from); d <= to; d = addDays(d, 1)) days.push(d);
+  const pastDays = days.filter((d) => d <= TODAY);
+  // Weeks (Sunday to Saturday) that start inside this month or year and have begun
+  const weeksIn = (a: Date, b: Date) => { const w: Date[] = []; for (let d = sundayOf(a) < a ? addDays(sundayOf(a), 7) : sundayOf(a); d <= b && d <= TODAY; d = addDays(d, 7)) w.push(d); return w; };
+  const sq = (f: number, color: string, k: string, fut: boolean, title: string) => <div key={k} className={`sq ${fut ? 'fut' : ''}`} title={title} style={f > 0 ? { background: color, opacity: 0.35 + 0.65 * f } : undefined} />;
+
+  const row = (g: Goal) => {
+    const p = P[g.pillar];
+    const st0 = goalStart(S, g); // don't count days before the goal existed
+    const counted = pastDays.filter((d) => d >= st0);
+    const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? '' : 's'}`;
+    let stat = '', body: React.ReactNode = null;
+    if (g.type === 'target') {
+      const t = from > TODAY ? 0 : sumDays(S, g, from, end), all = total(S, g), pct = Math.min(100, Math.round((all / (g.target || 1)) * 100));
+      stat = `${fmtNum(t, g.unit)} added ${per === 'week' ? 'this week' : per === 'month' ? 'this month' : 'this year'}`;
+      body = <>
+        {per === 'year' && <div className="ybars">{MON.map((m, i) => { const a = new Date(from.getFullYear(), i, 1), b = new Date(from.getFullYear(), i + 1, 0); const v = a > TODAY ? 0 : sumDays(S, g, a, b < TODAY ? b : TODAY); const mx = Math.max(1, ...MON.map((_, j) => { const x = new Date(from.getFullYear(), j, 1), y = new Date(from.getFullYear(), j + 1, 0); return x > TODAY ? 0 : sumDays(S, g, x, y < TODAY ? y : TODAY); })); return <div key={i}><span style={{ height: `${(v / mx) * 100}%`, background: p.color }} title={`${fmtNum(v, g.unit)}`} /><small>{m}</small></div>; })}</div>}
+        <div className="bar" style={{ height: 10, marginTop: 8 }}><span style={{ width: pct + '%', background: p.color }} /></div>
+        <div className="goal-meta" style={{ marginTop: 4 }}>Overall: {fmtNum(all, g.unit)} of {fmtNum(g.target || 0, g.unit)} ({pct}%)</div></>;
+    } else if (per === 'year') {
+      // One bar per month: share of days met (daily goals) or weeks met (weekly goals)
+      const months = MON.map((m, i) => { const a = new Date(from.getFullYear(), i, 1), b = new Date(from.getFullYear(), i + 1, 0);
+        if (a > TODAY) return { m, f: null as number | null };
+        if (b < st0) return { m, f: null as number | null };
+        if (g.per === 'day') { const ds: Date[] = []; for (let d = new Date(a < st0 ? st0 : a); d <= b && d <= TODAY; d = addDays(d, 1)) ds.push(d); return { m, f: ds.length ? ds.filter((d) => dayFrac(S, g, key(d)) >= 1).length / ds.length : 0 }; }
+        const ws = weeksIn(a, b).filter((w) => addDays(w, 6) >= st0); return { m, f: ws.length ? ws.filter((w) => weekMet(S, g, w)).length / ws.length : 0 }; });
+      const metDays = g.per === 'day' ? counted.filter((d) => dayFrac(S, g, key(d)) >= 1).length : 0;
+      const ws = g.per === 'week' ? weeksIn(from, to).filter((w) => addDays(w, 6) >= st0) : [];
+      stat = g.per === 'day' ? `${metDays} of ${plural(counted.length, 'day')}` : `${ws.filter((w) => weekMet(S, g, w)).length} of ${plural(ws.length, 'week')}`;
+      body = <div className="ybars">{months.map(({ m, f }, i) => <div key={i} className={f === null ? 'fut' : ''}><span style={{ height: `${Math.max(f ? 6 : 0, (f || 0) * 100)}%`, background: p.color }} title={f === null ? '' : `${Math.round(f * 100)}%`} /><small>{m}</small></div>)}</div>;
+    } else if (per === 'month' && g.per === 'week') {
+      const ws = weeksIn(from, to).filter((w) => addDays(w, 6) >= st0);
+      stat = `${ws.filter((w) => weekMet(S, g, w)).length} of ${plural(ws.length, 'week')}`;
+      body = <div className="wkrows">{ws.length ? ws.map((w) => { const n = sumDays(S, g, w, addDays(w, 6)); return <div key={key(w)}><small>{w.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</small><span className="bar"><span style={{ width: `${Math.min(100, (n / g.count) * 100)}%`, background: p.color }} /></span><small>{n}/{g.count}{n >= g.count ? ' ✓' : ''}</small></div>; }) : <p className="sub" style={{ margin: 0 }}>No weeks yet.</p>}</div>;
+    } else {
+      // Week, or a month of a daily goal: one square per day
+      const lead = per === 'month' ? from.getDay() : 0;
+      if (g.per === 'day') stat = `${counted.filter((d) => dayFrac(S, g, key(d)) >= 1).length} of ${plural(counted.length, 'day')}`;
+      else { const n = from > TODAY ? 0 : sumDays(S, g, from, to); stat = `${n} of ${g.count} ${g.unit}${n >= g.count ? ' ✓' : ''}`; }
+      body = <>
+        <div className={per === 'week' ? 'week' : 'week month'}>
+          {per === 'week' ? days.map((d) => <div key={key(d)}>{d.toLocaleDateString('en-US', { weekday: 'narrow' })}{sq(d > TODAY ? 0 : dayFrac(S, g, key(d)), p.color, key(d), d > TODAY, `${fmtDate(key(d))}: ${dayVal(S, g, key(d))}`)}</div>)
+            : <>{['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((x, i) => <div key={'h' + i}>{x}</div>)}{Array.from({ length: lead }, (_, i) => <div key={'b' + i} />)}{days.map((d) => sq(d > TODAY ? 0 : dayFrac(S, g, key(d)), p.color, key(d), d > TODAY, `${fmtDate(key(d))}: ${dayVal(S, g, key(d))}`))}</>}
+        </div></>;
+    }
+    const daysLeft = g.deadline ? Math.round((fromKey(g.deadline).getTime() - TODAY.getTime()) / 864e5) : null;
+    return (
+      <div className="goal" style={{ gridTemplateColumns: '4px 1fr' }} key={g.id}>
+        <span className="stripe" style={{ background: p.color }} />
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}><span className="goal-title">{g.title}</span><span className="goal-meta" style={{ whiteSpace: 'nowrap' }}>{stat}</span></div>
+          <div className="goal-meta">{g.type === 'target' ? 'Reach a number' : g.per === 'day' ? `${g.count > 1 ? g.count + ' ' + g.unit + ' a day' : 'Every day'}` : `${g.count} ${g.unit} a week`}</div>
+          {body}
+          {daysLeft !== null && daysLeft >= 0 && <div className="goal-meta" style={{ marginTop: 6 }}>{daysLeft} day{daysLeft === 1 ? '' : 's'} left until {fmtDate(g.deadline, { month: 'short', day: 'numeric', year: 'numeric' })}</div>}
+        </div>
+      </div>
+    );
+  };
+  return (
+    <section className="card">
+      <div className="card-head"><h2>My goals</h2></div>
+      <div className="seg segp" role="group" aria-label="Show progress by">{(['week', 'month', 'year'] as Period[]).map((x) => <button key={x} aria-pressed={per === x} onClick={() => { setPer(x); setOff(0); }}>{x === 'week' ? 'Week' : x === 'month' ? 'Month' : 'Year'}</button>)}</div>
+      <div className="pnav"><button className="round" aria-label="Earlier" onClick={() => setOff(off - 1)}>‹</button><b>{label}</b><button className="round" aria-label="Later" disabled={off >= 0} onClick={() => setOff(off + 1)}>›</button></div>
+      {S.goals.length ? S.goals.map(row) : <p className="empty">Add a goal to see progress.</p>}
+    </section>
+  );
+}
+
 /* ---------- Progress ---------- */
 export function Progress() {
   const { S, act, toast, mode, isPlus } = useWW();
@@ -269,32 +364,9 @@ export function Progress() {
   const hasExamples = S.goals.some((g) => g.example) || S.gratitude.some((g) => g.example) || Object.values(S.journal).some((j) => j.example);
   return (
     <>
-      <header className="top"><div><div className="brand">Progress</div><h1>How it’s going</h1><div className="sub">{weekStart.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} – {weekDays[6].toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</div></div></header>
+      <header className="top"><div><div className="brand">Progress</div><h1>How it’s going</h1><div className="sub">Your goals by week, month, and year</div></div></header>
       <div className="stack">
-        <section className="card"><div className="card-head"><h2>Goals this week</h2></div>
-          {S.goals.length ? S.goals.map((g) => {
-            const p = P[g.pillar];
-            const daysLeft = g.deadline ? Math.max(0, Math.round((fromKey(g.deadline).getTime() - TODAY.getTime()) / 864e5)) : null;
-            let body: React.ReactNode;
-            if (g.type === 'habit') {
-              body = <div className="week">{weekDays.map((d) => { const k = key(d), v = dayVal(S, g, k), f = d > TODAY; const goal = g.per === 'day' ? g.count : 1; const o = f ? 0 : Math.min(1, v / goal);
-                return <div key={k}>{d.toLocaleDateString('en-US', { weekday: 'narrow' })}<div className="sq" style={o > 0 ? { background: p.color, opacity: 0.35 + 0.65 * o } : undefined} title={`${k}: ${v}`} /></div>; })}</div>;
-            } else {
-              const t = total(S, g), pct = Math.min(100, Math.round((t / g.target) * 100));
-              body = <><div className="bar" style={{ height: 12 }}><span style={{ width: pct + '%', background: p.color }} /></div><div className="goal-meta" style={{ marginTop: 4 }}>{fmtNum(t, g.unit)} of {fmtNum(g.target, g.unit)} ({pct}%)</div></>;
-            }
-            return (
-              <div className="goal" style={{ gridTemplateColumns: '4px 1fr' }} key={g.id}>
-                <span className="stripe" style={{ background: p.color }} />
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}><span className="goal-title">{g.title}</span><span className="goal-meta">{Math.round(goalWeekScore(S, g) * 100)}% this week</span></div>
-                  {body}
-                  {daysLeft !== null && <div className="goal-meta" style={{ marginTop: 6 }}>{daysLeft} days left</div>}
-                </div>
-              </div>
-            );
-          }) : <p className="empty">Add a goal to see progress.</p>}
-        </section>
+        <GoalHistory />
         <section className="card"><div className="card-head"><h2>Gratitude</h2></div><p style={{ margin: 0 }}>{thisMonth} line{thisMonth === 1 ? '' : 's'} this month, {S.gratitude.length} all time.</p></section>
         {isPlus ? <PillarReport /> : <PlusLock reason="report" title="Monthly pillar report" text="See which pillars got your energy this month, which ones got left out, and a suggested focus for next month. Includes every 30-day challenge and all worksheets." />}
         <section className="card"><div className="card-head"><h2>Help make WellWheel better</h2></div>
