@@ -9,6 +9,7 @@ import {
 import { makeMore } from './more';
 import { hotlinesHTML } from '@/lib/hotlines';
 import { addSectionSaves } from '@/lib/sectionSave';
+import { loc, t } from '@/lib/i18n';
 
 // Which saved record each worksheet uses
 const STORE_KEY = { networth: 'nw', burnout: 'burn' };
@@ -39,7 +40,7 @@ export function mountResources(root, api) {
 
   /* ---------- form helpers ---------- */
   const num = (v) => { const n = parseFloat(String(v ?? '').replace(/[$,]/g, '')); return isFinite(n) ? n : 0; };
-  const money = (n) => (n < 0 ? '−' : '') + '$' + Math.abs(n).toLocaleString('en-US', { minimumFractionDigits: (Math.round(n * 100) % 100) ? 2 : 0, maximumFractionDigits: 2 });
+  const money = (n) => (n < 0 ? '−' : '') + '$' + Math.abs(n).toLocaleString(loc(), { minimumFractionDigits: (Math.round(n * 100) % 100) ? 2 : 0, maximumFractionDigits: 2 });
   const getP = (path) => path.split('.').reduce((o, k) => (o == null ? undefined : o[k]), rootFor(path.split('.')[0]));
   const setP = (path, val) => { const ks = path.split('.'); const root = rootFor(ks[0]); dirty.add((root === jointTools ? 'c:' : '') + ks[0]); let o = root; ks.slice(0, -1).forEach((k) => { if (o[k] == null || typeof o[k] !== 'object') o[k] = {}; o = o[k]; }); o[ks[ks.length - 1]] = val; };
   const inp = (path, { type = 'text', ph = '', cls = '', rr = false, attrs = '' } = {}) => `<input type="${type}" ${type === 'number' ? 'step="any" inputmode="decimal"' : ''} class="${cls}" data-b="${esc(path)}" ${rr ? 'data-rr' : ''} value="${esc(getP(path) ?? '')}" placeholder="${esc(ph)}" aria-label="${esc(ph || path.split('.').pop())}" ${attrs}>`;
@@ -130,7 +131,7 @@ export function mountResources(root, api) {
     }
     return { months: month, interest, order: order.map((d) => d.name), paid, stuck: month >= 600 };
   }
-  const mdate = (m) => addMonths(TODAY, m).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+  const mdate = (m) => addMonths(TODAY, m).toLocaleDateString(loc(), { month: 'short', year: 'numeric' });
   const TOOL_DEBT = {
     render() {
       const ds = getP('debt.list') || [], log = getP('debt.log') || [];
@@ -282,7 +283,7 @@ export function mountResources(root, api) {
       const max = 10;
       return `<div class="stack">
     <section class="card"><div class="sumgrid"><div><div class="k">Average sleep (last 7)</div><div class="v">${avg ? avg.toFixed(1) + ' hrs' : '—'}</div></div><div><div class="k">Average quality</div><div class="v">${aq ? aq.toFixed(1) + ' / 5' : '—'}</div></div><div><div class="k">Nights logged</div><div class="v">${es.length}</div></div></div>
-      ${last.length ? `<div class="sbars">${last.map((e) => { const h = sleepHours(e.bed, e.wake) || 0; return `<div><span style="height:${Math.min(100, (h / max) * 100)}%;background:${h >= 7 ? P.physical.color : 'var(--gold)'}" title="${h.toFixed(1)} hours"></span><em>${h.toFixed(1)}</em><small>${fromKey(e.date).toLocaleDateString('en-US', { weekday: 'narrow' })}</small></div>`; }).join('')}</div><p class="hint">Green bars are 7+ hours.</p>` : ''}</section>
+      ${last.length ? `<div class="sbars">${last.map((e) => { const h = sleepHours(e.bed, e.wake) || 0; return `<div><span style="height:${Math.min(100, (h / max) * 100)}%;background:${h >= 7 ? P.physical.color : 'var(--gold)'}" title="${h.toFixed(1)} hours"></span><em>${h.toFixed(1)}</em><small>${fromKey(e.date).toLocaleDateString(loc(), { weekday: 'narrow' })}</small></div>`; }).join('')}</div><p class="hint">Green bars are 7+ hours.</p>` : ''}</section>
     <section class="card"><h2>Log last night</h2><div class="rule"></div>
       <div class="grid2b"><label>Date (morning)<input type="date" data-b="sleep.draft.date" value="${esc(getP('sleep.draft.date') || T)}"></label><span></span>
       <label>Went to bed<input type="time" data-b="sleep.draft.bed" value="${esc(getP('sleep.draft.bed') || '')}"></label><label>Woke up<input type="time" data-b="sleep.draft.wake" value="${esc(getP('sleep.draft.wake') || '')}"></label></div>
@@ -520,7 +521,7 @@ export function mountResources(root, api) {
   }
   const TOOL_MONEY = {
     render() {
-      if (!getP('monthly.month')) setP('monthly.month', TODAY.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }));
+      if (!getP('monthly.month')) setP('monthly.month', TODAY.toLocaleDateString(loc(), { month: 'long', year: 'numeric' }));
       const d = portfolioData(), bills = getP('monthly.bills') || [], up = getP('monthly.up') || [], sugg = suggestions(d);
       const secH = (t, id) => `<h2 class="pf-h" id="${id}">${t}</h2>`;
       const pFirst = couple ? (couple.partner_name || '').split(' ')[0] : '';

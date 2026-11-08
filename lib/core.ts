@@ -1,4 +1,5 @@
 import { PillarId, PILLARS, PROMPTS, CHALLENGE } from './data';
+import { lang, loc, t } from './i18n';
 
 /* ---------- types ---------- */
 export type Goal = {
@@ -44,9 +45,9 @@ export function today() {
   return { TODAY, T: key(TODAY), weekStart, weekDays };
 }
 export const fmtDate = (k: string, opts: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric', year: 'numeric' }) =>
-  k ? fromKey(k).toLocaleDateString('en-US', opts) : '';
+  k ? fromKey(k).toLocaleDateString(loc(), opts) : '';
 export const fmtNum = (n: number, unit: string) =>
-  unit === '$' ? '$' + Number(n).toLocaleString('en-US') : Number(n).toLocaleString('en-US') + (unit === 'done' ? '' : ' ' + unit);
+  unit === '$' ? '$' + Number(n).toLocaleString(loc()) : Number(n).toLocaleString(loc()) + (unit === 'done' ? '' : ' ' + unit);
 
 /* ---------- goal math ---------- */
 export const dayVal = (S: State, g: Goal, k: string) => (S.logs[g.id] || {})[k] || 0;
@@ -66,17 +67,19 @@ export function pillarScore(S: State, pid: PillarId): number | null {
   return gs.reduce((a, g) => a + goalWeekScore(S, g), 0) / gs.length;
 }
 export function smartSentence(g: Partial<Goal>) {
-  const by = g.deadline ? ` by ${fmtDate(g.deadline)}` : '';
-  let what: string;
-  const title = (g.title || 'my goal').toLowerCase();
+  const by = g.deadline ? t(' by {date}', { date: fmtDate(g.deadline) }) : '';
+  const raw = g.title || t('my goal');
+  const title = lang() === 'en' ? raw.toLowerCase() : raw;
+  let s: string;
   if (g.type === 'habit') {
-    const c = Number(g.count).toLocaleString('en-US');
-    const freq = g.per === 'day' ? (g.count === 1 ? 'every day' : `${c} ${g.unit} a day`) : `${c} ${g.unit} a week`;
-    what = `${title} ${freq}, starting today and keeping it up${by}`;
+    const c = Number(g.count).toLocaleString(loc());
+    const freq = g.per === 'day' ? (g.count === 1 ? t('every day') : t('{c} {unit} a day', { c, unit: t(g.unit || '') })) : t('{c} {unit} a week', { c, unit: t(g.unit || '') });
+    s = t('I will {title} {freq}, starting today and keeping it up{by}', { title, freq, by });
   } else {
-    what = g.unit === 'done' ? `${title}${by}` : `${title}: ${fmtNum(g.target || 0, g.unit)}${by}`;
+    s = g.unit === 'done' ? t('I will {title}{by}', { title, by }) : t('I will {title}: {amount}{by}', { title, amount: fmtNum(g.target || 0, g.unit || ''), by });
   }
-  return `I will ${what}${g.why ? `, because ${g.why.replace(/\.$/, '').replace(/^./, (c) => (/^I\b/.test(g.why) ? c : c.toLowerCase()))}` : ''}.`;
+  const why = g.why ? g.why.replace(/\.$/, '').replace(/^./, (c) => (lang() !== 'en' || /^I\b/.test(g.why || '') ? c : c.toLowerCase())) : '';
+  return s + (why ? t(', because {why}', { why }) : '') + '.';
 }
 
 /* ---------- journal prompt ---------- */
@@ -90,7 +93,7 @@ export function todaysPrompt(S: State, shift: number, challenge = true): { pilla
     const d = Math.min(30, TODAY.getDate());
     const [pl, txt] = CHALLENGE[d - 1];
     const pid = (PILLARS.find((p) => pl.startsWith(p.name)) || { id: 'purpose' as PillarId }).id;
-    return { pillar: pid, text: txt, label: `30 Days, 9 Pillars · Day ${d}` };
+    return { pillar: pid, text: txt, label: t('30 Days, 9 Pillars · Day {d}', { d }) };
   }
   const dayNum = Math.floor(TODAY.getTime() / 864e5);
   const [pid, txt] = PROMPTS[(dayNum + shift) % PROMPTS.length];

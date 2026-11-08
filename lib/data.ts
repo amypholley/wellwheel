@@ -1,4 +1,5 @@
 // Content carried over word-for-word from the WellWheel prototype.
+import { onLangChange, t } from './i18n';
 
 export type PillarId = 'physical' | 'mental' | 'emotional' | 'spiritual' | 'intellectual' | 'environmental' | 'financial' | 'relationships' | 'purpose';
 export type Pillar = { id: PillarId; name: string; color: string; desc: string };
@@ -285,3 +286,16 @@ export const questionFor = (tools: Record<string, any>, g: { id: string; title: 
   const own = (tools.gq || {})[g.id];
   return own !== undefined ? String(own) : autoQuestion(g.title);
 };
+
+
+/* ---------- translate built-in content when the language changes (English copies kept) ---------- */
+const EN_P = PILLARS.map((p) => ({ name: p.name, desc: p.desc }));
+const EN_PRESETS = Object.fromEntries(Object.entries(PRESETS).map(([k, l]) => [k, l.map((x) => ({ title: x.title, unit: x.unit, stepLabel: x.stepLabel }))])) as Record<string, { title: string; unit: string; stepLabel?: string }[]>;
+const EN_CH = CHALLENGE.map((c) => [...c] as [string, string]);
+const EN_PR = PROMPTS.map((c) => c[1]);
+onLangChange(() => {
+  PILLARS.forEach((p, i) => { p.name = t(EN_P[i].name); p.desc = t(EN_P[i].desc); });
+  Object.entries(PRESETS).forEach(([k, l]) => l.forEach((x, i) => { const e = EN_PRESETS[k][i]; x.title = t(e.title); x.unit = t(e.unit); if (e.stepLabel) x.stepLabel = t(e.stepLabel); (x as any).src = e.title; }));
+  CHALLENGE.forEach((c, i) => { c[0] = t(EN_CH[i][0]); c[1] = t(EN_CH[i][1]); });
+  PROMPTS.forEach((c, i) => { c[1] = t(EN_PR[i]); });
+});

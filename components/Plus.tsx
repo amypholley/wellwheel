@@ -6,6 +6,7 @@ import { P, PILLARS, PillarId } from '@/lib/data';
 import { fmtDate, key, today } from '@/lib/core';
 import { Icon } from './ui';
 import { useWW } from './store';
+import { loc, t } from '@/lib/i18n';
 
 const REASONS: Record<string, string> = {
   pillars: 'Free accounts can set goals in 2 pillars. Plus opens all 9.',
@@ -39,28 +40,28 @@ export function PlusSheet() {
     setBusy(plan); await goToCheckout(plan);
   };
   return (
-    <div className="sheet plus-sheet" role="dialog" aria-modal="true" aria-label="WellWheel Plus">
+    <div className="sheet plus-sheet" role="dialog" aria-modal="true" aria-label={t("WellWheel Plus")}>
       <div className="app">
-        <header className="top"><div><div className="brand">The Holistic Ecosystem</div><h1>WellWheel Plus</h1></div><button className="linkish" onClick={close}>Close</button></header>
-        {REASONS[plusOpen] && <p className="note" style={{ marginTop: 0 }}>{REASONS[plusOpen]}</p>}
+        <header className="top"><div><div className="brand">{t("The Holistic Ecosystem")}</div><h1>{t("WellWheel Plus")}</h1></div><button className="linkish" onClick={close}>{t("Close")}</button></header>
+        {REASONS[plusOpen] && <p className="note" style={{ marginTop: 0 }}>{t(REASONS[plusOpen])}</p>}
         <section className="card" style={{ marginTop: 12 }}>
-          <h2>Everything in Plus</h2><div className="rule" />
-          <ul className="checks">{PLUS_PERKS.map((x) => <li key={x}>{x}</li>)}</ul>
+          <h2>{t("Everything in Plus")}</h2><div className="rule" />
+          <ul className="checks">{PLUS_PERKS.map((x) => <li key={x}>{t(x)}</li>)}</ul>
         </section>
         <div className="plans">
           <section className="card plan-card">
-            <h2>Just me</h2><p className="sub" style={{ margin: '4px 0 12px' }}>Plus for your account.</p>
+            <h2>{t("Just me")}</h2><p className="sub" style={{ margin: '4px 0 12px' }}>{t("Plus for your account.")}</p>
             {PLUS_PRICE.individual && <p className="plan-price">{PLUS_PRICE.individual}</p>}
-            <button className="btn primary wide" disabled={!!busy} onClick={() => buy('individual')}>{busy === 'individual' ? 'Opening checkout…' : 'Get Plus'}</button>
+            <button className="btn primary wide" disabled={!!busy} onClick={() => buy('individual')}>{busy === 'individual' ? t('Opening checkout…') : t('Get Plus')}</button>
           </section>
           <section className="card plan-card together">
-            <h2>💞 Couples</h2><p className="sub" style={{ margin: '4px 0 12px' }}>One payment covers both of you{S.couple ? ` (you and ${S.couple.partner_name.split(' ')[0]})` : ' once you connect accounts'}.</p>
+            <h2>{t("💞 Couples")}</h2><p className="sub" style={{ margin: '4px 0 12px' }}>One payment covers both of you{S.couple ? ` (you and ${S.couple.partner_name.split(' ')[0]})` : ' once you connect accounts'}.</p>
             {PLUS_PRICE.couple && <p className="plan-price">{PLUS_PRICE.couple}</p>}
-            <button className="btn primary wide" disabled={!!busy} onClick={() => buy('couple')}>{busy === 'couple' ? 'Opening checkout…' : 'Get the couples plan'}</button>
+            <button className="btn primary wide" disabled={!!busy} onClick={() => buy('couple')}>{busy === 'couple' ? t('Opening checkout…') : t('Get the couples plan')}</button>
           </section>
         </div>
-        <p className="hint" style={{ textAlign: 'center' }}>{mode === 'user' ? 'You’ll pay securely with Stripe. Plus renews monthly until you cancel, which you can do any time from your profile.' : 'Create a free account first, then upgrade from your profile.'}</p>
-        <p className="hint" style={{ textAlign: 'center', marginTop: 0 }}><a href="/terms" target="_blank" rel="noopener">Terms of Service</a> · <a href="/privacy" target="_blank" rel="noopener">Privacy Policy</a></p>
+        <p className="hint" style={{ textAlign: 'center' }}>{mode === 'user' ? t('You’ll pay securely with Stripe. Plus renews monthly until you cancel, which you can do any time from your profile.') : t('Create a free account first, then upgrade from your profile.')}</p>
+        <p className="hint" style={{ textAlign: 'center', marginTop: 0 }}><a href="/terms" target="_blank" rel="noopener">{t("Terms of Service")}</a> · <a href="/privacy" target="_blank" rel="noopener">{t("Privacy Policy")}</a></p>
       </div>
     </div>
   );
@@ -71,9 +72,9 @@ export function PlusLock({ reason, title, text }: { reason: string; title: strin
   const { setPlusOpen } = useWW();
   return (
     <section className="card locked">
-      <div className="card-head"><h2>{title}</h2><span className="badge">Plus</span></div>
+      <div className="card-head"><h2>{title}</h2><span className="badge">{t("Plus")}</span></div>
       <p style={{ margin: '0 0 10px', color: 'var(--muted)' }}>{text}</p>
-      <button className="btn primary" onClick={() => setPlusOpen(reason)}>See WellWheel Plus</button>
+      <button className="btn primary" onClick={() => setPlusOpen(reason)}>{t("See WellWheel Plus")}</button>
     </section>
   );
 }
@@ -84,7 +85,7 @@ export function PillarReport() {
   const { TODAY, T } = today();
   const ym = T.slice(0, 7);
   const daysSoFar = TODAY.getDate();
-  const monthName = TODAY.toLocaleDateString('en-US', { month: 'long' });
+  const monthName = TODAY.toLocaleDateString(loc(), { month: 'long' });
   const rows = PILLARS.map((p) => {
     const gs = S.goals.filter((g) => g.pillar === p.id);
     const days = new Set<string>();
@@ -97,32 +98,32 @@ export function PillarReport() {
   const quiet = rows.filter((r) => r.goals > 0 && r.days === 0);
   const empty = rows.filter((r) => r.goals === 0);
   const focus: { p: typeof PILLARS[number]; why: string } | null =
-    quiet[0] ? { p: quiet[0].p, why: `You have ${quiet[0].goals === 1 ? 'a goal' : 'goals'} here but haven’t checked in yet this month.` }
-    : active.length && active[active.length - 1].days < daysSoFar / 3 ? { p: active[active.length - 1].p, why: 'It got the least of your energy this month.' }
-    : empty[0] ? { p: empty[0].p, why: 'You don’t have a goal here yet. One small goal is a good start.' } : null;
+    quiet[0] ? { p: quiet[0].p, why: t(quiet[0].goals === 1 ? 'You have a goal here but haven’t checked in yet this month.' : 'You have goals here but haven’t checked in yet this month.') }
+    : active.length && active[active.length - 1].days < daysSoFar / 3 ? { p: active[active.length - 1].p, why: t('It got the least of your energy this month.') }
+    : empty[0] ? { p: empty[0].p, why: t('You don’t have a goal here yet. One small goal is a good start.') } : null;
   const grat = S.gratitude.filter((g) => g.date.startsWith(ym)).length;
   const jr = Object.keys(S.journal).filter((d) => d.startsWith(ym) && S.journal[d].text).length;
   return (
     <section className="card">
-      <div className="card-head"><h2>{monthName} pillar report</h2><span className="badge">Plus</span></div>
+      <div className="card-head"><h2>{monthName} pillar report</h2><span className="badge">{t("Plus")}</span></div>
       <p className="sub" style={{ marginTop: 0 }}>Days you checked in on each pillar, out of {daysSoFar} day{daysSoFar === 1 ? '' : 's'} so far this month.</p>
       <div className="hbars">
         {rows.map((r) => (
           <div className="hb" key={r.p.id} title={`${r.p.name}: ${r.days} day${r.days === 1 ? '' : 's'}`}>
             <span className="hb-l" style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ color: r.p.color, display: 'flex' }}><Icon id={r.p.id as PillarId} size={14} /></span>{r.p.name}</span>
             <span className="hb-t"><span style={{ width: `${Math.max(r.days ? 3 : 0, Math.min(100, (r.days / daysSoFar) * 100))}%`, background: r.p.color }} /></span>
-            <span className="hb-v">{r.goals ? `${r.days} day${r.days === 1 ? '' : 's'}` : <span className="sub">no goal</span>}</span>
+            <span className="hb-v">{r.goals ? t(r.days === 1 ? '{n} day' : '{n} days', { n: r.days }) : <span className="sub">{t("no goal")}</span>}</span>
           </div>
         ))}
       </div>
       <div className="facts" style={{ marginTop: 14 }}>
-        <div><b>{active.length ? active[0].p.name : '—'}</b><span>got the most energy</span></div>
+        <div><b>{active.length ? active[0].p.name : '—'}</b><span>{t("got the most energy")}</span></div>
         <div><b>{quiet.length + empty.length}</b><span>pillar{quiet.length + empty.length === 1 ? '' : 's'} left out so far</span></div>
         <div><b>{jr}</b><span>journal entr{jr === 1 ? 'y' : 'ies'}</span></div>
         <div><b>{grat}</b><span>gratitude line{grat === 1 ? '' : 's'}</span></div>
       </div>
       {focus && (
-        <div className="said" style={{ marginTop: 14 }}><span>Suggested focus for next month</span>
+        <div className="said" style={{ marginTop: 14 }}><span>{t("Suggested focus for next month")}</span>
           <p><b style={{ color: focus.p.color }}>{focus.p.name}.</b> {focus.why}</p>
           <button className="btn small" style={{ marginTop: 8 }} onClick={() => setWizard({ pillar: focus.p.id as PillarId })}>Set a {focus.p.name.toLowerCase()} goal</button>
         </div>
@@ -145,33 +146,33 @@ export function PlusStatus() {
       const res = await fetch('/api/stripe/portal', { method: 'POST', headers: { Authorization: 'Bearer ' + data.session?.access_token } });
       const body = await res.json().catch(() => ({}));
       if (body.url) { window.location.href = body.url; return; }
-      toast(body.error || 'That page isn’t available right now.');
-    } catch { toast('Check your connection and try again.'); }
+      toast(body.error || t('That page isn’t available right now.'));
+    } catch { toast(t("Check your connection and try again.")); }
     setBusy(false);
   };
   const until = p.until ? fmtDate(key(new Date(p.until)), { month: 'long', day: 'numeric', year: 'numeric' }) : '';
   return (
     <section className="card" style={{ marginTop: 14 }}>
-      <div className="card-head"><h2>WellWheel Plus</h2>{p.plus && <span className="badge">Plus</span>}</div>
+      <div className="card-head"><h2>{t("WellWheel Plus")}</h2>{p.plus && <span className="badge">{t("Plus")}</span>}</div>
       {p.plus ? (<>
-        <p style={{ marginTop: 0 }}>{p.status === 'comp' ? (p.until ? 'You have free Plus.' : 'You have Plus.') : p.source === 'partner' ? `Included with ${p.paid_by || 'your partner'}’s couples plan.` : `You’re on the ${p.plan === 'couple' ? 'couples' : 'individual'} plan${p.plan === 'couple' ? ', which covers your partner too' : ''}.`}</p>
-        {until && <p className="sub" style={{ marginTop: 0 }}>{p.status === 'comp' ? `Free until ${until}.` : p.status === 'canceled' ? `Ends ${until}.` : `Renews ${until}.`}</p>}
-        {p.status === 'past_due' && <p className="note">Your last payment didn’t go through. Update your card to keep Plus.</p>}
-        {p.can_manage && <button className="btn" disabled={busy} onClick={manage}>{busy ? 'Opening…' : 'Manage subscription'}</button>}
+        <p style={{ marginTop: 0 }}>{p.status === 'comp' ? (p.until ? t('You have free Plus.') : t('You have Plus.')) : p.source === 'partner' ? t('Included with {name}’s couples plan.', { name: p.paid_by || t('your partner') }) : t(p.plan === 'couple' ? 'You’re on the couples plan, which covers your partner too.' : 'You’re on the individual plan.')}</p>
+        {until && <p className="sub" style={{ marginTop: 0 }}>{p.status === 'comp' ? t('Free until {d}.', { d: until }) : p.status === 'canceled' ? t('Ends {d}.', { d: until }) : t('Renews {d}.', { d: until })}</p>}
+        {p.status === 'past_due' && <p className="note">{t("Your last payment didn’t go through. Update your card to keep Plus.")}</p>}
+        {p.can_manage && <button className="btn" disabled={busy} onClick={manage}>{busy ? 'Opening…' : t('Manage subscription')}</button>}
       </>) : (<>
-        <p style={{ marginTop: 0, color: 'var(--muted)' }}>All 9 pillars, custom goals, the monthly pillar report, every challenge, all worksheets, and couple connection.</p>
+        <p style={{ marginTop: 0, color: 'var(--muted)' }}>{t("All 9 pillars, custom goals, the monthly pillar report, every challenge, all worksheets, and couple connection.")}</p>
         <div className="row" style={{ flexWrap: 'wrap', gap: 8 }}>
-          <button className="btn primary" onClick={() => setPlusOpen('profile')}>See WellWheel Plus</button>
-          {p.can_manage && <button className="btn" disabled={busy} onClick={manage}>{busy ? 'Opening…' : 'Billing & receipts'}</button>}
+          <button className="btn primary" onClick={() => setPlusOpen('profile')}>{t("See WellWheel Plus")}</button>
+          {p.can_manage && <button className="btn" disabled={busy} onClick={manage}>{busy ? 'Opening…' : t('Billing & receipts')}</button>}
         </div>
         <form className="row" style={{ marginTop: 14 }} onSubmit={async (e) => {
           e.preventDefault(); if (!code.trim()) return; setBusy(true); setCodeErr('');
-          try { await act.redeemCode(code.trim()); setCode(''); toast('Code applied. Welcome to WellWheel Plus!'); }
-          catch (err: any) { setCodeErr(/function|schema/i.test(err?.message || '') ? 'Codes aren’t set up yet.' : err?.message || 'That code didn’t work.'); }
+          try { await act.redeemCode(code.trim()); setCode(''); toast(t("Code applied. Welcome to WellWheel Plus!")); }
+          catch (err: any) { setCodeErr(/function|schema/i.test(err?.message || '') ? t('Codes aren’t set up yet.') : err?.message || t('That code didn’t work.')); }
           setBusy(false);
         }}>
-          <input type="text" placeholder="Have a code?" aria-label="Plus code" autoCapitalize="characters" value={code} onChange={(e) => setCode(e.target.value)} />
-          <button className="btn" type="submit" disabled={busy}>Apply</button>
+          <input type="text" placeholder={t("Have a code?")} aria-label={t("Plus code")} autoCapitalize="characters" value={code} onChange={(e) => setCode(e.target.value)} />
+          <button className="btn" type="submit" disabled={busy}>{t("Apply")}</button>
         </form>
         {codeErr && <p className="autherr" role="alert" style={{ marginTop: 8 }}>{codeErr}</p>}
       </>)}

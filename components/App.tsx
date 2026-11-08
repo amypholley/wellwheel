@@ -10,6 +10,8 @@ import { Profile } from './Profile';
 import { LogoWheel } from './ui';
 import { PlusSheet } from './Plus';
 import { FeedbackSheet } from './Feedback';
+import { LangPicker } from './LangPicker';
+import { t } from '@/lib/i18n';
 
 const TABS: [View, string, string][] = [
   ['today', 'Today', '<circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6 5.6 18.4"/>'],
@@ -51,21 +53,21 @@ function MobileMenu() {
   return (
     <>
       <div className="mtop">
-        <button className="mbtn" aria-label="Open menu" aria-expanded={open} aria-controls="mdrawer" onClick={() => setOpen(true)}>
+        <button className="mbtn" aria-label={t("Open menu")} aria-expanded={open} aria-controls="mdrawer" onClick={() => setOpen(true)}>
           <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
-          <span>Menu</span>
+          <span>{t("Menu")}</span>
         </button>
-        <span className="mtitle">{current ? current[1] : 'WellWheel'}</span>
+        <span className="mtitle">{current ? t(current[1]) : 'WellWheel'}</span>
       </div>
       {open && <div className="mscrim" onClick={() => setOpen(false)} />}
-      <nav id="mdrawer" className={`mdrawer ${open ? 'open' : ''}`} aria-label="Main" aria-hidden={!open}>
+      <nav id="mdrawer" className={`mdrawer ${open ? 'open' : ''}`} aria-label={t("Main")} aria-hidden={!open}>
         <div className="mdrawer-head">
-          <div><div className="brand">The Holistic Ecosystem</div><b className="mdrawer-name">WellWheel</b></div>
-          <button className="x" aria-label="Close menu" onClick={() => setOpen(false)} tabIndex={open ? 0 : -1}>×</button>
+          <div><div className="brand">{t("The Holistic Ecosystem")}</div><b className="mdrawer-name">{t("WellWheel")}</b></div>
+          <button className="x" aria-label={t("Close menu")} onClick={() => setOpen(false)} tabIndex={open ? 0 : -1}>×</button>
         </div>
         {TABS.map(([id, label, d]) => (
           <button key={id} tabIndex={open ? 0 : -1} aria-current={view === id ? 'page' : undefined} onClick={() => go(() => setView(id))}>
-            {tabIcon(d)}<span>{label}</span>
+            {tabIcon(d)}<span>{t(label)}</span>
           </button>
         ))}
         <div className="mdrawer-sep" />
@@ -73,15 +75,16 @@ function MobileMenu() {
           {tabIcon('<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/>')}<span>Profile & account</span>
         </button>
         <button tabIndex={open ? 0 : -1} onClick={() => go(() => setFeedbackOpen(true))}>
-          {tabIcon('<path d="M4 5h16v11H8l-4 4z"/>')}<span>Send feedback</span>
+          {tabIcon('<path d="M4 5h16v11H8l-4 4z"/>')}<span>{t("Send feedback")}</span>
         </button>
+        <div style={{ padding: '10px 14px 0' }}><LangPicker /></div>
       </nav>
     </>
   );
 }
 
 function Shell() {
-  const { mode, view, setView, isPlus, dayKey } = useWW();
+  const { mode, view, setView, isPlus, dayKey, lang } = useWW();
   if (mode === 'loading') return <div className="loading"><LogoWheel size={64} /></div>;
   const screen = view === 'today' ? <Today /> : view === 'pillars' ? <Pillars /> : view === 'goals' ? <Goals /> : view === 'progress' ? <Progress />
     : view === 'journal' ? <Journal /> : view === 'grateful' ? <Gratitude /> : view === 'portfolio' ? <Resources key={'portfolio' + isPlus} portfolio /> : view === 'resources' ? <Resources key={'resources' + isPlus} /> : <Adventures />;
@@ -89,11 +92,11 @@ function Shell() {
     <>
       {mode !== 'auth' && (<>
         <MobileMenu />
-        <div className="app" key={dayKey}>{screen}</div>
-        <nav className="tabs" aria-label="Main"><div className="in">
+        <div className="app" key={dayKey + lang}>{screen}</div>
+        <nav className="tabs" aria-label={t("Main")}><div className="in">
           {TABS.map(([id, label, d]) => (
             <button key={id} aria-current={view === id ? 'page' : undefined} onClick={() => setView(id)}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" dangerouslySetInnerHTML={{ __html: d }} />{label}
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" dangerouslySetInnerHTML={{ __html: d }} />{t(label)}
             </button>))}
         </div></nav>
       </>)}

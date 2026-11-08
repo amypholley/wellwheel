@@ -5,6 +5,7 @@ import { db, loadPlus, loadProfile, loadState, Profile } from '@/lib/db';
 import { PlusInfo } from '@/lib/plus';
 import { Goal, JournalEntry, State, blankState, key, seedState, today, uid } from '@/lib/core';
 import { PillarId } from '@/lib/data';
+import { setLang, startLang } from '@/lib/i18n';
 
 export type Mode = 'loading' | 'auth' | 'guest' | 'user';
 export type View = 'today' | 'pillars' | 'goals' | 'progress' | 'journal' | 'grateful' | 'portfolio' | 'resources' | 'adventures';
@@ -36,6 +37,11 @@ function useStoreValue() {
   const [pillarSel, setPillarSel] = useState<PillarId | null>(null);
   const setView = (v: View) => { if (v === 'pillars') setPillarSel(null); setViewRaw(v); if (typeof window !== 'undefined') window.scrollTo(0, 0); };
   const openPillar = (pid: PillarId | null) => { setPillarSel(pid); setViewRaw('pillars'); if (typeof window !== 'undefined') window.scrollTo(0, 0); };
+
+  // Language: start in the one picked before (or the phone's), and redraw everything when it changes
+  const [lang, setLangState] = useState('en');
+  useEffect(() => { const l = startLang(); if (l !== 'en') setLang(l).then(() => setLangState(l)); }, []);
+  const changeLang = async (code: string) => { await setLang(code); setLangState(code); };
 
   const loadUser = useCallback(async () => {
     setLoadError('');
@@ -249,7 +255,7 @@ function useStoreValue() {
     feedbackOpen, setFeedbackOpen,
     isPlus: mode === 'guest' ? !guestFree : plusInfo.plus, plusInfo, plusOpen, setPlusOpen,
     intent, setIntent, mode, S, profile, recovery, setRecovery, loadError, view, setView, wizard, setWizard,
-    profileOpen, setProfileOpen, authOpen, setAuthOpen, toastMsg, toast, act, loadUser, dayKey, pillarSel, openPillar,
+    profileOpen, setProfileOpen, authOpen, setAuthOpen, toastMsg, toast, act, loadUser, dayKey, pillarSel, openPillar, lang, changeLang,
   };
 }
 
