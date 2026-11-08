@@ -238,11 +238,18 @@ export function mountAdventures(root, api) {
   }
   function openLightbox(target, i) {
     const list = photoList(target); const lb = root.querySelector('#lightbox'); if (!list[i]) return;
-    lb.innerHTML = `<div class="lb-in"><img src="${esc(url(list[i]) || '')}" alt=""><div class="row" style="justify-content:space-between"><button class="btn" data-lb="close">Close</button>${target === 'none' ? '' : '<button class="btn" data-lb="del">Delete photo</button>'}</div></div>`;
+    const n = list.length, go = (d) => openLightbox(target, (i + d + n) % n);
+    lb.innerHTML = `<div class="lb-in"><div class="lb-stage">${n > 1 ? '<button class="lb-nav prev" data-lb="prev" aria-label="Previous photo">‹</button>' : ''}<img src="${esc(url(list[i]) || '')}" alt="">${n > 1 ? '<button class="lb-nav next" data-lb="next" aria-label="Next photo">›</button>' : ''}</div>${n > 1 ? `<div class="lb-count">${i + 1} / ${n}</div>` : ''}<div class="row" style="justify-content:space-between"><button class="btn" data-lb="close">Close</button>${target === 'none' ? '' : '<button class="btn" data-lb="del">Delete photo</button>'}</div></div>`;
     lb.classList.add('open');
+    let sx = null;
+    lb.ontouchstart = (e) => { sx = e.touches[0].clientX; };
+    lb.ontouchend = (e) => { if (sx === null || n < 2) return; const dx = e.changedTouches[0].clientX - sx; sx = null; if (Math.abs(dx) > 40) go(dx < 0 ? 1 : -1); };
+    document.onkeydown = (e) => { if (!lb.classList.contains('open')) return; if (e.key === 'ArrowRight') go(1); else if (e.key === 'ArrowLeft') go(-1); else if (e.key === 'Escape') lb.classList.remove('open'); };
     lb.onclick = (e) => {
       const b = e.target.closest('[data-lb]');
-      if (e.target === lb || (b && b.dataset.lb === 'close')) lb.classList.remove('open');
+      if (b && b.dataset.lb === 'prev') go(-1);
+      else if (b && b.dataset.lb === 'next') go(1);
+      else if (e.target === lb || (b && b.dataset.lb === 'close')) lb.classList.remove('open');
       else if (b && b.dataset.lb === 'del') { const id = list[i]; list.splice(i, 1); api.deletePhoto(id); save(); lb.classList.remove('open'); rerenderKeep(); toast('Photo deleted'); }
     };
   }
