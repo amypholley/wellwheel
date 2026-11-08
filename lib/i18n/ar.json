@@ -753,5 +753,17 @@
 "{n} lines this month, {all} all time.": "{n} أسطر هذا الشهر، و{all} إجمالًا.",
 "{n} day left until {date}": "بقي {n} يوم حتى {date}",
 "{n} days left until {date}": "بقي {n} أيام حتى {date}",
-"{n} active · {p} of 9 pillars": "{n} نشطة · {p} من 9 ركائز"
+"{n} active · {p} of 9 pillars": "{n} نشطة · {p} من 9 ركائز",
+"Blog": "المدونة",
+"‹ All posts": "‹ كل المقالات",
+"Comment or share on Substack": "علّق أو شارك على Substack",
+"From the blog": "من المدونة",
+"Stories, ideas, and encouragement for every part of your life.": "قصص وأفكار وتشجيع لكل جانب من جوانب حياتك.",
+"Loading posts…": "جارٍ تحميل المقالات…",
+"The blog couldn’t load right now.": "تعذّر تحميل المدونة الآن.",
+"Open the blog": "افتح المدونة",
+"No posts yet. Check back soon.": "لا توجد مقالات بعد. عُد قريبًا.",
+"Read": "اقرأ",
+"Get new posts by email": "احصل على المقالات الجديدة بالبريد",
+"Subscribe": "اشترك"
 }

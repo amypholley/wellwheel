@@ -11,6 +11,7 @@ import { LogoWheel } from './ui';
 import { PlusSheet } from './Plus';
 import { FeedbackSheet } from './Feedback';
 import { LangPicker } from './LangPicker';
+import { Blog } from './Blog';
 import { t } from '@/lib/i18n';
 
 const TABS: [View, string, string][] = [
@@ -23,6 +24,7 @@ const TABS: [View, string, string][] = [
   ['portfolio', 'Portfolio', '<ellipse cx="9" cy="7" rx="4.5" ry="2"/><path d="M4.5 7v4c0 1.1 2 2 4.5 2s4.5-.9 4.5-2V7"/><ellipse cx="15" cy="14" rx="4.5" ry="2"/><path d="M10.5 14v4c0 1.1 2 2 4.5 2s4.5-.9 4.5-2v-4"/>'],
   ['resources', 'Resources', '<path d="M4 19V5a1 1 0 0 1 1-1h4v16H5a1 1 0 0 1-1-1zM9 4h4v16H9zM14 5.5l3.8-1 3.7 14.5-3.8 1z"/>'],
   ['adventures', 'Adventures', '<circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/>'],
+  ['blog', 'Blog', '<path d="M4 5h16v14H4z"/><path d="M8 9h8M8 12h8M8 15h5"/>'],
 ];
 
 function Toast() {
@@ -87,7 +89,7 @@ function Shell() {
   const { mode, view, setView, isPlus, dayKey, lang } = useWW();
   if (mode === 'loading') return <div className="loading"><LogoWheel size={64} /></div>;
   const screen = view === 'today' ? <Today /> : view === 'pillars' ? <Pillars /> : view === 'goals' ? <Goals /> : view === 'progress' ? <Progress />
-    : view === 'journal' ? <Journal /> : view === 'grateful' ? <Gratitude /> : view === 'portfolio' ? <Resources key={'portfolio' + isPlus} portfolio /> : view === 'resources' ? <Resources key={'resources' + isPlus} /> : <Adventures />;
+    : view === 'journal' ? <Journal /> : view === 'grateful' ? <Gratitude /> : view === 'portfolio' ? <Resources key={'portfolio' + isPlus} portfolio /> : view === 'resources' ? <Resources key={'resources' + isPlus} /> : view === 'blog' ? <Blog /> : <Adventures />;
   return (
     <>
       {mode !== 'auth' && (<>

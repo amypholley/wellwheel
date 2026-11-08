@@ -753,5 +753,17 @@
 "{n} lines this month, {all} all time.": "Рядків цього місяця: {n}, усього: {all}.",
 "{n} day left until {date}": "До {date} залишилося днів: {n}",
 "{n} days left until {date}": "До {date} залишилося днів: {n}",
-"{n} active · {p} of 9 pillars": "Активних: {n} · {p} з 9 опор"
+"{n} active · {p} of 9 pillars": "Активних: {n} · {p} з 9 опор",
+"Blog": "Блог",
+"‹ All posts": "‹ Усі дописи",
+"Comment or share on Substack": "Коментувати або поділитися в Substack",
+"From the blog": "З блогу",
+"Stories, ideas, and encouragement for every part of your life.": "Історії, ідеї та підтримка для кожної сфери вашого життя.",
+"Loading posts…": "Завантажуємо дописи…",
+"The blog couldn’t load right now.": "Зараз не вдалося завантажити блог.",
+"Open the blog": "Відкрити блог",
+"No posts yet. Check back soon.": "Дописів поки немає. Загляньте пізніше.",
+"Read": "Читати",
+"Get new posts by email": "Отримувати нові дописи поштою",
+"Subscribe": "Підписатися"
 }

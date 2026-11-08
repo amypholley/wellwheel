@@ -753,5 +753,17 @@
 "{n} lines this month, {all} all time.": "本月 {n} 条，总共 {all} 条。",
 "{n} day left until {date}": "距离 {date} 还有 {n} 天",
 "{n} days left until {date}": "距离 {date} 还有 {n} 天",
-"{n} active · {p} of 9 pillars": "{n} 个进行中 · 9 个支柱中的 {p} 个"
+"{n} active · {p} of 9 pillars": "{n} 个进行中 · 9 个支柱中的 {p} 个",
+"Blog": "博客",
+"‹ All posts": "‹ 全部文章",
+"Comment or share on Substack": "在 Substack 上评论或分享",
+"From the blog": "来自博客",
+"Stories, ideas, and encouragement for every part of your life.": "为你生活的每个方面带来故事、想法和鼓励。",
+"Loading posts…": "正在加载文章…",
+"The blog couldn’t load right now.": "博客暂时无法加载。",
+"Open the blog": "打开博客",
+"No posts yet. Check back soon.": "还没有文章，请稍后再来。",
+"Read": "阅读",
+"Get new posts by email": "通过邮件接收新文章",
+"Subscribe": "订阅"
 }

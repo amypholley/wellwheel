@@ -753,5 +753,17 @@
 "{n} lines this month, {all} all time.": "Bu ay {n} satır, toplam {all}.",
 "{n} day left until {date}": "{date} tarihine {n} gün kaldı",
 "{n} days left until {date}": "{date} tarihine {n} gün kaldı",
-"{n} active · {p} of 9 pillars": "{n} aktif · 9 sütundan {p}"
+"{n} active · {p} of 9 pillars": "{n} aktif · 9 sütundan {p}",
+"Blog": "Blog",
+"‹ All posts": "‹ Tüm yazılar",
+"Comment or share on Substack": "Substack’te yorum yap veya paylaş",
+"From the blog": "Blogdan",
+"Stories, ideas, and encouragement for every part of your life.": "Hayatının her alanı için hikâyeler, fikirler ve cesaret.",
+"Loading posts…": "Yazılar yükleniyor…",
+"The blog couldn’t load right now.": "Blog şu anda yüklenemedi.",
+"Open the blog": "Blogu aç",
+"No posts yet. Check back soon.": "Henüz yazı yok. Yakında tekrar bak.",
+"Read": "Oku",
+"Get new posts by email": "Yeni yazıları e-postayla al",
+"Subscribe": "Abone ol"
 }

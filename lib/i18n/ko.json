@@ -753,5 +753,17 @@
 "{n} lines this month, {all} all time.": "이번 달 {n}개, 전체 {all}개.",
 "{n} day left until {date}": "{date}까지 {n}일 남음",
 "{n} days left until {date}": "{date}까지 {n}일 남음",
-"{n} active · {p} of 9 pillars": "{n}개 진행 중 · 기둥 9개 중 {p}개"
+"{n} active · {p} of 9 pillars": "{n}개 진행 중 · 기둥 9개 중 {p}개",
+"Blog": "블로그",
+"‹ All posts": "‹ 모든 글",
+"Comment or share on Substack": "Substack에서 댓글 달기 또는 공유",
+"From the blog": "블로그에서",
+"Stories, ideas, and encouragement for every part of your life.": "삶의 모든 부분을 위한 이야기, 아이디어, 응원.",
+"Loading posts…": "글을 불러오는 중…",
+"The blog couldn’t load right now.": "지금은 블로그를 불러올 수 없어요.",
+"Open the blog": "블로그 열기",
+"No posts yet. Check back soon.": "아직 글이 없어요. 곧 다시 들러 주세요.",
+"Read": "읽기",
+"Get new posts by email": "새 글을 이메일로 받기",
+"Subscribe": "구독하기"
 }

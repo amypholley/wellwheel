@@ -8,7 +8,7 @@ import { PillarId } from '@/lib/data';
 import { setLang, startLang } from '@/lib/i18n';
 
 export type Mode = 'loading' | 'auth' | 'guest' | 'user';
-export type View = 'today' | 'pillars' | 'goals' | 'progress' | 'journal' | 'grateful' | 'portfolio' | 'resources' | 'adventures';
+export type View = 'today' | 'pillars' | 'goals' | 'progress' | 'journal' | 'grateful' | 'portfolio' | 'resources' | 'adventures' | 'blog';
 
 function useStoreValue() {
   const [mode, setModeRaw] = useState<Mode>('loading');

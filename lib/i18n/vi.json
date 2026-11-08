@@ -753,5 +753,17 @@
 "{n} lines this month, {all} all time.": "{n} dòng tháng này, tổng cộng {all}.",
 "{n} day left until {date}": "Còn {n} ngày đến {date}",
 "{n} days left until {date}": "Còn {n} ngày đến {date}",
-"{n} active · {p} of 9 pillars": "{n} đang thực hiện · {p}/9 trụ cột"
+"{n} active · {p} of 9 pillars": "{n} đang thực hiện · {p}/9 trụ cột",
+"Blog": "Blog",
+"‹ All posts": "‹ Tất cả bài viết",
+"Comment or share on Substack": "Bình luận hoặc chia sẻ trên Substack",
+"From the blog": "Từ blog",
+"Stories, ideas, and encouragement for every part of your life.": "Câu chuyện, ý tưởng và lời động viên cho mọi khía cạnh cuộc sống của bạn.",
+"Loading posts…": "Đang tải bài viết…",
+"The blog couldn’t load right now.": "Hiện không thể tải blog.",
+"Open the blog": "Mở blog",
+"No posts yet. Check back soon.": "Chưa có bài viết. Hãy quay lại sau nhé.",
+"Read": "Đọc",
+"Get new posts by email": "Nhận bài viết mới qua email",
+"Subscribe": "Đăng ký"
 }

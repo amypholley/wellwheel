@@ -753,5 +753,17 @@
 "{n} lines this month, {all} all time.": "{n} baris bulan ini, {all} total.",
 "{n} day left until {date}": "{n} hari lagi menuju {date}",
 "{n} days left until {date}": "{n} hari lagi menuju {date}",
-"{n} active · {p} of 9 pillars": "{n} aktif · {p} dari 9 pilar"
+"{n} active · {p} of 9 pillars": "{n} aktif · {p} dari 9 pilar",
+"Blog": "Blog",
+"‹ All posts": "‹ Semua tulisan",
+"Comment or share on Substack": "Komentari atau bagikan di Substack",
+"From the blog": "Dari blog",
+"Stories, ideas, and encouragement for every part of your life.": "Cerita, ide, dan semangat untuk setiap bagian hidupmu.",
+"Loading posts…": "Memuat tulisan…",
+"The blog couldn’t load right now.": "Blog tidak dapat dimuat saat ini.",
+"Open the blog": "Buka blog",
+"No posts yet. Check back soon.": "Belum ada tulisan. Kembali lagi nanti.",
+"Read": "Baca",
+"Get new posts by email": "Dapatkan tulisan baru lewat email",
+"Subscribe": "Berlangganan"
 }

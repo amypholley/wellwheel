@@ -753,5 +753,17 @@
 "{n} lines this month, {all} all time.": "Строк в этом месяце: {n}, всего: {all}.",
 "{n} day left until {date}": "До {date} осталось дней: {n}",
 "{n} days left until {date}": "До {date} осталось дней: {n}",
-"{n} active · {p} of 9 pillars": "Активных: {n} · {p} из 9 опор"
+"{n} active · {p} of 9 pillars": "Активных: {n} · {p} из 9 опор",
+"Blog": "Блог",
+"‹ All posts": "‹ Все записи",
+"Comment or share on Substack": "Комментировать или поделиться в Substack",
+"From the blog": "Из блога",
+"Stories, ideas, and encouragement for every part of your life.": "Истории, идеи и поддержка для каждой сферы вашей жизни.",
+"Loading posts…": "Загружаем записи…",
+"The blog couldn’t load right now.": "Сейчас не удалось загрузить блог.",
+"Open the blog": "Открыть блог",
+"No posts yet. Check back soon.": "Записей пока нет. Загляните позже.",
+"Read": "Читать",
+"Get new posts by email": "Получать новые записи по почте",
+"Subscribe": "Подписаться"
 }

@@ -753,5 +753,17 @@
 "{n} lines this month, {all} all time.": "{n} righe questo mese, {all} in tutto.",
 "{n} day left until {date}": "Manca {n} giorno al {date}",
 "{n} days left until {date}": "Mancano {n} giorni al {date}",
-"{n} active · {p} of 9 pillars": "{n} attivi · {p} pilastri su 9"
+"{n} active · {p} of 9 pillars": "{n} attivi · {p} pilastri su 9",
+"Blog": "Blog",
+"‹ All posts": "‹ Tutti gli articoli",
+"Comment or share on Substack": "Commenta o condividi su Substack",
+"From the blog": "Dal blog",
+"Stories, ideas, and encouragement for every part of your life.": "Storie, idee e incoraggiamento per ogni parte della tua vita.",
+"Loading posts…": "Caricamento degli articoli…",
+"The blog couldn’t load right now.": "Al momento non è possibile caricare il blog.",
+"Open the blog": "Apri il blog",
+"No posts yet. Check back soon.": "Ancora nessun articolo. Torna presto.",
+"Read": "Leggi",
+"Get new posts by email": "Ricevi i nuovi articoli via email",
+"Subscribe": "Iscriviti"
 }

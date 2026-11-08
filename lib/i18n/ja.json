@@ -753,5 +753,17 @@
 "{n} lines this month, {all} all time.": "今月{n}件、合計{all}件。",
 "{n} day left until {date}": "{date}まであと{n}日",
 "{n} days left until {date}": "{date}まであと{n}日",
-"{n} active · {p} of 9 pillars": "{n}件進行中 · 9本の柱のうち{p}本"
+"{n} active · {p} of 9 pillars": "{n}件進行中 · 9本の柱のうち{p}本",
+"Blog": "ブログ",
+"‹ All posts": "‹ すべての記事",
+"Comment or share on Substack": "Substackでコメント・シェア",
+"From the blog": "ブログより",
+"Stories, ideas, and encouragement for every part of your life.": "暮らしのあらゆる面に、物語とアイデアと励ましを。",
+"Loading posts…": "記事を読み込み中…",
+"The blog couldn’t load right now.": "ブログを読み込めませんでした。",
+"Open the blog": "ブログを開く",
+"No posts yet. Check back soon.": "まだ記事がありません。また見に来てください。",
+"Read": "読む",
+"Get new posts by email": "新しい記事をメールで受け取る",
+"Subscribe": "購読する"
 }

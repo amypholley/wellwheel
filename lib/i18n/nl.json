@@ -753,5 +753,17 @@
 "{n} lines this month, {all} all time.": "{n} regels deze maand, {all} in totaal.",
 "{n} day left until {date}": "Nog {n} dag tot {date}",
 "{n} days left until {date}": "Nog {n} dagen tot {date}",
-"{n} active · {p} of 9 pillars": "{n} actief · {p} van 9 pijlers"
+"{n} active · {p} of 9 pillars": "{n} actief · {p} van 9 pijlers",
+"Blog": "Blog",
+"‹ All posts": "‹ Alle berichten",
+"Comment or share on Substack": "Reageren of delen op Substack",
+"From the blog": "Van de blog",
+"Stories, ideas, and encouragement for every part of your life.": "Verhalen, ideeën en aanmoediging voor elk deel van je leven.",
+"Loading posts…": "Berichten laden…",
+"The blog couldn’t load right now.": "De blog kon nu niet worden geladen.",
+"Open the blog": "Blog openen",
+"No posts yet. Check back soon.": "Nog geen berichten. Kom snel terug.",
+"Read": "Lezen",
+"Get new posts by email": "Ontvang nieuwe berichten per e-mail",
+"Subscribe": "Abonneren"
 }

@@ -753,5 +753,17 @@
 "{n} lines this month, {all} all time.": "इस महीने {n} पंक्तियाँ, कुल {all}।",
 "{n} day left until {date}": "{date} तक {n} दिन बाकी",
 "{n} days left until {date}": "{date} तक {n} दिन बाकी",
-"{n} active · {p} of 9 pillars": "{n} सक्रिय · 9 में से {p} स्तंभ"
+"{n} active · {p} of 9 pillars": "{n} सक्रिय · 9 में से {p} स्तंभ",
+"Blog": "ब्लॉग",
+"‹ All posts": "‹ सभी पोस्ट",
+"Comment or share on Substack": "Substack पर टिप्पणी करें या साझा करें",
+"From the blog": "ब्लॉग से",
+"Stories, ideas, and encouragement for every part of your life.": "आपके जीवन के हर हिस्से के लिए कहानियाँ, विचार और हौसला।",
+"Loading posts…": "पोस्ट लोड हो रही हैं…",
+"The blog couldn’t load right now.": "ब्लॉग अभी लोड नहीं हो सका।",
+"Open the blog": "ब्लॉग खोलें",
+"No posts yet. Check back soon.": "अभी कोई पोस्ट नहीं। जल्द ही फिर देखें।",
+"Read": "पढ़ें",
+"Get new posts by email": "नई पोस्ट ईमेल पर पाएँ",
+"Subscribe": "सब्सक्राइब करें"
 }
