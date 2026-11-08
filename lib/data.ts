@@ -266,3 +266,22 @@ const GOAL_QS: [RegExp, string][] = [
   [/coping skill/i, 'Which skill did you use?'],
 ];
 export const goalQuestion = (title: string) => (GOAL_QS.find(([re]) => re.test(title)) || [null, ''])[1] as string;
+// Broader guess for goals people write themselves
+export function autoQuestion(title: string) {
+  const t = title.trim();
+  const known = goalQuestion(t); if (known) return known;
+  if (/\?\s*$/.test(t)) return t; // the goal is already a question
+  if (/\b(write|writing|jot)\b/i.test(t)) return 'What did you write?';
+  if (/\blist\b/i.test(t)) return 'What’s on your list?';
+  if (/\b(describe|answer|ask myself|record|note down|notice)\b/i.test(t)) return 'What did you notice?';
+  if (/\b(learn|study|practice)\b/i.test(t)) return 'What did you work on?';
+  if (/\b(share|tell|text|message|visit)\b/i.test(t)) return 'Who was it, and how did it go?';
+  if (/\b(read|listen|watch)\b/i.test(t)) return 'What was it, and what stood out?';
+  return '';
+}
+// The question a goal asks at check-in: the person's own choice (empty = off) if they set one, otherwise a guess
+export const questionFor = (tools: Record<string, any>, g: { id: string; title: string; type: string; amt?: boolean }) => {
+  if (g.type !== 'habit' || g.amt) return '';
+  const own = (tools.gq || {})[g.id];
+  return own !== undefined ? String(own) : autoQuestion(g.title);
+};

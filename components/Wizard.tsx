@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { P, PILLARS, PRESETS, PillarId, Preset } from '@/lib/data';
+import { P, PILLARS, PRESETS, PillarId, Preset, autoQuestion } from '@/lib/data';
 import { addMonths, fmtNum, key, smartSentence, today, uid } from '@/lib/core';
 import { Icon } from './ui';
 import { useWW } from './store';
@@ -36,12 +36,17 @@ export function Wizard() {
   const [g, setG] = useState<Draft | null>(null);
   const [err, setErr] = useState('');
   const [share, setShare] = useState(false);
+  // Ask a question at check-in: null means "use the suggestion for this goal's name"
+  const [askOn, setAskOn] = useState<boolean | null>(null);
+  const [askText, setAskText] = useState<string | null>(null);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!wizard) return;
     if (wizard.pillar && pillarLocked(wizard.pillar)) { setWizard(null); setPlusOpen('pillars'); return; }
+    setAskOn(null); setAskText(null);
     if (wizard.edit) { const e = wizard.edit; setPillar(e.pillar); setStep(3); setErr(''); setShare(!!e.coupleId);
+      const own = (S.tools.gq || {})[e.id]; if (own !== undefined) { setAskOn(own !== ''); setAskText(own || null); }
       setG({ pillar: e.pillar, title: e.title, type: e.type, count: e.count, per: e.per, unit: e.unit, target: e.target ?? '', why: e.why || '', deadline: e.deadline, sure: e.sure || 7, amt: e.amt, step: e.step, stepLabel: e.stepLabel, options: null });
     } else { setPillar(wizard.pillar || null); setStep(wizard.pillar ? 2 : 1); setG(null); setErr(''); setShare(!!wizard.share); }
     document.body.style.overflow = 'hidden';
@@ -93,16 +98,21 @@ export function Wizard() {
       if (t === 'habit' && ['$', 'lbs', 'done'].includes(unit)) unit = 'times';
       up({ type: t, amt: false, unit, target: t === 'target' && unit === 'done' ? 1 : g.target });
     };
+    const canAsk = g.type === 'habit' && !g.amt;
+    const suggestion = autoQuestion(g.title);
+    const askIsOn = askOn ?? !!suggestion, askQ = askText ?? suggestion;
+    const storeAsk = (id: string) => { if (!canAsk || (askOn === null && askText === null)) return; act.saveTool('gq', { ...(S.tools.gq || {}), [id]: askIsOn ? (askQ.trim() || suggestion || 'How did it go?') : '' }); };
     const save = () => {
       const n = normalize(g);
       if (!g.title.trim()) { setErr('Give your goal a name in the Specific box.'); return; }
       if (n.type === 'target' && !(n.target > 0)) { setErr('Pick or type an amount to reach.'); return; }
       if (editing) {
         act.updateGoal({ ...editing, title: g.title.trim(), type: n.type, count: n.count, per: n.per, unit: n.unit, target: n.type === 'target' ? n.target : undefined, why: (n.why || '').trim(), deadline: n.deadline, sure: n.sure, amt: n.type === 'habit' ? !!n.amt : false });
-        close(); toast('Goal updated'); return;
+        storeAsk(editing.id); close(); toast('Goal updated'); return;
       }
+      const newId = uid(); storeAsk(newId);
       act.addGoal({
-        id: uid(), amt: !!n.amt, step: n.step, stepLabel: n.stepLabel, pillar: n.pillar, title: g.title.trim(), type: n.type,
+        id: newId, amt: !!n.amt, step: n.step, stepLabel: n.stepLabel, pillar: n.pillar, title: g.title.trim(), type: n.type,
         count: n.count, per: n.per, unit: n.unit, target: n.type === 'target' ? n.target : undefined, why: (n.why || '').trim(), deadline: n.deadline, sure: n.sure,
         coupleId: share && S.couple ? S.couple.couple_id : null,
       });
@@ -148,6 +158,11 @@ export function Wizard() {
             </>)}
           </div>
         </div>
+        {canAsk && <div className="field">
+          <label className="ck"><input type="checkbox" checked={askIsOn} onChange={(e) => { setAskOn(e.target.checked); if (e.target.checked && !askQ) setAskText('How did it go?'); }} /><span>📝 Ask me a question when I check in <span className="sub">(answers save to my journal)</span></span></label>
+          {askIsOn && <input type="text" style={{ marginTop: 8 }} aria-label="Question to ask at check-in" maxLength={200} placeholder="e.g. What was your win today?" value={askQ} onChange={(e) => setAskText(e.target.value)} />}
+          {askIsOn && askOn === null && askText === null && <div className="hint" style={{ marginBottom: 0 }}>Suggested from your goal’s name. Change it to anything you like.</div>}
+        </div>}
         <div className="field">
           <label className="lbl" htmlFor="w-sure"><span className="letter">A</span>Achievable: how sure are you that you can do this? <span style={{ color: 'var(--plum)' }}>{g.sure}/10</span></label>
           <input type="range" min="1" max="10" id="w-sure" value={g.sure} onChange={(e) => up({ sure: Number(e.target.value) })} />

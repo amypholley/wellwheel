@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { P, PILLARS, goalQuestion } from '@/lib/data';
+import { P, PILLARS, goalQuestion, questionFor } from '@/lib/data';
 import { Goal, addDays, addMonths, dayFrac, dayVal, fmtDate, fmtNum, fromKey, goalWeekScore, key, pillarScore, smartSentence, today, todaysPrompt, goalStart, sumDays, sundayOf, total, weekMet, weekSum } from '@/lib/core';
 import { Icon, Wheel, initials } from './ui';
 import { firstName, useWW } from './store';
@@ -77,7 +77,7 @@ function GoalRowToday({ g, logOpen, setLogOpen }: { g: Goal; logOpen: string | n
   const [amount, setAmount] = useState('');
   useEffect(() => { if (logOpen === g.id) inputRef.current?.focus(); }, [logOpen, g.id]);
   // Goals that ask a question: answer it when you check in, and it's saved with the day
-  const q = g.type === 'habit' && !g.amt ? goalQuestion(g.title) : '';
+  const q = questionFor(S.tools, g);
   const [askOpen, setAskOpen] = useState(false);
   const [ans, setAns] = useState('');
   const notes: { d: string; t: string }[] = ((S.tools.gnotes || {})[g.id]) || [];
@@ -364,7 +364,7 @@ function GoalHistory() {
           <div className="goal-meta">{g.type === 'target' ? 'Reach a number' : g.per === 'day' ? `${g.count > 1 ? g.count + ' ' + g.unit + ' a day' : 'Every day'}` : `${g.count} ${g.unit} a week`}</div>
           {body}
           {(() => { const fk = key(from), tk = key(to); const ns = (((S.tools.gnotes || {})[g.id]) || []).filter((n: any) => n.d >= fk && n.d <= tk).slice().reverse();
-            return ns.length ? <details className="gnotes"><summary>{goalQuestion(g.title) ? 'Your answers' : 'Your notes'} ({ns.length})</summary><ul>{ns.map((n: any, i: number) => <li key={i}><small>{fmtDate(n.d, { weekday: 'short', month: 'short', day: 'numeric' })}</small>{n.t}</li>)}</ul></details> : null; })()}
+            return ns.length ? <details className="gnotes"><summary>{questionFor(S.tools, g) ? 'Your answers' : 'Your notes'} ({ns.length})</summary><ul>{ns.map((n: any, i: number) => <li key={i}><small>{fmtDate(n.d, { weekday: 'short', month: 'short', day: 'numeric' })}</small>{n.t}</li>)}</ul></details> : null; })()}
           {daysLeft !== null && daysLeft >= 0 && <div className="goal-meta" style={{ marginTop: 6 }}>{daysLeft} day{daysLeft === 1 ? '' : 's'} left until {fmtDate(g.deadline, { month: 'short', day: 'numeric', year: 'numeric' })}</div>}
         </div>
       </div>
@@ -422,7 +422,7 @@ export function Journal() {
   const pr = todaysPrompt(S, shift, challengeOn), p = P[pr.pillar];
   const past = Object.entries(S.journal).filter(([, v]) => v.text).sort((a, b) => (a[0] < b[0] ? 1 : -1));
   // Answers written when checking in on goals (see GoalRowToday), shown with the journal by day
-  const goalAnswers = S.goals.flatMap((g) => (((S.tools.gnotes || {})[g.id]) || []).map((n: { d: string; t: string }) => ({ ...n, goal: g.title, pillar: g.pillar, q: goalQuestion(g.title) || 'Note' })));
+  const goalAnswers = S.goals.flatMap((g) => (((S.tools.gnotes || {})[g.id]) || []).map((n: { d: string; t: string }) => ({ ...n, goal: g.title, pillar: g.pillar, q: questionFor(S.tools, g) || 'Note' })));
   const entryDays = Array.from(new Set([...past.map(([k]) => k), ...goalAnswers.map((x) => x.d)])).sort((a, b) => (a < b ? 1 : -1));
   const preNov = TODAY < new Date(2026, 10, 1);
   // Saves automatically a moment after you stop typing, and when you leave the page.
