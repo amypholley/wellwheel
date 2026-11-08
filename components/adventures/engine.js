@@ -76,7 +76,7 @@ export function mountAdventures(root, api) {
     ${st === 'want' ? `<div class="grid2" style="margin-top:10px"><label class="sub" for="pyear">Target year</label><input type="number" id="pyear" data-av="year" placeholder="e.g. 2028" value="${esc(pl.year || '')}"></div>` : ''}
     ${st ? `<label class="lbl" style="margin-top:10px" for="pnote">${st === 'been' ? 'Memories' : 'What I want to see or do'}</label><textarea id="pnote" data-av="note" rows="2">${esc(pl.note || '')}</textarea>` : ''}
     ${st === 'been' ? `<div style="margin-top:10px">${photoGrid(pl.photos, 'place')}${photoInput('place')}</div>` : ''}
-    ${st ? `<button class="linkish" style="margin-top:10px" data-a="status" data-v="">Clear this place</button>` : ''}</div>`;
+    ${st ? `<div class="row" style="margin-top:14px;justify-content:space-between;align-items:center"><button class="linkish" data-a="status" data-v="">Clear this place</button><button class="btn primary" data-a="saveplace">Save</button></div>` : '<p class="hint" style="margin-bottom:0">Choose one to add it to your map.</p>'}</div>`;
   }
   function placeChips(status) { const ids = Object.keys(A.places).filter((k) => A.places[k].status === status && k.startsWith(MAPS[ui.mapMode].prefix)); return ids.length ? `<div class="chips">${ids.sort((a, b) => placeName(a).localeCompare(placeName(b))).map((k) => `<button class="chip" data-a="select" data-v="${esc(k)}"><span class="dot" style="background:${status === 'been' ? BEEN : WANT};margin-right:6px"></span>${esc(placeName(k))}${(A.places[k].photos || []).length ? ' 📷' : ''}</button>`).join('')}</div>` : '<p class="empty">None yet.</p>'; }
   function togetherSets() {
@@ -177,6 +177,7 @@ export function mountAdventures(root, api) {
     else if (a === 'mapwho') { ui.mapWho = b.dataset.v; rerenderKeep(); }
     else if (a === 'select') { ui.place = b.dataset.v; render(); root.querySelector('#map')?.scrollIntoView({ block: 'start' }); }
     else if (a === 'closeplace') { ui.place = null; rerenderKeep(); }
+    else if (a === 'saveplace') { const n = placeName(ui.place); save(); flush(); ui.place = null; rerenderKeep(); toast(`${n} saved`); }
     else if (a === 'status') {
       const id = ui.place, v = b.dataset.v;
       if (!v) { const p = A.places[id]; if (p && (p.photos || []).length) p.status = ''; else delete A.places[id]; }
