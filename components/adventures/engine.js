@@ -86,6 +86,7 @@ export function mountAdventures(root, api) {
 
   /* ---------- map ---------- */
   const placeStatus = (id) => (A.places[id] || {}).status || '';
+  function placeEn(id) { const [pre, code] = id.split(':'); const src = pre === 'W' ? WORLD : USA; const f = src.find((x) => String(x.id) === code) || {}; return f.en || f.name || code; }
   function placeName(id) { const [pre, code] = id.split(':'); const src = pre === 'W' ? WORLD : USA; return (src.find((x) => String(x.id) === code) || {}).name || code; }
   function counts() { let wb = 0, ww = 0, sb = 0, sw = 0; Object.entries(A.places).forEach(([k, v]) => { if (k.startsWith('W:')) { if (v.status === 'been') wb++; if (v.status === 'want') ww++; } else { if (v.status === 'been') sb++; if (v.status === 'want') sw++; } }); return { wb, ww, sb, sw }; }
   const together = () => ui.mapWho === 'us' && !!partnerName();
@@ -111,8 +112,8 @@ export function mountAdventures(root, api) {
   }
   // Places inside a state or country: cities, parks, landmarks, each with its own status, notes and photos
   function spotsSection(id, pl) {
-    const spots = pl.spots || [], name = placeName(id), have = new Set(spots.map((x) => x.name.toLowerCase()));
-    const ideas = (SPOT_IDEAS[name] || []).filter((t) => !have.has(t.toLowerCase()));
+    const spots = pl.spots || [], name = placeName(id), nameEn = placeEn(id), have = new Set(spots.map((x) => x.name.toLowerCase()));
+    const ideas = (SPOT_IDEAS[nameEn] || []).filter((t) => !have.has(t.toLowerCase()));
     const pp = together() ? ((pPlaces()[id] || {}).spots || []) : [];
     const row = (x, j) => { const open = ui.spot === j, c = x.status === 'been' ? BEEN : WANT; const meta = [x.status === 'been' ? '✓ Been' : '★ Want to go', x.status === 'been' && x.date ? fmtDate(x.date, { month: 'short', year: 'numeric' }) : '', x.status === 'want' && x.year ? 'by ' + x.year : '', (x.photos || []).length ? (x.photos.length + ' photo' + (x.photos.length === 1 ? '' : 's')) : '', x.cruise ? '🚢 ' + x.cruise : ''].filter(Boolean).join(' · ');
       return `<div class="spot ${open ? 'open' : ''}" style="--c:${c}"><button class="spot-h" data-a="spopen" data-i="${j}" aria-expanded="${open}"><span class="dot" style="background:${c}"></span><span class="spot-n"><b>${esc(x.name)}</b><small>${esc(meta)}</small></span><span class="sub">${open ? '▲' : '▼'}</span></button>
@@ -123,7 +124,7 @@ export function mountAdventures(root, api) {
         <div class="row" style="margin-top:10px;justify-content:space-between"><button class="linkish" data-a="spdel" data-i="${j}">Remove</button><button class="btn small" data-a="spopen" data-i="${j}">Done</button></div></div>` : ''}</div>`; };
     return `<div class="spots"><h3 class="h3" style="margin:18px 0 2px">Places in ${esc(name)}</h3><p class="sub" style="margin:0 0 10px">Cities, parks, landmarks, anywhere you’ve been or want to go.</p>
       ${spots.map(row).join('')}
-      <form class="spotadd" data-av-form="spot"><input type="text" id="sp-new" maxlength="80" placeholder="e.g. ${esc((SPOT_IDEAS[name] || ['A city or landmark'])[0])}" aria-label="Add a place in ${esc(name)}"><div class="row" style="gap:6px"><button class="btn small" type="submit" name="st" value="been">✓ Been</button><button class="btn small" type="submit" name="st" value="want">★ Want to go</button></div></form>
+      <form class="spotadd" data-av-form="spot"><input type="text" id="sp-new" maxlength="80" placeholder="e.g. ${esc((SPOT_IDEAS[nameEn] || ['A city or landmark'])[0])}" aria-label="Add a place in ${esc(name)}"><div class="row" style="gap:6px"><button class="btn small" type="submit" name="st" value="been">✓ Been</button><button class="btn small" type="submit" name="st" value="want">★ Want to go</button></div></form>
       ${ideas.length ? `<p class="sub" style="margin:12px 0 0;font-size:13px">Popular in ${esc(name)} (tap to add to your wish list)</p><div class="chips" style="margin-top:6px">${ideas.slice(0, 8).map((t) => `<button class="chip" data-a="spidea" data-v="${esc(t)}">+ ${esc(t)}</button>`).join('')}</div>` : ''}
       ${pp.length ? `<p class="lbl" style="margin:14px 0 6px">${esc(partnerFirst())}’s places here</p><div class="chips">${pp.map((x) => `<span class="chip static"><span class="dot" style="background:${x.status === 'been' ? BEEN : WANT};margin-right:6px"></span>${esc(x.name)}</span>`).join('')}</div>` : ''}</div>`;
   }
@@ -183,7 +184,7 @@ export function mountAdventures(root, api) {
     ${together() ? togetherStats() : `<div class="mapstats">${ui.mapMode === 'world' ? `<div><b>${c.wb}</b><span>countries visited</span></div><div><b>${Math.round((c.wb / WORLD.length) * 100)}%</b><span>of the world</span></div><div><b>${c.ww}</b><span>on my wish list</span></div>` : `<div><b>${c.sb}</b><span>of 50 states + DC</span></div><div><b>${Math.max(0, 51 - c.sb)}</b><span>left to visit</span></div><div><b>${c.sw}</b><span>on my wish list</span></div>`}</div>`}
     <div class="mapwrap">${mapSVG()}<div class="zoom"><button data-a="zoom" data-v="1" aria-label="Zoom in">+</button><button data-a="zoom" data-v="-1" aria-label="Zoom out">−</button><button data-a="zoom" data-v="0" aria-label="Reset map">⟲</button></div></div>
     <div class="legend2">${together() ? `<span><i style="background:${BEEN}"></i>Both of us</span><span><i style="background:${ONE}"></i>One of us</span><span><i style="background:${WANT}"></i>Wish list</span>` : `<span><i style="background:${BEEN}"></i>Been there</span><span><i style="background:${WANT}"></i>Want to go</span>`}<span class="sub">Drag to move · + to zoom</span></div>
-    <input list="placelist" id="placesearch" placeholder="Search for a ${ui.mapMode === 'world' ? 'country' : 'state'}" aria-label="Search places"><datalist id="placelist">${m.data.map((f) => `<option value="${esc(f.name)}">`).join('')}</datalist>
+    <input list="placelist" id="placesearch" placeholder="${ui.mapMode === 'world' ? 'Search for a country' : 'Search for a state'}" aria-label="Search places"><datalist id="placelist">${m.data.map((f) => `<option value="${esc(f.name)}">`).join('')}</datalist>
     ${placePanel()}</section>
   ${together() ? togetherChips() : `<section class="card"><h2>Places I’ve been</h2><div class="rule"></div>${placeChips('been')}</section>
   <section class="card"><h2>Places I want to go</h2><div class="rule"></div>${placeChips('want')}</section>`}

@@ -1,10 +1,12 @@
 'use client';
 import { useEffect, useRef } from 'react';
 import { useWW } from '../store';
+import { translateTree, tmsg } from '@/lib/domT';
 import { mountResources } from './engine';
 import { Goal, today } from '@/lib/core';
 import { FREE_PORTFOLIO, FREE_TOOLS } from '@/lib/plus';
 import { PlusLock } from '../Plus';
+import { t } from '@/lib/i18n';
 
 // Hosts the worksheets (drawn by engine.js) inside the React app.
 // portfolio: the Portfolio tab, which opens straight into the Financial Wellness Planner
@@ -25,7 +27,7 @@ export function Resources({ portfolio = false }: { portfolio?: boolean }) {
       partnerName: () => L().S.couple?.partner_name || '',
       persistCouple: (key: string, data: any) => L().act.saveCouple(key, data),
       isLocked, openPlus: (reason: string) => setPlusOpen(reason),
-      toast: (msg: string) => L().toast(msg),
+      toast: (msg: string) => L().toast(tmsg(msg)),
       persist: (tool: string, data: any) => L().act.saveTool(tool, data),
       addGoal: (g: Goal, initial: number) => { L().act.addGoal(g); if (initial > 0) L().act.log(g.id, initial, today().T); },
       // "I used this" counts toward a coping-skill goal, if there is one
@@ -42,12 +44,13 @@ export function Resources({ portfolio = false }: { portfolio?: boolean }) {
       },
     });
     if (intent) setIntent(null);
-    return () => m.destroy();
+    const stopT = translateTree(ref.current!);
+    return () => { stopT(); m.destroy(); };
   }, []);
   if (portfolioLocked) return (
     <>
-      <header className="top"><div><div className="brand">Portfolio</div><h1>Financial Wellness Planner</h1><div className="sub">Your whole money picture on one page.</div></div></header>
-      <PlusLock reason="portfolio" title="Your money, all in one place" text="A spending wheel by category, your monthly budget, emergency fund, debt payoff plan, net worth, money goals, and suggested next steps. With a partner, plan together in “Our plan.”" />
+      <header className="top"><div><div className="brand">{t("Portfolio")}</div><h1>{t("Financial Wellness Planner")}</h1><div className="sub">{t("Your whole money picture on one page.")}</div></div></header>
+      <PlusLock reason="portfolio" title={t("Your money, all in one place")} text={t("A spending wheel by category, your monthly budget, emergency fund, debt payoff plan, net worth, money goals, and suggested next steps. With a partner, plan together in “Our plan.”")} />
     </>
   );
   return <div ref={ref} />;

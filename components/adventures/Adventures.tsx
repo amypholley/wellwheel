@@ -1,10 +1,12 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { useWW } from '../store';
+import { translateTree, tmsg } from '@/lib/domT';
 import { mountAdventures } from './engine';
 import { loadMaps } from './maps';
 import { photoUrl, uploadPhoto, loadPhotos, deletePhoto } from '@/lib/photos';
 import { LogoWheel } from '../ui';
+import { t } from '@/lib/i18n';
 
 // Hosts the Adventures tab (drawn by engine.js) inside the React app.
 export function Adventures() {
@@ -25,16 +27,17 @@ export function Adventures() {
       partnerName: () => L().S.couple?.partner_name || '',
       partnerPlaces: () => L().S.partnerPlaces || {},
       persistCouple: (key: string, data: any) => L().act.saveCouple(key, data),
-      toast: (msg: string) => L().toast(msg),
+      toast: (msg: string) => L().toast(tmsg(msg)),
       persist: (data: any) => L().act.saveTool('adv', data),
       photoUrl, loadPhotos,
       uploadPhoto: (blob: Blob, folder?: string) => uploadPhoto(blob, L().mode !== 'user', folder),
       deletePhoto: (id: string) => deletePhoto(id).catch(() => {}),
     });
     if (intent) setIntent(null);
-    return () => m.destroy();
+    const stopT = translateTree(ref.current!);
+    return () => { stopT(); m.destroy(); };
   }, [maps]);
-  if (err) return <div className="stack" style={{ paddingTop: 40 }}><p className="empty">The maps couldn’t load. Check your connection and try again.</p></div>;
+  if (err) return <div className="stack" style={{ paddingTop: 40 }}><p className="empty">{t("The maps couldn’t load. Check your connection and try again.")}</p></div>;
   if (!maps) return <div className="loading" style={{ minHeight: '60vh' }}><LogoWheel size={48} /></div>;
   return <div ref={ref} />;
 }
