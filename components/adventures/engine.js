@@ -3,7 +3,7 @@
 import { key, fmtDate as fmtD } from '@/lib/core';
 
 export const ADV0 = () => ({ places: {}, bucket: { me: [], us: [] }, partner: '', hobbies: [] });
-const BEEN = '#1E9E78', WANT = '#C99A1E', ONE = '#8FD3BC';
+const BEEN = '#7B4FA3', WANT = '#F5C518', ONE = '#C9B3E0';
 const BK_CATS = ['Travel', 'Adventure', 'Learn', 'Food', 'Give back', 'Milestone', 'Just for fun'];
 const BK_IDEAS = {
   me: ['See the Northern Lights', 'Visit all 50 states', 'Take a hot air balloon ride', 'Learn to swim or surf', 'Run a 5K', 'Publish a book', 'Start my own business', 'See the Grand Canyon at sunrise', 'Take a cooking class in another country', 'Go on a cruise', 'Learn a new language', 'Volunteer for a cause I love', 'Go whale watching', 'Ride in a helicopter', 'Pay off all my debt', 'Visit where my family came from', 'Sleep under the stars', 'Plant a garden', 'Go to a live taping of a show', 'Road trip Route 66'],

@@ -331,10 +331,10 @@ details.mini summary{cursor:pointer;color:var(--plum);font-weight:600}
 #map{display:block;width:100%;height:auto;touch-action:none;cursor:grab}
 .land{fill:color-mix(in srgb,var(--ink) 13%,var(--surface));stroke:var(--surface);stroke-width:.6;vector-effect:non-scaling-stroke;cursor:pointer;transition:fill .15s}
 .land:hover{fill:color-mix(in srgb,var(--ink) 24%,var(--surface))}
-.land.been{fill:#1E9E78}
-.land.been1{fill:#8FD3BC}
-.land.want{fill:#C99A1E}
-.land.sel{stroke:var(--plum);stroke-width:2.2}
+.land.been{fill:#7B4FA3}
+.land.been1{fill:#C9B3E0}
+.land.want{fill:#F5C518}
+.land.sel{stroke:var(--ink);stroke-width:2.2}
 .zoom{position:absolute;right:8px;top:8px;display:flex;flex-direction:column;gap:4px}
 .zoom button{width:34px;height:34px;border-radius:8px;border:1px solid var(--line);background:color-mix(in srgb,var(--surface) 85%,transparent);backdrop-filter:blur(6px);font-size:18px;font-weight:700}
 .legend2{display:flex;gap:14px;flex-wrap:wrap;align-items:center;font-size:13px;margin:8px 0 10px}
