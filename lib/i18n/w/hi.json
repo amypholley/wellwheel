@@ -2349,5 +2349,13 @@
 "Your whole money picture on one page.": "आपकी पूरी पैसों की तस्वीर एक पेज पर।",
 "Your money, all in one place": "आपका पैसा, सब एक जगह",
 "A spending wheel by category, your monthly budget, emergency fund, debt payoff plan, net worth, money goals, and suggested next steps. With a partner, plan together in “Our plan.”": "श्रेणी के हिसाब से खर्च का पहिया, आपका मासिक बजट, आपातकालीन फ़ंड, कर्ज़ चुकाने की योजना, नेट वर्थ, पैसों के लक्ष्य और सुझाए गए अगले कदम। साथी के साथ, “हमारी योजना” में मिलकर योजना बनाएँ।",
-"The maps couldn’t load. Check your connection and try again.": "नक़्शे लोड नहीं हो सके। अपना कनेक्शन जाँचें और फिर कोशिश करें।"
+"The maps couldn’t load. Check your connection and try again.": "नक़्शे लोड नहीं हो सके। अपना कनेक्शन जाँचें और फिर कोशिश करें।",
+"${0} total · ${1} unpaid": "${0} कुल · ${1} बाकी",
+"Starter: ${0}": "शुरुआत: ${0}",
+"Next: ${0}": "अगला: ${0}",
+"Net worth = Assets − Liabilities": "कुल संपत्ति = संपत्तियाँ − देनदारियाँ",
+"${0} of ${1} ({2}%)": "${1} में से ${0} ({2}%)",
+"done": "पूरे",
+"complete": "पूर्ण",
+"year": "वर्ष"
 }

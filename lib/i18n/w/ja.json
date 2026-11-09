@@ -2349,5 +2349,13 @@
 "Your whole money picture on one page.": "お金の全体像を1ページに。",
 "Your money, all in one place": "お金のことを、ひとつの場所に",
 "A spending wheel by category, your monthly budget, emergency fund, debt payoff plan, net worth, money goals, and suggested next steps. With a partner, plan together in “Our plan.”": "カテゴリー別の支出グラフ、月の予算、緊急資金、借金返済プラン、純資産、お金の目標、おすすめの次のステップ。パートナーとは「ふたりのプラン」で一緒に計画できます。",
-"The maps couldn’t load. Check your connection and try again.": "地図を読み込めませんでした。接続を確認して、もう一度お試しください。"
+"The maps couldn’t load. Check your connection and try again.": "地図を読み込めませんでした。接続を確認して、もう一度お試しください。",
+"${0} total · ${1} unpaid": "合計 ${0} · 未払い ${1}",
+"Starter: ${0}": "まずは：${0}",
+"Next: ${0}": "次は：${0}",
+"Net worth = Assets − Liabilities": "純資産 = 資産 − 負債",
+"${0} of ${1} ({2}%)": "${0} / ${1}（{2}%）",
+"done": "達成",
+"complete": "達成率",
+"year": "年"
 }

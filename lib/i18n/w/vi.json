@@ -2349,5 +2349,13 @@
 "Your whole money picture on one page.": "Toàn cảnh tài chính trên một trang.",
 "Your money, all in one place": "Mọi thứ về tiền bạc, ở một nơi",
 "A spending wheel by category, your monthly budget, emergency fund, debt payoff plan, net worth, money goals, and suggested next steps. With a partner, plan together in “Our plan.”": "Vòng tròn chi tiêu theo danh mục, ngân sách hằng tháng, quỹ khẩn cấp, kế hoạch trả nợ, tài sản ròng, mục tiêu tài chính và bước tiếp theo gợi ý. Lên kế hoạch cùng người thương trong “Kế hoạch chung.”",
-"The maps couldn’t load. Check your connection and try again.": "Không thể tải bản đồ. Kiểm tra kết nối và thử lại."
+"The maps couldn’t load. Check your connection and try again.": "Không thể tải bản đồ. Kiểm tra kết nối và thử lại.",
+"${0} total · ${1} unpaid": "Tổng ${0} · chưa trả ${1}",
+"Starter: ${0}": "Khởi đầu: ${0}",
+"Next: ${0}": "Tiếp theo: ${0}",
+"Net worth = Assets − Liabilities": "Tài sản ròng = Tài sản − Nợ phải trả",
+"${0} of ${1} ({2}%)": "${0} / ${1} ({2}%)",
+"done": "đã xong",
+"complete": "hoàn thành",
+"year": "năm"
 }

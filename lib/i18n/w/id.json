@@ -2349,5 +2349,13 @@
 "Your whole money picture on one page.": "Gambaran keuanganmu dalam satu halaman.",
 "Your money, all in one place": "Semua tentang uangmu, di satu tempat",
 "A spending wheel by category, your monthly budget, emergency fund, debt payoff plan, net worth, money goals, and suggested next steps. With a partner, plan together in “Our plan.”": "Lingkaran pengeluaran per kategori, anggaran bulanan, dana darurat, rencana pelunasan utang, kekayaan bersih, target keuangan, dan saran langkah berikutnya. Rencanakan bersama pasangan di “Rencana kita.”",
-"The maps couldn’t load. Check your connection and try again.": "Peta tidak bisa dimuat. Periksa koneksimu dan coba lagi."
+"The maps couldn’t load. Check your connection and try again.": "Peta tidak bisa dimuat. Periksa koneksimu dan coba lagi.",
+"${0} total · ${1} unpaid": "${0} total · ${1} belum dibayar",
+"Starter: ${0}": "Awal: ${0}",
+"Next: ${0}": "Berikutnya: ${0}",
+"Net worth = Assets − Liabilities": "Kekayaan bersih = Aset − Kewajiban",
+"${0} of ${1} ({2}%)": "${0} dari ${1} ({2}%)",
+"done": "selesai",
+"complete": "tercapai",
+"year": "tahun"
 }

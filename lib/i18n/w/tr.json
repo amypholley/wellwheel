@@ -2349,5 +2349,13 @@
 "Your whole money picture on one page.": "Tüm finansal tablon tek sayfada.",
 "Your money, all in one place": "Paran, hepsi tek yerde",
 "A spending wheel by category, your monthly budget, emergency fund, debt payoff plan, net worth, money goals, and suggested next steps. With a partner, plan together in “Our plan.”": "Kategoriye göre harcama çarkı, aylık bütçen, acil durum fonu, borç kapatma planı, net değer, para hedefleri ve önerilen sonraki adımlar. Partnerinle birlikte “Planımız”da planlayın.",
-"The maps couldn’t load. Check your connection and try again.": "Haritalar yüklenemedi. Bağlantını kontrol edip tekrar dene."
+"The maps couldn’t load. Check your connection and try again.": "Haritalar yüklenemedi. Bağlantını kontrol edip tekrar dene.",
+"${0} total · ${1} unpaid": "${0} toplam · ${1} ödenmedi",
+"Starter: ${0}": "Başlangıç: ${0}",
+"Next: ${0}": "Sonraki: ${0}",
+"Net worth = Assets − Liabilities": "Net değer = Varlıklar − Borçlar",
+"${0} of ${1} ({2}%)": "${0} / ${1} (%{2})",
+"done": "yapıldı",
+"complete": "tamamlandı",
+"year": "yıl"
 }

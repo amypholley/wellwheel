@@ -2349,5 +2349,13 @@
 "Your whole money picture on one page.": "Вся ваша финансовая картина на одной странице.",
 "Your money, all in one place": "Ваши деньги в одном месте",
 "A spending wheel by category, your monthly budget, emergency fund, debt payoff plan, net worth, money goals, and suggested next steps. With a partner, plan together in “Our plan.”": "Колесо расходов по категориям, ежемесячный бюджет, резервный фонд, план погашения долгов, чистый капитал, финансовые цели и рекомендуемые шаги. С партнёром планируйте вместе в «Нашем плане».",
-"The maps couldn’t load. Check your connection and try again.": "Не удалось загрузить карты. Проверьте подключение и попробуйте снова."
+"The maps couldn’t load. Check your connection and try again.": "Не удалось загрузить карты. Проверьте подключение и попробуйте снова.",
+"${0} total · ${1} unpaid": "${0} всего · ${1} не оплачено",
+"Starter: ${0}": "Для начала: ${0}",
+"Next: ${0}": "Дальше: ${0}",
+"Net worth = Assets − Liabilities": "Чистый капитал = Активы − Обязательства",
+"${0} of ${1} ({2}%)": "${0} из ${1} ({2}%)",
+"done": "выполнено",
+"complete": "завершено",
+"year": "год"
 }

@@ -2349,5 +2349,13 @@
 "Your whole money picture on one page.": "一页看清你的全部财务。",
 "Your money, all in one place": "你的钱，尽在一处",
 "A spending wheel by category, your monthly budget, emergency fund, debt payoff plan, net worth, money goals, and suggested next steps. With a partner, plan together in “Our plan.”": "按类别的支出圆环、每月预算、应急基金、还债计划、净资产、财务目标和建议的下一步。和伴侣一起在“我们的计划”中规划。",
-"The maps couldn’t load. Check your connection and try again.": "地图无法加载。请检查网络连接后重试。"
+"The maps couldn’t load. Check your connection and try again.": "地图无法加载。请检查网络连接后重试。",
+"${0} total · ${1} unpaid": "共 ${0} · 未付 ${1}",
+"Starter: ${0}": "起步：${0}",
+"Next: ${0}": "下一步：${0}",
+"Net worth = Assets − Liabilities": "净资产 = 资产 − 负债",
+"${0} of ${1} ({2}%)": "${0} / ${1}（{2}%）",
+"done": "已完成",
+"complete": "完成率",
+"year": "年份"
 }

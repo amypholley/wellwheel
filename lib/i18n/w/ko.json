@@ -2349,5 +2349,13 @@
 "Your whole money picture on one page.": "돈의 전체 그림을 한 페이지에.",
 "Your money, all in one place": "돈에 관한 모든 것을 한곳에",
 "A spending wheel by category, your monthly budget, emergency fund, debt payoff plan, net worth, money goals, and suggested next steps. With a partner, plan together in “Our plan.”": "카테고리별 지출 원형 그래프, 월 예산, 비상금, 빚 상환 계획, 순자산, 돈 목표, 추천 다음 단계. 파트너와는 “우리 계획”에서 함께 계획할 수 있어요.",
-"The maps couldn’t load. Check your connection and try again.": "지도를 불러올 수 없었습니다. 연결을 확인하고 다시 시도하세요."
+"The maps couldn’t load. Check your connection and try again.": "지도를 불러올 수 없었습니다. 연결을 확인하고 다시 시도하세요.",
+"${0} total · ${1} unpaid": "총 ${0} · 미납 ${1}",
+"Starter: ${0}": "시작: ${0}",
+"Next: ${0}": "다음: ${0}",
+"Net worth = Assets − Liabilities": "순자산 = 자산 − 부채",
+"${0} of ${1} ({2}%)": "${0} / ${1} ({2}%)",
+"done": "완료",
+"complete": "달성률",
+"year": "연도"
 }

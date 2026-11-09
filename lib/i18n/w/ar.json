@@ -2349,5 +2349,13 @@
 "Your whole money picture on one page.": "صورتك المالية كاملة في صفحة واحدة.",
 "Your money, all in one place": "مالك، كله في مكان واحد",
 "A spending wheel by category, your monthly budget, emergency fund, debt payoff plan, net worth, money goals, and suggested next steps. With a partner, plan together in “Our plan.”": "عجلة إنفاق حسب الفئة، وميزانيتك الشهرية، وصندوق الطوارئ، وخطة سداد الديون، وصافي الثروة، والأهداف المالية، والخطوات المقترحة. مع شريكك، خططا معًا في «خطتنا».",
-"The maps couldn’t load. Check your connection and try again.": "تعذّر تحميل الخرائط. تحقق من اتصالك وحاول مجددًا."
+"The maps couldn’t load. Check your connection and try again.": "تعذّر تحميل الخرائط. تحقق من اتصالك وحاول مجددًا.",
+"${0} total · ${1} unpaid": "${0} الإجمالي · ${1} غير مدفوع",
+"Starter: ${0}": "البداية: ${0}",
+"Next: ${0}": "التالي: ${0}",
+"Net worth = Assets − Liabilities": "صافي الثروة = الأصول − الالتزامات",
+"${0} of ${1} ({2}%)": "${0} من ${1} ({2}%)",
+"done": "تحقق",
+"complete": "مكتمل",
+"year": "السنة"
 }

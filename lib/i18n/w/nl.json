@@ -2349,5 +2349,13 @@
 "Your whole money picture on one page.": "Je hele geldplaatje op één pagina.",
 "Your money, all in one place": "Je geld, alles op één plek",
 "A spending wheel by category, your monthly budget, emergency fund, debt payoff plan, net worth, money goals, and suggested next steps. With a partner, plan together in “Our plan.”": "Een uitgavenwiel per categorie, je maandbudget, noodfonds, aflossingsplan, nettovermogen, geldoelen en voorgestelde volgende stappen. Met een partner plannen jullie samen in „Ons plan”.",
-"The maps couldn’t load. Check your connection and try again.": "De kaarten konden niet laden. Controleer je verbinding en probeer het opnieuw."
+"The maps couldn’t load. Check your connection and try again.": "De kaarten konden niet laden. Controleer je verbinding en probeer het opnieuw.",
+"${0} total · ${1} unpaid": "${0} totaal · ${1} onbetaald",
+"Starter: ${0}": "Start: ${0}",
+"Next: ${0}": "Daarna: ${0}",
+"Net worth = Assets − Liabilities": "Nettovermogen = Bezittingen − Schulden",
+"${0} of ${1} ({2}%)": "${0} van ${1} ({2}%)",
+"done": "gedaan",
+"complete": "voltooid",
+"year": "jaar"
 }

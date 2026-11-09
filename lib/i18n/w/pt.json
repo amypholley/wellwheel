@@ -2349,5 +2349,13 @@
 "Your whole money picture on one page.": "Todo seu quadro financeiro em uma página.",
 "Your money, all in one place": "Seu dinheiro, tudo num só lugar",
 "A spending wheel by category, your monthly budget, emergency fund, debt payoff plan, net worth, money goals, and suggested next steps. With a partner, plan together in “Our plan.”": "Uma roda de gastos por categoria, seu orçamento mensal, reserva de emergência, plano de quitação de dívidas, patrimônio líquido, metas financeiras e próximos passos sugeridos. Com seu par, planejem juntos em “Nosso plano”.",
-"The maps couldn’t load. Check your connection and try again.": "Não foi possível carregar os mapas. Verifique sua conexão e tente de novo."
+"The maps couldn’t load. Check your connection and try again.": "Não foi possível carregar os mapas. Verifique sua conexão e tente de novo.",
+"${0} total · ${1} unpaid": "${0} no total · ${1} em aberto",
+"Starter: ${0}": "Inicial: ${0}",
+"Next: ${0}": "Próximo: ${0}",
+"Net worth = Assets − Liabilities": "Patrimônio líquido = Ativos − Passivos",
+"${0} of ${1} ({2}%)": "${0} de ${1} ({2}%)",
+"done": "realizados",
+"complete": "concluído",
+"year": "ano"
 }
