@@ -135,6 +135,7 @@ export default function App() {
     };
     document.addEventListener('visibilitychange', check);
     window.addEventListener('pageshow', check);
+    check(); // also right away: a phone may have reopened a saved older copy
     const t = setInterval(check, 10 * 60 * 1000);
     return () => { document.removeEventListener('visibilitychange', check); window.removeEventListener('pageshow', check); clearInterval(t); };
   }, []);
