@@ -64,6 +64,14 @@ export function mountResources(root, api) {
     });
     return { tot, rev, n, cats };
   }
+  // Budget lines that are debts (cards and loans) also take a name, the balance left and the interest rate
+  const isDebtLine = (c, x) => c === 'Credit Cards' || c === 'Loans' || /^Student Loan/.test(x) || x === 'Car Payment';
+  function budgetDebts() {
+    const it = getP('spending.items') || {}; const o = [];
+    SPEND_CATS.forEach(([c, items]) => items.forEach((x) => { if (!isDebtLine(c, x)) return; const r = it[ik(x)]; if (r && r.on && num(r.bal) > 0) o.push({ name: (r.name || '').trim() || x, bal: r.bal, rate: r.rate, min: r.cost, due: r.due }); }));
+    return o;
+  }
+  const allDebts = () => [...(getP('debt.list') || []), ...budgetDebts()];
   const needSel = (path, v) => `<select data-b="${esc(path)}" aria-label="Necessary?">${['Yes', 'No', 'Review'].map((o) => `<option ${(v || 'Yes') === o ? 'selected' : ''}>${o}</option>`).join('')}</select>`;
   /* ---------- 2. Monthly money plan ---------- */
   const DAYS7 = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
@@ -140,6 +148,7 @@ export function mountResources(root, api) {
       ${ds.map((d, i) => `<div class="debt"><div class="dtop">${inp(`debt.list.${i}.name`, { ph: 'Debt / creditor' })}<button class="x" data-r="del" data-path="debt.list" data-i="${i}" aria-label="Remove debt">×</button></div>
         <div class="dgrid"><label>Balance<div class="money">${inp(`debt.list.${i}.bal`, { type: 'number', ph: '0' })}</div></label><label>Interest %${inp(`debt.list.${i}.rate`, { type: 'number', ph: '0' })}</label><label>Minimum<div class="money">${inp(`debt.list.${i}.min`, { type: 'number', ph: '0' })}</div></label><label>Due day${inp(`debt.list.${i}.due`, { ph: 'e.g. 15th' })}</label></div></div>`).join('')}
       <button class="btn small" data-r="add" data-path="debt.list">+ Add a debt</button>
+      <div data-oh="d-bud"></div>
       <div class="r2 total" style="margin-top:12px"><span>Total balance</span><b>${out('d-tot')}</b></div>
       <div class="r2"><span>Extra I can pay each month</span><div class="money">${inp('debt.extra', { type: 'number', ph: '0' })}</div></div></section>
     <section class="card"><h2>What do these mean?</h2><div class="rule"></div>
@@ -158,7 +167,7 @@ export function mountResources(root, api) {
       <label class="lbl" style="margin-top:8px">Reflection</label>${area('debt.refl', '', 3)}</section></div>`;
     },
     outs() {
-      const ds = getP('debt.list') || [], ex = num(getP('debt.extra')); const tot = ds.reduce((a, d) => a + num(d.bal), 0);
+      const ds = allDebts(), ex = num(getP('debt.extra')); const tot = ds.reduce((a, d) => a + num(d.bal), 0);
       const s = simDebt(ds, ex, 'snowball'), a = simDebt(ds, ex, 'avalanche'); let h;
       if (!s) h = '<p class="empty">Add your debts above to compare the two methods.</p>';
       else if (s.stuck || a.stuck) h = '<p class="note">With these payments the balances don’t go down, because interest is growing faster than you’re paying. Try adding an extra monthly amount.</p>';
@@ -167,7 +176,9 @@ export function mountResources(root, api) {
         const diff = s.interest - a.interest;
         h = `<div class="cmpgrid">${col(s, 'Snowball')}${col(a, 'Avalanche')}</div><p class="hint">${Math.abs(diff) < 1 ? 'Both methods cost about the same in interest with your numbers.' : `Avalanche saves about ${money(Math.round(diff))} in interest. Snowball gets your first debt paid off ${s.paid[0].month < a.paid[0].month ? `${a.paid[0].month - s.paid[0].month} month(s) sooner` : 'at the same time or later'}.`}</p>`;
       }
-      return { 'd-tot': money(tot), __html: { 'd-cmp': h } };
+      const bd = budgetDebts();
+      const bh = bd.length ? `<p class="sub" style="margin:10px 0 6px">From your monthly budget</p>${bd.map((d) => `<div class="debt bud"><b>${esc(d.name)}</b><div class="sk-meta"><span class="tag">${money(num(d.bal))}</span>${num(d.rate) ? `<span class="tag">${num(d.rate)}% interest</span>` : ''}${num(d.min) ? `<span class="tag">${money(num(d.min))} minimum</span>` : ''}${d.due ? `<span class="tag">Due: ${esc(d.due)}</span>` : ''}</div></div>`).join('')}` : '';
+      return { 'd-tot': money(tot), __html: { 'd-cmp': h, 'd-bud': bh } };
     },
   };
 
@@ -455,7 +466,7 @@ export function mountResources(root, api) {
     const income = mc.inc || num(getP('spending.income'));
     const expenses = sp.tot;
     const cats = SPEND_CATS.map(([c], i) => [c, sp.cats[i][1]]).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]);
-    const debts = getP('debt.list') || []; const debtTot = debts.reduce((a, d) => a + num(d.bal), 0); const mins = debts.reduce((a, d) => a + num(d.min), 0);
+    const debts = allDebts(); const debtTot = debts.reduce((a, d) => a + num(d.bal), 0); const mins = debts.reduce((a, d) => a + num(d.min), 0);
     const sim = simDebt(debts, num(getP('debt.extra')), 'avalanche');
     const highRate = debts.filter((d) => num(d.bal) > 0).sort((a, b) => num(b.rate) - num(a.rate))[0];
     const efCur = num(getP('efund.cur')) || num(getP('monthly.ef.cur')), efGoal = num(getP('efund.goal')) || num(getP('monthly.ef.goal'));
@@ -515,8 +526,10 @@ export function mountResources(root, api) {
   function expenseFolds() {
     const it = getP('spending.items') || {}, open = getP('spending.open') || {}, oth = getP('spending.other') || {};
     return SPEND_CATS.map(([c, items], ci) => { const ck = ik(c); return `<details class="fold subfold" data-fold="spending.open.${ck}" ${open[ck] ? 'open' : ''}><summary><b>${c}</b><span class="sub">${out('sp-c' + ci)}</span></summary>
-      <div class="items">${items.map((x) => { const k = ik(x), r = it[k] || {}; return `<div class="item ${r.on ? 'on' : ''}">${chk(`spending.items.${k}.on`, esc(x), true)}${r.on ? `<div class="item-in"><label>Monthly cost<div class="money">${inp(`spending.items.${k}.cost`, { type: 'number', ph: '0' })}</div></label><label>Necessary?${needSel(`spending.items.${k}.need`, r.need)}</label></div>` : ''}</div>`; }).join('')}
-      ${(oth[ck] || []).map((r, i) => `<div class="item other"><div class="oth-in"><label>Other expense${inp(`spending.other.${ck}.${i}.label`, { ph: 'Name it' })}</label><label>Monthly cost<div class="money">${inp(`spending.other.${ck}.${i}.cost`, { type: 'number', ph: '0' })}</div></label><label>Necessary?${needSel(`spending.other.${ck}.${i}.need`, (r || {}).need)}</label><button class="x" data-r="del" data-path="spending.other.${ck}" data-i="${i}" aria-label="Remove">×</button></div></div>`).join('')}
+      <div class="items">${items.map((x) => { const k = ik(x), r = it[k] || {}, P = `spending.items.${k}`, dl = isDebtLine(c, x); const due = `<label>Due day${inp(`${P}.due`, { ph: 'e.g. 15th' })}</label>`; return `<div class="item ${r.on ? 'on' : ''}">${chk(`${P}.on`, esc(x), true)}${r.on ? (dl
+        ? `<div class="item-in debt-in"><label class="wide">Name${inp(`${P}.name`, { ph: c === 'Credit Cards' ? 'e.g. Chase Visa' : 'e.g. Car loan' })}</label><label>Minimum payment<div class="money">${inp(`${P}.cost`, { type: 'number', ph: '0' })}</div></label><label>Balance left<div class="money">${inp(`${P}.bal`, { type: 'number', ph: '0' })}</div></label><label>Interest %${inp(`${P}.rate`, { type: 'number', ph: '0' })}</label>${due}<label>Necessary?${needSel(`${P}.need`, r.need)}</label></div>`
+        : `<div class="item-in three"><label>Monthly cost<div class="money">${inp(`${P}.cost`, { type: 'number', ph: '0' })}</div></label><label>Necessary?${needSel(`${P}.need`, r.need)}</label>${due}</div>`) : ''}</div>`; }).join('')}
+      ${(oth[ck] || []).map((r, i) => `<div class="item other"><div class="oth-in"><label>Other expense${inp(`spending.other.${ck}.${i}.label`, { ph: 'Name it' })}</label><label>Monthly cost<div class="money">${inp(`spending.other.${ck}.${i}.cost`, { type: 'number', ph: '0' })}</div></label><label>Necessary?${needSel(`spending.other.${ck}.${i}.need`, (r || {}).need)}</label><label>Due day${inp(`spending.other.${ck}.${i}.due`, { ph: 'e.g. 15th' })}</label><button class="x" data-r="del" data-path="spending.other.${ck}" data-i="${i}" aria-label="Remove">×</button></div></div>`).join('')}
       </div><div class="fold-foot"><button class="btn small" data-r="add" data-path="spending.other.${ck}">+ Add other</button><label class="actual">Actually spent this month<div class="money">${inp(`spending.actual.${ck}`, { type: 'number', ph: '0' })}</div></label></div></details>`; }).join('');
   }
   const TOOL_MONEY = {

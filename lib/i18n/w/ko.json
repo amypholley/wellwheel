@@ -2357,5 +2357,15 @@
 "${0} of ${1} ({2}%)": "${0} / ${1} ({2}%)",
 "done": "완료",
 "complete": "달성률",
-"year": "연도"
+"year": "연도",
+"Loans": "대출",
+"Loan #{0}": "대출 #{0}",
+"Name": "이름",
+"Minimum payment": "최소 상환액",
+"Balance left": "남은 잔액",
+"Car loan": "자동차 대출",
+"From your monthly budget": "월 예산에서 가져옴",
+"{0}% interest": "이자 {0}%",
+"${0} minimum": "최소 ${0}",
+"Due: {x}": "납부일: {x}"
 }

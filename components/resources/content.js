@@ -8,6 +8,7 @@ export const SPEND_CATS = [
  ['Streaming & Entertainment',['Netflix','Hulu','Disney+','Max','Paramount+','Peacock','Apple TV+','Amazon Prime','YouTube Premium','Spotify','Apple Music','Audible','SiriusXM','Xbox Game Pass','PlayStation Plus','Nintendo Switch Online']],
  ['Technology',['Apple iCloud','Google One','Microsoft 365','Adobe','Dropbox','Canva','ChatGPT','Antivirus','Website Hosting','Domain Name']],
  ['Credit Cards',['Credit Card #1','Credit Card #2','Credit Card #3','Credit Card #4','Credit Card #5','Credit Card #6','Credit Card #7','Credit Card #8']],
+ ['Loans',['Loan #1','Loan #2','Loan #3','Loan #4','Loan #5','Loan #6']],
  ['Education',['Tuition','Student Loan #1','Student Loan #2','Books','Certifications']],
  ['Health',['Health Insurance','Dental Insurance','Vision Insurance','Therapy','Medications','Gym Membership','Personal Trainer','Supplements']],
  ['Pets',['Pet Food','Veterinary Care','Grooming','Pet Insurance','Pet Medications']],

@@ -2357,5 +2357,15 @@
 "${0} of ${1} ({2}%)": "${0} / ${1}（{2}%）",
 "done": "達成",
 "complete": "達成率",
-"year": "年"
+"year": "年",
+"Loans": "ローン",
+"Loan #{0}": "ローン {0}",
+"Name": "名前",
+"Minimum payment": "最低支払額",
+"Balance left": "残高",
+"Car loan": "自動車ローン",
+"From your monthly budget": "月の予算から",
+"{0}% interest": "金利 {0}%",
+"${0} minimum": "最低 ${0}",
+"Due: {x}": "期日：{x}"
 }

@@ -2357,5 +2357,15 @@
 "${0} of ${1} ({2}%)": "${0} / ${1}（{2}%）",
 "done": "已完成",
 "complete": "完成率",
-"year": "年份"
+"year": "年份",
+"Loans": "贷款",
+"Loan #{0}": "贷款 {0}",
+"Name": "名称",
+"Minimum payment": "最低还款额",
+"Balance left": "剩余余额",
+"Car loan": "车贷",
+"From your monthly budget": "来自你的月度预算",
+"{0}% interest": "利率 {0}%",
+"${0} minimum": "最低 ${0}",
+"Due: {x}": "到期：{x}"
 }

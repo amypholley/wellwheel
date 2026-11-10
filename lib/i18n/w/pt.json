@@ -2357,5 +2357,15 @@
 "${0} of ${1} ({2}%)": "${0} de ${1} ({2}%)",
 "done": "realizados",
 "complete": "concluído",
-"year": "ano"
+"year": "ano",
+"Loans": "Empréstimos",
+"Loan #{0}": "Empréstimo n.º {0}",
+"Name": "Nome",
+"Minimum payment": "Pagamento mínimo",
+"Balance left": "Saldo restante",
+"Car loan": "Financiamento do carro",
+"From your monthly budget": "Do seu orçamento mensal",
+"{0}% interest": "{0}% de juros",
+"${0} minimum": "${0} mínimo",
+"Due: {x}": "Vence: {x}"
 }

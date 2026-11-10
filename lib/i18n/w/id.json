@@ -2357,5 +2357,15 @@
 "${0} of ${1} ({2}%)": "${0} dari ${1} ({2}%)",
 "done": "selesai",
 "complete": "tercapai",
-"year": "tahun"
+"year": "tahun",
+"Loans": "Pinjaman",
+"Loan #{0}": "Pinjaman #{0}",
+"Name": "Nama",
+"Minimum payment": "Pembayaran minimum",
+"Balance left": "Sisa saldo",
+"Car loan": "Kredit mobil",
+"From your monthly budget": "Dari anggaran bulananmu",
+"{0}% interest": "Bunga {0}%",
+"${0} minimum": "Minimum ${0}",
+"Due: {x}": "Jatuh tempo: {x}"
 }

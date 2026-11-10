@@ -2357,5 +2357,15 @@
 "${0} of ${1} ({2}%)": "${0} / ${1} ({2}%)",
 "done": "đã xong",
 "complete": "hoàn thành",
-"year": "năm"
+"year": "năm",
+"Loans": "Khoản vay",
+"Loan #{0}": "Khoản vay #{0}",
+"Name": "Tên",
+"Minimum payment": "Trả tối thiểu",
+"Balance left": "Dư nợ còn lại",
+"Car loan": "Vay mua xe",
+"From your monthly budget": "Từ ngân sách hằng tháng của bạn",
+"{0}% interest": "Lãi {0}%",
+"${0} minimum": "Tối thiểu ${0}",
+"Due: {x}": "Đến hạn: {x}"
 }

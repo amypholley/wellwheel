@@ -2357,5 +2357,15 @@
 "${0} of ${1} ({2}%)": "${0} / ${1} (%{2})",
 "done": "yapıldı",
 "complete": "tamamlandı",
-"year": "yıl"
+"year": "yıl",
+"Loans": "Krediler",
+"Loan #{0}": "Kredi #{0}",
+"Name": "Ad",
+"Minimum payment": "Asgari ödeme",
+"Balance left": "Kalan bakiye",
+"Car loan": "Taşıt kredisi",
+"From your monthly budget": "Aylık bütçenden",
+"{0}% interest": "%{0} faiz",
+"${0} minimum": "${0} asgari",
+"Due: {x}": "Son ödeme: {x}"
 }

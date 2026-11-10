@@ -2357,5 +2357,15 @@
 "${0} of ${1} ({2}%)": "${0} su ${1} ({2}%)",
 "done": "fatti",
 "complete": "completato",
-"year": "anno"
+"year": "anno",
+"Loans": "Prestiti",
+"Loan #{0}": "Prestito n. {0}",
+"Name": "Nome",
+"Minimum payment": "Pagamento minimo",
+"Balance left": "Saldo residuo",
+"Car loan": "Prestito auto",
+"From your monthly budget": "Dal tuo budget mensile",
+"{0}% interest": "{0}% di interesse",
+"${0} minimum": "${0} minimo",
+"Due: {x}": "Scadenza: {x}"
 }

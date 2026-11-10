@@ -305,8 +305,15 @@ details.mini summary{cursor:pointer;color:var(--plum);font-weight:600}
 .savestate.ok{color:var(--good)}
 .item-in{grid-template-columns:1fr 1fr}
 .item-in label,.oth-in label{font-size:12px;color:var(--muted);font-weight:600;display:flex;flex-direction:column;gap:4px}
-.oth-in{display:grid;grid-template-columns:1.3fr 1fr 1fr auto;gap:8px;align-items:end}
-@media (max-width:440px){.oth-in{grid-template-columns:1fr 1fr auto}.oth-in label:first-child{grid-column:1/-1}}
+.oth-in{display:grid;grid-template-columns:1.3fr 1fr 1fr .8fr auto;gap:8px;align-items:end}
+.oth-in>*,.item-in>*{min-width:0}
+@media (max-width:560px){.oth-in{grid-template-columns:1fr 1fr auto}.oth-in label:first-child{grid-column:1/3;grid-row:1}.oth-in .x{grid-column:3;grid-row:1}}
+/* budget lines: due day on every expense; cards and loans also take a name, balance and rate */
+.item-in.three{grid-template-columns:1fr 1fr 1fr}
+.item-in.debt-in{grid-template-columns:1fr 1fr 1fr}
+.item-in.debt-in .wide{grid-column:1/-1}
+@media (max-width:440px){.item-in.three,.item-in.debt-in{grid-template-columns:1fr 1fr}}
+.debt.bud{padding:8px 10px;margin-bottom:6px}
 .rtile.wide{grid-column:1/-1;min-height:0}
 .hbars{display:flex;flex-direction:column;gap:8px}
 .hb{display:grid;grid-template-columns:minmax(80px,32%) 1fr auto;gap:8px;align-items:center;font-size:13.5px}

@@ -2357,5 +2357,15 @@
 "${0} of ${1} ({2}%)": "${0} van ${1} ({2}%)",
 "done": "gedaan",
 "complete": "voltooid",
-"year": "jaar"
+"year": "jaar",
+"Loans": "Leningen",
+"Loan #{0}": "Lening {0}",
+"Name": "Naam",
+"Minimum payment": "Minimale betaling",
+"Balance left": "Resterend saldo",
+"Car loan": "Autolening",
+"From your monthly budget": "Uit je maandbudget",
+"{0}% interest": "{0}% rente",
+"${0} minimum": "${0} minimum",
+"Due: {x}": "Vervalt: {x}"
 }
