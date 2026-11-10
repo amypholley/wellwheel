@@ -2367,5 +2367,6 @@
 "From your monthly budget": "来自你的月度预算",
 "{0}% interest": "利率 {0}%",
 "${0} minimum": "最低 ${0}",
-"Due: {x}": "到期：{x}"
+"Due: {x}": "到期：{x}",
+"Total amount left": "剩余总额"
 }

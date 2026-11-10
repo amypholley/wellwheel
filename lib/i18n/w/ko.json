@@ -2367,5 +2367,6 @@
 "From your monthly budget": "월 예산에서 가져옴",
 "{0}% interest": "이자 {0}%",
 "${0} minimum": "최소 ${0}",
-"Due: {x}": "납부일: {x}"
+"Due: {x}": "납부일: {x}",
+"Total amount left": "남은 총액"
 }

@@ -2367,5 +2367,6 @@
 "From your monthly budget": "Dal tuo budget mensile",
 "{0}% interest": "{0}% di interesse",
 "${0} minimum": "${0} minimo",
-"Due: {x}": "Scadenza: {x}"
+"Due: {x}": "Scadenza: {x}",
+"Total amount left": "Importo totale residuo"
 }

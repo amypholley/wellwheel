@@ -2367,5 +2367,6 @@
 "From your monthly budget": "आपके मासिक बजट से",
 "{0}% interest": "{0}% ब्याज",
 "${0} minimum": "${0} न्यूनतम",
-"Due: {x}": "देय: {x}"
+"Due: {x}": "देय: {x}",
+"Total amount left": "कुल बाकी राशि"
 }

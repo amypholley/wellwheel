@@ -2367,5 +2367,6 @@
 "From your monthly budget": "Do seu orçamento mensal",
 "{0}% interest": "{0}% de juros",
 "${0} minimum": "${0} mínimo",
-"Due: {x}": "Vence: {x}"
+"Due: {x}": "Vence: {x}",
+"Total amount left": "Valor total restante"
 }

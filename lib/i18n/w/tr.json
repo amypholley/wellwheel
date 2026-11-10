@@ -2367,5 +2367,6 @@
 "From your monthly budget": "Aylık bütçenden",
 "{0}% interest": "%{0} faiz",
 "${0} minimum": "${0} asgari",
-"Due: {x}": "Son ödeme: {x}"
+"Due: {x}": "Son ödeme: {x}",
+"Total amount left": "Kalan toplam tutar"
 }

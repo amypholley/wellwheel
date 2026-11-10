@@ -2367,5 +2367,6 @@
 "From your monthly budget": "Aus deinem Monatsbudget",
 "{0}% interest": "{0} % Zinsen",
 "${0} minimum": "${0} Minimum",
-"Due: {x}": "Fällig: {x}"
+"Due: {x}": "Fällig: {x}",
+"Total amount left": "Restbetrag insgesamt"
 }

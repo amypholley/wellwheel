@@ -2367,5 +2367,6 @@
 "From your monthly budget": "Uit je maandbudget",
 "{0}% interest": "{0}% rente",
 "${0} minimum": "${0} minimum",
-"Due: {x}": "Vervalt: {x}"
+"Due: {x}": "Vervalt: {x}",
+"Total amount left": "Totaal nog te betalen"
 }

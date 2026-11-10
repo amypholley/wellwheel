@@ -2367,5 +2367,6 @@
 "From your monthly budget": "Từ ngân sách hằng tháng của bạn",
 "{0}% interest": "Lãi {0}%",
 "${0} minimum": "Tối thiểu ${0}",
-"Due: {x}": "Đến hạn: {x}"
+"Due: {x}": "Đến hạn: {x}",
+"Total amount left": "Tổng số tiền còn lại"
 }

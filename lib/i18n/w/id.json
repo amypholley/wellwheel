@@ -2367,5 +2367,6 @@
 "From your monthly budget": "Dari anggaran bulananmu",
 "{0}% interest": "Bunga {0}%",
 "${0} minimum": "Minimum ${0}",
-"Due: {x}": "Jatuh tempo: {x}"
+"Due: {x}": "Jatuh tempo: {x}",
+"Total amount left": "Total sisa yang harus dibayar"
 }

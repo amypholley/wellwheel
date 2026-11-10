@@ -2367,5 +2367,6 @@
 "From your monthly budget": "月の予算から",
 "{0}% interest": "金利 {0}%",
 "${0} minimum": "最低 ${0}",
-"Due: {x}": "期日：{x}"
+"Due: {x}": "期日：{x}",
+"Total amount left": "残りの合計額"
 }
