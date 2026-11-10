@@ -71,16 +71,19 @@ export function mountResources(root, api) {
     SPEND_CATS.forEach(([c, items]) => items.forEach((x) => { if (!isDebtLine(c, x)) return; const r = it[ik(x)]; if (r && r.on && num(r.bal) > 0) o.push({ name: (r.name || '').trim() || x, bal: r.bal, rate: r.rate, min: r.cost, due: r.due }); }));
     return o;
   }
+  // Due day is picked from 1 to 31 so the table always sorts cleanly (older typed values like "15th" or "11/15" still read)
+  const dueDay = (v) => { const t = String(v || ''); const md = t.match(/(\d{1,2})\s*[\/.-]\s*(\d{1,2})/); const m = md ? [md[2]] : t.match(/\d{1,2}/); const n = m ? +m[0] : 0; return n >= 1 && n <= 31 ? n : 0; };
+  const dueSel = (path) => { const cur = dueDay(getP(path)); return `<select data-b="${esc(path)}" aria-label="Due day"><option value="">—</option>${Array.from({ length: 31 }, (_, i) => `<option value="${i + 1}" ${cur === i + 1 ? 'selected' : ''}>${i + 1}</option>`).join('')}</select>`; };
   // Every payment that has a due day, in order through the month (fills in as due days are typed)
   function dueHTML() {
     const it = getP('spending.items') || {}, oth = getP('spending.other') || {}; const rows = [];
-    const day = (v) => { const m = String(v || '').match(/\d{1,2}/); const n = m ? +m[0] : 0; return n >= 1 && n <= 31 ? n : 99; };
+    const day = (v) => dueDay(v) || 99;
     SPEND_CATS.forEach(([c, items]) => {
-      items.forEach((x) => { const r = it[ik(x)]; if (r && r.on && String(r.due || '').trim()) rows.push({ d: day(r.due), due: String(r.due).trim(), name: (r.name || '').trim() || x, amt: num(r.cost) }); });
-      (oth[ik(c)] || []).forEach((r) => { if (r && String(r.due || '').trim()) rows.push({ d: day(r.due), due: String(r.due).trim(), name: (r.label || '').trim() || 'Other expense', amt: num(r.cost) }); });
+      items.forEach((x) => { const r = it[ik(x)]; if (r && r.on && String(r.due || '').trim()) rows.push({ d: day(r.due), due: String(dueDay(r.due) || String(r.due).trim()), name: (r.name || '').trim() || x, amt: num(r.cost) }); });
+      (oth[ik(c)] || []).forEach((r) => { if (r && String(r.due || '').trim()) rows.push({ d: day(r.due), due: String(dueDay(r.due) || String(r.due).trim()), name: (r.label || '').trim() || 'Other expense', amt: num(r.cost) }); });
     });
-    (getP('debt.list') || []).forEach((r) => { if (r && String(r.due || '').trim()) rows.push({ d: day(r.due), due: String(r.due).trim(), name: (r.name || '').trim() || 'Debt', amt: num(r.min) }); });
-    (getP('monthly.bills') || []).forEach((b) => { if (b && b.date) rows.push({ d: +b.date.slice(8, 10) || 99, due: fmtDate(b.date, { month: 'short', day: 'numeric' }), name: (b.name || '').trim() || 'Bill', amt: num(b.amt), paid: !!b.paid }); });
+    (getP('debt.list') || []).forEach((r) => { if (r && String(r.due || '').trim()) rows.push({ d: day(r.due), due: String(dueDay(r.due) || String(r.due).trim()), name: (r.name || '').trim() || 'Debt', amt: num(r.min) }); });
+    (getP('monthly.bills') || []).forEach((b) => { if (b && b.date) rows.push({ d: +b.date.slice(8, 10) || 99, due: String(+b.date.slice(8, 10) || ''), name: (b.name || '').trim() || 'Bill', amt: num(b.amt), paid: !!b.paid }); });
     if (!rows.length) return '<p class="empty" style="margin:6px 0 0">Add a due day to any expense and it shows up here, in order.</p>';
     rows.sort((a, b) => a.d - b.d);
     const today = TODAY.getDate(); const nx = rows.findIndex((r) => !r.paid && r.d >= today && r.d < 99);
@@ -162,7 +165,7 @@ export function mountResources(root, api) {
       return `<div class="stack">
     <section class="card"><div class="card-head"><h2>My debt inventory</h2>${ds.length ? '' : '<button class="linkish" data-r="debtex">Load the example</button>'}</div><p class="sub" style="margin-top:0">List every debt so you can see the full picture.</p>
       ${ds.map((d, i) => `<div class="debt"><div class="dtop">${inp(`debt.list.${i}.name`, { ph: 'Debt / creditor' })}<button class="x" data-r="del" data-path="debt.list" data-i="${i}" aria-label="Remove debt">×</button></div>
-        <div class="dgrid"><label>Balance<div class="money">${inp(`debt.list.${i}.bal`, { type: 'number', ph: '0' })}</div></label><label>Interest %${inp(`debt.list.${i}.rate`, { type: 'number', ph: '0' })}</label><label>Minimum<div class="money">${inp(`debt.list.${i}.min`, { type: 'number', ph: '0' })}</div></label><label>Due day${inp(`debt.list.${i}.due`, { ph: 'e.g. 15th' })}</label></div></div>`).join('')}
+        <div class="dgrid"><label>Balance<div class="money">${inp(`debt.list.${i}.bal`, { type: 'number', ph: '0' })}</div></label><label>Interest %${inp(`debt.list.${i}.rate`, { type: 'number', ph: '0' })}</label><label>Minimum<div class="money">${inp(`debt.list.${i}.min`, { type: 'number', ph: '0' })}</div></label><label>Due day${dueSel(`debt.list.${i}.due`)}</label></div></div>`).join('')}
       <button class="btn small" data-r="add" data-path="debt.list">+ Add a debt</button>
       <div data-oh="d-bud"></div>
       <div class="r2 total" style="margin-top:12px"><span>Total balance</span><b>${out('d-tot')}</b></div>
@@ -542,10 +545,10 @@ export function mountResources(root, api) {
   function expenseFolds() {
     const it = getP('spending.items') || {}, open = getP('spending.open') || {}, oth = getP('spending.other') || {};
     return SPEND_CATS.map(([c, items], ci) => { const ck = ik(c); return `<details class="fold subfold" data-fold="spending.open.${ck}" ${open[ck] ? 'open' : ''}><summary><b>${c}</b><span class="sub">${out('sp-c' + ci)}</span></summary>
-      <div class="items">${items.map((x) => { const k = ik(x), r = it[k] || {}, P = `spending.items.${k}`, dl = isDebtLine(c, x); const due = `<label>Due day${inp(`${P}.due`, { ph: 'e.g. 15th' })}</label>`; return `<div class="item ${r.on ? 'on' : ''}">${chk(`${P}.on`, esc(x), true)}${r.on ? (dl
+      <div class="items">${items.map((x) => { const k = ik(x), r = it[k] || {}, P = `spending.items.${k}`, dl = isDebtLine(c, x); const due = `<label>Due day${dueSel(`${P}.due`)}</label>`; return `<div class="item ${r.on ? 'on' : ''}">${chk(`${P}.on`, esc(x), true)}${r.on ? (dl
         ? `<div class="item-in debt-in"><label class="wide">Name${inp(`${P}.name`, { ph: c === 'Credit Cards' ? 'e.g. Chase Visa' : 'e.g. Car loan' })}</label><label>Minimum payment<div class="money">${inp(`${P}.cost`, { type: 'number', ph: '0' })}</div></label><label>Total amount left<div class="money">${inp(`${P}.bal`, { type: 'number', ph: '0' })}</div></label><label>Interest %${inp(`${P}.rate`, { type: 'number', ph: '0' })}</label>${due}<label>Necessary?${needSel(`${P}.need`, r.need)}</label></div>`
         : `<div class="item-in three"><label>Monthly cost<div class="money">${inp(`${P}.cost`, { type: 'number', ph: '0' })}</div></label><label>Necessary?${needSel(`${P}.need`, r.need)}</label>${due}</div>`) : ''}</div>`; }).join('')}
-      ${(oth[ck] || []).map((r, i) => `<div class="item other"><div class="oth-in"><label>Other expense${inp(`spending.other.${ck}.${i}.label`, { ph: 'Name it' })}</label><label>Monthly cost<div class="money">${inp(`spending.other.${ck}.${i}.cost`, { type: 'number', ph: '0' })}</div></label><label>Necessary?${needSel(`spending.other.${ck}.${i}.need`, (r || {}).need)}</label><label>Due day${inp(`spending.other.${ck}.${i}.due`, { ph: 'e.g. 15th' })}</label><button class="x" data-r="del" data-path="spending.other.${ck}" data-i="${i}" aria-label="Remove">×</button></div></div>`).join('')}
+      ${(oth[ck] || []).map((r, i) => `<div class="item other"><div class="oth-in"><label>Other expense${inp(`spending.other.${ck}.${i}.label`, { ph: 'Name it' })}</label><label>Monthly cost<div class="money">${inp(`spending.other.${ck}.${i}.cost`, { type: 'number', ph: '0' })}</div></label><label>Necessary?${needSel(`spending.other.${ck}.${i}.need`, (r || {}).need)}</label><label>Due day${dueSel(`spending.other.${ck}.${i}.due`)}</label><button class="x" data-r="del" data-path="spending.other.${ck}" data-i="${i}" aria-label="Remove">×</button></div></div>`).join('')}
       </div><div class="fold-foot"><button class="btn small" data-r="add" data-path="spending.other.${ck}">+ Add other</button><label class="actual">Actually spent this month<div class="money">${inp(`spending.actual.${ck}`, { type: 'number', ph: '0' })}</div></label></div></details>`; }).join('');
   }
   const TOOL_MONEY = {
