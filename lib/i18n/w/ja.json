@@ -2368,5 +2368,10 @@
 "{0}% interest": "金利 {0}%",
 "${0} minimum": "最低 ${0}",
 "Due: {x}": "期日：{x}",
-"Total amount left": "残りの合計額"
+"Total amount left": "残りの合計額",
+"Due dates": "支払期日",
+"Due": "期日",
+"Payment": "支払い",
+"Total": "合計",
+"Add a due day to any expense and it shows up here, in order.": "支出に期日を入れると、ここに順番に表示されます。"
 }

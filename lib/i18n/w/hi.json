@@ -2368,5 +2368,10 @@
 "{0}% interest": "{0}% ब्याज",
 "${0} minimum": "${0} न्यूनतम",
 "Due: {x}": "देय: {x}",
-"Total amount left": "कुल बाकी राशि"
+"Total amount left": "कुल बाकी राशि",
+"Due dates": "देय तिथियाँ",
+"Due": "देय",
+"Payment": "भुगतान",
+"Total": "कुल",
+"Add a due day to any expense and it shows up here, in order.": "किसी भी खर्च में देय दिन जोड़ें और वह यहाँ क्रम से दिखेगा।"
 }

@@ -2368,5 +2368,10 @@
 "{0}% interest": "{0} % d’intérêt",
 "${0} minimum": "${0} minimum",
 "Due: {x}": "Échéance : {x}",
-"Total amount left": "Montant total restant"
+"Total amount left": "Montant total restant",
+"Due dates": "Échéances",
+"Due": "Échéance",
+"Payment": "Paiement",
+"Total": "Total",
+"Add a due day to any expense and it shows up here, in order.": "Ajoutez un jour d’échéance à une dépense et elle apparaîtra ici, dans l’ordre."
 }

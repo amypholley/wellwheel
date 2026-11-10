@@ -2368,5 +2368,10 @@
 "{0}% interest": "{0} % Zinsen",
 "${0} minimum": "${0} Minimum",
 "Due: {x}": "Fällig: {x}",
-"Total amount left": "Restbetrag insgesamt"
+"Total amount left": "Restbetrag insgesamt",
+"Due dates": "Fälligkeiten",
+"Due": "Fällig",
+"Payment": "Zahlung",
+"Total": "Summe",
+"Add a due day to any expense and it shows up here, in order.": "Trage bei einer Ausgabe einen Fälligkeitstag ein, dann erscheint sie hier der Reihe nach."
 }

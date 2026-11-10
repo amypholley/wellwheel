@@ -2368,5 +2368,10 @@
 "{0}% interest": "Bunga {0}%",
 "${0} minimum": "Minimum ${0}",
 "Due: {x}": "Jatuh tempo: {x}",
-"Total amount left": "Total sisa yang harus dibayar"
+"Total amount left": "Total sisa yang harus dibayar",
+"Due dates": "Tanggal jatuh tempo",
+"Due": "Jatuh tempo",
+"Payment": "Pembayaran",
+"Total": "Total",
+"Add a due day to any expense and it shows up here, in order.": "Tambahkan tanggal jatuh tempo ke pengeluaran mana pun dan itu akan muncul di sini, berurutan."
 }

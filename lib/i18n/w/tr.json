@@ -2368,5 +2368,10 @@
 "{0}% interest": "%{0} faiz",
 "${0} minimum": "${0} asgari",
 "Due: {x}": "Son ödeme: {x}",
-"Total amount left": "Kalan toplam tutar"
+"Total amount left": "Kalan toplam tutar",
+"Due dates": "Son ödeme günleri",
+"Due": "Son gün",
+"Payment": "Ödeme",
+"Total": "Toplam",
+"Add a due day to any expense and it shows up here, in order.": "Herhangi bir gidere son ödeme günü ekleyin, burada sırayla görünür."
 }

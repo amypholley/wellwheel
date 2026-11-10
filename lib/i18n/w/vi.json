@@ -2368,5 +2368,10 @@
 "{0}% interest": "Lãi {0}%",
 "${0} minimum": "Tối thiểu ${0}",
 "Due: {x}": "Đến hạn: {x}",
-"Total amount left": "Tổng số tiền còn lại"
+"Total amount left": "Tổng số tiền còn lại",
+"Due dates": "Ngày đến hạn",
+"Due": "Đến hạn",
+"Payment": "Khoản trả",
+"Total": "Tổng",
+"Add a due day to any expense and it shows up here, in order.": "Thêm ngày đến hạn cho bất kỳ khoản chi nào và nó sẽ hiện ở đây, theo thứ tự."
 }

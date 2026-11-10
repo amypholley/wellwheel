@@ -2368,5 +2368,10 @@
 "{0}% interest": "{0}% річних",
 "${0} minimum": "${0} мінімум",
 "Due: {x}": "Термін: {x}",
-"Total amount left": "Усього залишилось сплатити"
+"Total amount left": "Усього залишилось сплатити",
+"Due dates": "Терміни платежів",
+"Due": "Термін",
+"Payment": "Платіж",
+"Total": "Разом",
+"Add a due day to any expense and it shows up here, in order.": "Вкажіть день платежу для будь-якої витрати, і вона з’явиться тут по порядку."
 }

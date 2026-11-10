@@ -2368,5 +2368,10 @@
 "{0}% interest": "{0}% de juros",
 "${0} minimum": "${0} mínimo",
 "Due: {x}": "Vence: {x}",
-"Total amount left": "Valor total restante"
+"Total amount left": "Valor total restante",
+"Due dates": "Vencimentos",
+"Due": "Vence",
+"Payment": "Pagamento",
+"Total": "Total",
+"Add a due day to any expense and it shows up here, in order.": "Adicione um dia de vencimento a qualquer despesa e ela aparece aqui, em ordem."
 }

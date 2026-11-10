@@ -2368,5 +2368,10 @@
 "{0}% interest": "{0}% rente",
 "${0} minimum": "${0} minimum",
 "Due: {x}": "Vervalt: {x}",
-"Total amount left": "Totaal nog te betalen"
+"Total amount left": "Totaal nog te betalen",
+"Due dates": "Vervaldagen",
+"Due": "Vervalt",
+"Payment": "Betaling",
+"Total": "Totaal",
+"Add a due day to any expense and it shows up here, in order.": "Voeg een vervaldag toe aan een uitgave en die verschijnt hier, op volgorde."
 }

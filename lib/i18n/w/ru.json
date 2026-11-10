@@ -2368,5 +2368,10 @@
 "{0}% interest": "{0}% годовых",
 "${0} minimum": "${0} минимум",
 "Due: {x}": "Срок: {x}",
-"Total amount left": "Всего осталось выплатить"
+"Total amount left": "Всего осталось выплатить",
+"Due dates": "Сроки платежей",
+"Due": "Срок",
+"Payment": "Платёж",
+"Total": "Итого",
+"Add a due day to any expense and it shows up here, in order.": "Укажите день платежа у любого расхода, и он появится здесь по порядку."
 }

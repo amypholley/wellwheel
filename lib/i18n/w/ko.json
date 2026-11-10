@@ -2368,5 +2368,10 @@
 "{0}% interest": "이자 {0}%",
 "${0} minimum": "최소 ${0}",
 "Due: {x}": "납부일: {x}",
-"Total amount left": "남은 총액"
+"Total amount left": "남은 총액",
+"Due dates": "납부일",
+"Due": "납부일",
+"Payment": "납부 항목",
+"Total": "합계",
+"Add a due day to any expense and it shows up here, in order.": "지출에 납부일을 입력하면 여기에 순서대로 표시됩니다."
 }

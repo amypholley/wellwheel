@@ -2368,5 +2368,10 @@
 "{0}% interest": "{0}% de interés",
 "${0} minimum": "${0} mínimo",
 "Due: {x}": "Vence: {x}",
-"Total amount left": "Total que falta por pagar"
+"Total amount left": "Total que falta por pagar",
+"Due dates": "Fechas de pago",
+"Due": "Vence",
+"Payment": "Pago",
+"Total": "Total",
+"Add a due day to any expense and it shows up here, in order.": "Agrega un día de pago a cualquier gasto y aparecerá aquí, en orden."
 }

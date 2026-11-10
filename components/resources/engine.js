@@ -71,6 +71,22 @@ export function mountResources(root, api) {
     SPEND_CATS.forEach(([c, items]) => items.forEach((x) => { if (!isDebtLine(c, x)) return; const r = it[ik(x)]; if (r && r.on && num(r.bal) > 0) o.push({ name: (r.name || '').trim() || x, bal: r.bal, rate: r.rate, min: r.cost, due: r.due }); }));
     return o;
   }
+  // Every payment that has a due day, in order through the month (fills in as due days are typed)
+  function dueHTML() {
+    const it = getP('spending.items') || {}, oth = getP('spending.other') || {}; const rows = [];
+    const day = (v) => { const m = String(v || '').match(/\d{1,2}/); const n = m ? +m[0] : 0; return n >= 1 && n <= 31 ? n : 99; };
+    SPEND_CATS.forEach(([c, items]) => {
+      items.forEach((x) => { const r = it[ik(x)]; if (r && r.on && String(r.due || '').trim()) rows.push({ d: day(r.due), due: String(r.due).trim(), name: (r.name || '').trim() || x, amt: num(r.cost) }); });
+      (oth[ik(c)] || []).forEach((r) => { if (r && String(r.due || '').trim()) rows.push({ d: day(r.due), due: String(r.due).trim(), name: (r.label || '').trim() || 'Other expense', amt: num(r.cost) }); });
+    });
+    (getP('debt.list') || []).forEach((r) => { if (r && String(r.due || '').trim()) rows.push({ d: day(r.due), due: String(r.due).trim(), name: (r.name || '').trim() || 'Debt', amt: num(r.min) }); });
+    (getP('monthly.bills') || []).forEach((b) => { if (b && b.date) rows.push({ d: +b.date.slice(8, 10) || 99, due: fmtDate(b.date, { month: 'short', day: 'numeric' }), name: (b.name || '').trim() || 'Bill', amt: num(b.amt), paid: !!b.paid }); });
+    if (!rows.length) return '<p class="empty" style="margin:6px 0 0">Add a due day to any expense and it shows up here, in order.</p>';
+    rows.sort((a, b) => a.d - b.d);
+    const today = TODAY.getDate(); const nx = rows.findIndex((r) => !r.paid && r.d >= today && r.d < 99);
+    const tot = rows.reduce((a, r) => a + r.amt, 0);
+    return `<table class="duetbl"><thead><tr><th>Due</th><th>Payment</th><th class="num">Amount</th></tr></thead><tbody>${rows.map((r, i) => `<tr class="${r.paid ? 'paid' : ''} ${i === nx ? 'next' : ''}"><td>${esc(r.due)}</td><td>${esc(r.name)}${i === nx ? ' <span class="tag used">Next</span>' : ''}</td><td class="num">${r.amt ? money(r.amt) : '—'}</td></tr>`).join('')}</tbody><tfoot><tr><td></td><td>Total</td><td class="num">${money(tot)}</td></tr></tfoot></table>`;
+  }
   const allDebts = () => [...(getP('debt.list') || []), ...budgetDebts()];
   const needSel = (path, v) => `<select data-b="${esc(path)}" aria-label="Necessary?">${['Yes', 'No', 'Review'].map((o) => `<option ${(v || 'Yes') === o ? 'selected' : ''}>${o}</option>`).join('')}</select>`;
   /* ---------- 2. Monthly money plan ---------- */
@@ -559,6 +575,7 @@ export function mountResources(root, api) {
           <div class="r2"><span>Actually spent this month</span><b class="num">${out('m-ac')}</b></div>
           <div class="r2"><span>Marked “No” or “Review”</span><b class="num" style="color:var(--gold)">${out('sp-rev')}</b></div></div>
         <div class="callout">${out('m-left')}</div></section>
+      <section class="card pf-due" id="pf-due"><div class="card-head"><h2>Due dates</h2><span class="sub">each month</span></div><div data-oh="pf-due"></div></section>
       <section class="card" id="pf-plan"><h2>This month’s plan</h2><div class="rule"></div>
         <h3 class="h3" style="margin-top:0">Monthly goals</h3><div class="stack" style="gap:8px">
         <div class="goalline">${chk('monthly.goals.save.on', 'Save')}<div class="money">${inp('monthly.goals.save.amt', { type: 'number', ph: 'Amount' })}</div></div>
@@ -620,7 +637,7 @@ export function mountResources(root, api) {
       Object.assign(o, { 'm-inc': money(c.inc), 'sp-tot': money(t.tot), 'sp-rev': money(t.rev), 'm-ac': c.ac ? money(c.ac) : '—', 'm-bills': `${money(c.bt)} total · ${money(c.bu)} unpaid` });
       t.cats.forEach(([cn, ct], i) => { const a = num(getP(`spending.actual.${ik(SPEND_CATS[i][0])}`)); o['sp-c' + i] = cn || a ? `${cn ? money(ct) + ' planned' : ''}${cn && a ? ' · ' : ''}${a ? money(a) + ' spent' : ''}` : ''; });
       const left = c.inc - c.pl; o['m-left'] = !c.inc ? 'Add your income to see how much is left to give a purpose.' : left > 0 ? `${money(left)} still needs a purpose. Consider savings or debt.` : left === 0 ? 'Every dollar has a purpose. Nice work.' : `Planned spending is ${money(-left)} more than income.`;
-      html['pf-donut'] = donutHTML(); html['pf-tiles'] = tilesHTML();
+      html['pf-donut'] = donutHTML(); html['pf-tiles'] = tilesHTML(); html['pf-due'] = dueHTML();
       o.__html = html; return o;
     },
   };

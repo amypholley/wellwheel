@@ -374,6 +374,22 @@ details.mini summary{cursor:pointer;color:var(--plum);font-weight:600}
   .pf-left{position:sticky;top:12px}
   .pf-two{grid-template-columns:1fr 1fr}
 }
+/* Due dates table: beside the budget on wide screens, under it on phones */
+.duetbl{width:100%;border-collapse:collapse;font-size:14px}
+.duetbl th{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:start;padding:4px 6px;border-bottom:1px solid var(--line)}
+.duetbl td{padding:7px 6px;border-bottom:1px solid var(--line);vertical-align:top;overflow-wrap:anywhere}
+.duetbl td:first-child{white-space:nowrap;font-weight:600}
+.duetbl .num{text-align:end;white-space:nowrap}
+.duetbl tr.paid td{color:var(--muted);text-decoration:line-through}
+.duetbl tr.next td{background:var(--chip)}
+.duetbl tfoot td{font-weight:700;border-bottom:0}
+@media (min-width:1200px){
+  .app:has(.planner-wide){max-width:1420px}
+  .pf-top{grid-template-columns:300px minmax(0,1fr)}
+  .pf-right.stack{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:14px;align-items:start}
+  .pf-right.stack>*{grid-column:1;min-width:0}
+  .pf-right.stack>.pf-due{grid-column:2;grid-row:1 / span 3;position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto}
+}
 .pf-h{font-size:22px;margin:28px 2px 12px;padding-bottom:6px;border-bottom:2px solid var(--gold);scroll-margin-top:12px}
 .pf-sub{font-family:var(--display);font-size:17px;font-weight:600;margin:0 2px;scroll-margin-top:12px}
 #pf-budget,#pf-plan,#pf-efund,#pf-debt{scroll-margin-top:12px}

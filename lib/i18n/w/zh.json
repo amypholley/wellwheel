@@ -2368,5 +2368,10 @@
 "{0}% interest": "利率 {0}%",
 "${0} minimum": "最低 ${0}",
 "Due: {x}": "到期：{x}",
-"Total amount left": "剩余总额"
+"Total amount left": "剩余总额",
+"Due dates": "到期日",
+"Due": "到期",
+"Payment": "付款",
+"Total": "合计",
+"Add a due day to any expense and it shows up here, in order.": "给任何支出填上到期日，它就会按顺序显示在这里。"
 }

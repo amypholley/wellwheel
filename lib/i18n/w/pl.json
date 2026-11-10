@@ -2368,5 +2368,10 @@
 "{0}% interest": "{0}% odsetek",
 "${0} minimum": "${0} minimum",
 "Due: {x}": "Termin: {x}",
-"Total amount left": "Łącznie pozostało do spłaty"
+"Total amount left": "Łącznie pozostało do spłaty",
+"Due dates": "Terminy płatności",
+"Due": "Termin",
+"Payment": "Płatność",
+"Total": "Razem",
+"Add a due day to any expense and it shows up here, in order.": "Dodaj dzień płatności do dowolnego wydatku, a pojawi się tutaj, po kolei."
 }

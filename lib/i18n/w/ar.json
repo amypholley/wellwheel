@@ -2368,5 +2368,10 @@
 "{0}% interest": "فائدة {0}%",
 "${0} minimum": "${0} حد أدنى",
 "Due: {x}": "الاستحقاق: {x}",
-"Total amount left": "إجمالي المبلغ المتبقي"
+"Total amount left": "إجمالي المبلغ المتبقي",
+"Due dates": "مواعيد الاستحقاق",
+"Due": "الاستحقاق",
+"Payment": "الدفعة",
+"Total": "الإجمالي",
+"Add a due day to any expense and it shows up here, in order.": "أضف يوم استحقاق لأي مصروف وسيظهر هنا بالترتيب."
 }

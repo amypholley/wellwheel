@@ -2368,5 +2368,10 @@
 "{0}% interest": "{0}% di interesse",
 "${0} minimum": "${0} minimo",
 "Due: {x}": "Scadenza: {x}",
-"Total amount left": "Importo totale residuo"
+"Total amount left": "Importo totale residuo",
+"Due dates": "Scadenze",
+"Due": "Scadenza",
+"Payment": "Pagamento",
+"Total": "Totale",
+"Add a due day to any expense and it shows up here, in order.": "Aggiungi un giorno di scadenza a una spesa e comparirà qui, in ordine."
 }
