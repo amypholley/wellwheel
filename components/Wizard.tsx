@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { P, PILLARS, PRESETS, PillarId, Preset, autoQuestion } from '@/lib/data';
+import { P, PILLARS, PRESETS, PillarId, Preset, autoQuestion, promptIdeas } from '@/lib/data';
 import { addMonths, fmtNum, key, smartSentence, today, uid } from '@/lib/core';
 import { Icon } from './ui';
 import { useWW } from './store';
@@ -163,6 +163,7 @@ export function Wizard() {
         {canAsk && <div className="field">
           <label className="ck"><input type="checkbox" checked={askIsOn} onChange={(e) => { setAskOn(e.target.checked); if (e.target.checked && !askQ) setAskText('How did it go?'); }} /><span>{t("📝 Ask me a question when I check in")} <span className="sub">(answers save to my journal)</span></span></label>
           {askIsOn && <input type="text" style={{ marginTop: 8 }} aria-label={t("Question to ask at check-in")} maxLength={200} placeholder={t("e.g. What was your win today?")} value={askQ} onChange={(e) => setAskText(e.target.value)} />}
+          {askIsOn && <div className="chips" role="group" aria-label={t("Prompt ideas")}>{promptIdeas(g.src || g.title, suggestion).filter((x) => t(x) !== askQ).slice(0, 5).map((x) => <button key={x} type="button" className="chip" onClick={() => setAskText(t(x))}>{t(x)}</button>)}</div>}
           {askIsOn && askOn === null && askText === null && <div className="hint" style={{ marginBottom: 0 }}>{t("Suggested from your goal’s name. Change it to anything you like.")}</div>}
         </div>}
         <div className="field">

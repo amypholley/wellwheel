@@ -280,6 +280,24 @@ export function autoQuestion(title: string) {
   if (/\b(read|listen|watch)\b/i.test(t)) return 'What was it, and what stood out?';
   return '';
 }
+// Other prompts someone can switch to, picked by what the goal is about (people can also write their own)
+const PROMPT_IDEAS: [RegExp, string[]][] = [
+  [/reflect|silent|meditat|pray|still|quiet|mindful|breath/i, ['What felt meaningful?', 'What is weighing on me that I can set down?', 'Where did I feel peace today?', 'What am I thankful for right now?', 'What is my heart telling me?', 'Anything on your heart today?']],
+  [/\bwin\b|proud|celebrat/i, ['What was your win?', 'What are you proud of today?', 'What went better than you expected?', 'What did you handle well?']],
+  [/heart|joy|laugh|lifts me|kind thing|feelings|mood|emotion/i, ['What filled your heart?', 'What made you smile today?', 'What are you feeling?', 'How’s your mood, and why?', 'What do you need right now?']],
+  [/gratitude|grateful|thankful|appreciate/i, ['What are you grateful for?', 'Who are you thankful for, and why?', 'What small thing went right today?']],
+  [/someone|reach out|call|talk|friend|family|partner|connect|note|card|serve|help|volunteer|mentor|story/i, ['Who did you connect with?', 'Who did you help, and how?', 'How did it feel to connect?', 'Who do you want to reach out to next?']],
+  [/read|learn|study|podcast|documentary|book|scripture|curious|teach|new/i, ['What did you learn?', 'What did you read, and what stood out?', 'What surprised you?', 'How could you use this?']],
+  [/business|dream|step|purpose|goal|career|work/i, ['What step did you take?', 'What is your next small step?', 'What got in the way, and how did you handle it?', 'Why does this matter to you?']],
+  [/reframe|thought|pause|say no|coping|stress|anxi/i, ['What was the thought, and how did you reframe it?', 'What did you pause on?', 'Which skill did you use?', 'What helped the most?']],
+];
+const PROMPT_ANY = ['How did it go?', 'What did you notice?', 'How do you feel now?', 'What made it easier or harder today?'];
+export function promptIdeas(title: string, current = '') {
+  const out: string[] = [];
+  PROMPT_IDEAS.forEach(([re, list]) => { if (re.test(title) || list.includes(current)) list.forEach((q) => { if (!out.includes(q)) out.push(q); }); });
+  PROMPT_ANY.forEach((q) => { if (!out.includes(q)) out.push(q); });
+  return out.filter((q) => q !== current).slice(0, 7);
+}
 // The question a goal asks at check-in: the person's own choice (empty = off) if they set one, otherwise a guess
 export const questionFor = (tools: Record<string, any>, g: { id: string; title: string; type: string; amt?: boolean }) => {
   if (g.type !== 'habit' || g.amt) return '';

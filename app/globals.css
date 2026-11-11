@@ -589,6 +589,10 @@ html .example{text-transform:none;letter-spacing:0;font-weight:600;font-size:12p
 /* Goals that ask a question */
 .askrow{flex-direction:column;align-items:stretch;gap:8px;background:color-mix(in srgb,var(--chip) 60%,transparent);border-radius:12px;padding:12px;margin-top:8px}
 .askrow .lbl{margin:0}
+.askchange{align-self:flex-start;font-size:13px}
+.askideas .chips{margin-top:0}
+.askideas .chip{font-size:13px;text-align:start;white-space:normal}
+.askideas input{flex:1;min-width:0}
 .gans{margin-top:8px;font-size:14px}
 .gans p{margin:0 0 4px;font-style:italic;color:var(--ink)}
 .gnotes{margin-top:10px}

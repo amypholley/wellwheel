@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { P, PILLARS, PillarId, goalQuestion, questionFor } from '@/lib/data';
+import { P, PILLARS, PillarId, goalQuestion, promptIdeas, questionFor } from '@/lib/data';
 import { Goal, addDays, addMonths, dayFrac, dayVal, fmtDate, fmtNum, fromKey, goalWeekScore, key, pillarScore, smartSentence, today, todaysPrompt, goalStart, sumDays, sundayOf, total, uid, weekMet, weekSum } from '@/lib/core';
 import { Icon, Wheel, initials } from './ui';
 import { firstName, useWW } from './store';
@@ -82,9 +82,13 @@ function GoalRowToday({ g, logOpen, setLogOpen }: { g: Goal; logOpen: string | n
   const q = questionFor(S.tools, g);
   const [askOpen, setAskOpen] = useState(false);
   const [ans, setAns] = useState('');
+  const [ideasOpen, setIdeasOpen] = useState(false);
+  const [ownQ, setOwnQ] = useState('');
   const notes: { d: string; t: string }[] = ((S.tools.gnotes || {})[g.id]) || [];
   const todays = notes.filter((n) => n.d === T);
   const doneNow = g.type === 'habit' && (g.per === 'day' ? dayVal(S, g, T) : weekSum(S, g)) >= g.count;
+  // Switch this goal's prompt to a suggested one, or to one the person writes
+  const setPrompt = (text: string) => { const v = text.trim().slice(0, 200); if (!v) return; act.saveTool('gq', { ...(S.tools.gq || {}), [g.id]: v }); setIdeasOpen(false); setOwnQ(''); };
   const saveAnswer = (logIt: boolean) => {
     const txt = ans.trim();
     if (txt) { const all = { ...(S.tools.gnotes || {}) }; all[g.id] = [...notes, { d: T, t: txt.slice(0, 2000) }]; act.saveTool('gnotes', all); }
@@ -169,6 +173,14 @@ function GoalRowToday({ g, logOpen, setLogOpen }: { g: Goal; logOpen: string | n
       {ctrl}{extra}
       {q && askOpen && <div className="logrow askrow">
         <label className="lbl" htmlFor={'ask-' + g.id}>{t(q)}</label>
+        <button className="linkish askchange" aria-expanded={ideasOpen} onClick={() => setIdeasOpen(!ideasOpen)}>💡 {ideasOpen ? t('Keep this prompt') : t('Try a different prompt')}</button>
+        {ideasOpen && <div className="askideas">
+          <div className="chips" role="group" aria-label={t("Prompt ideas")}>{promptIdeas((g as any).src || g.title, q).map((x) => <button key={x} className="chip" onClick={() => setPrompt(x)}>{t(x)}</button>)}</div>
+          <form className="row" style={{ gap: 8, marginTop: 8 }} onSubmit={(e) => { e.preventDefault(); setPrompt(ownQ); }}>
+            <input type="text" value={ownQ} maxLength={200} placeholder={t("Or write your own prompt")} aria-label={t("Or write your own prompt")} onChange={(e) => setOwnQ(e.target.value)} />
+            <button className="btn small" type="submit" disabled={!ownQ.trim()}>{t("Use")}</button>
+          </form>
+        </div>}
         <textarea id={'ask-' + g.id} rows={2} value={ans} autoFocus maxLength={2000} placeholder={t("Write as much or as little as you want")} onChange={(e) => setAns(e.target.value)} />
         <div className="row" style={{ justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
           <button className="linkish" onClick={() => (ans.trim() ? saveAnswer(!doneNow) : (doneNow ? setAskOpen(false) : (plus(), setAskOpen(false))))}>{doneNow ? t('Cancel') : t('Skip, just check in')}</button>
