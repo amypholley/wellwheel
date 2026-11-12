@@ -791,5 +791,10 @@
 "Keep this prompt": "Zostaw to pytanie",
 "Prompt ideas": "Pomysły na pytania",
 "Or write your own prompt": "Albo napisz własne pytanie",
-"Use": "Użyj"
+"Use": "Użyj",
+"Added for {day}": "Dodano: {day}",
+"Cleared for {day}": "Wyczyszczono: {day}",
+"Add {day}": "Dodaj: {day}",
+"Clear {day}": "Wyczyść: {day}",
+"Missed a day? Tap its circle to add it.": "Pominięty dzień? Dotknij jego kółka, aby go dodać."
 }

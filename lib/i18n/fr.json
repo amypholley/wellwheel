@@ -791,5 +791,10 @@
 "Keep this prompt": "Garder cette question",
 "Prompt ideas": "Idées de questions",
 "Or write your own prompt": "Ou écrivez votre propre question",
-"Use": "Utiliser"
+"Use": "Utiliser",
+"Added for {day}": "Ajouté pour {day}",
+"Cleared for {day}": "Effacé pour {day}",
+"Add {day}": "Ajouter {day}",
+"Clear {day}": "Effacer {day}",
+"Missed a day? Tap its circle to add it.": "Un jour manqué ? Touchez son cercle pour l’ajouter."
 }

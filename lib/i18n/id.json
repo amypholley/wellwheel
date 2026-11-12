@@ -791,5 +791,10 @@
 "Keep this prompt": "Pakai pertanyaan ini",
 "Prompt ideas": "Ide pertanyaan",
 "Or write your own prompt": "Atau tulis pertanyaanmu sendiri",
-"Use": "Pakai"
+"Use": "Pakai",
+"Added for {day}": "Ditambahkan untuk {day}",
+"Cleared for {day}": "Dihapus untuk {day}",
+"Add {day}": "Tambah {day}",
+"Clear {day}": "Hapus {day}",
+"Missed a day? Tap its circle to add it.": "Terlewat sehari? Ketuk lingkarannya untuk menambahkan."
 }

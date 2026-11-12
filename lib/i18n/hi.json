@@ -791,5 +791,10 @@
 "Keep this prompt": "यही प्रश्न रखें",
 "Prompt ideas": "प्रश्नों के सुझाव",
 "Or write your own prompt": "या अपना प्रश्न लिखें",
-"Use": "चुनें"
+"Use": "चुनें",
+"Added for {day}": "{day} के लिए जोड़ा गया",
+"Cleared for {day}": "{day} के लिए हटाया गया",
+"Add {day}": "{day} जोड़ें",
+"Clear {day}": "{day} हटाएँ",
+"Missed a day? Tap its circle to add it.": "कोई दिन छूट गया? जोड़ने के लिए उसके गोले पर टैप करें।"
 }

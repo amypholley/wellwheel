@@ -791,5 +791,10 @@
 "Keep this prompt": "Оставить этот вопрос",
 "Prompt ideas": "Идеи вопросов",
 "Or write your own prompt": "Или напишите свой вопрос",
-"Use": "Выбрать"
+"Use": "Выбрать",
+"Added for {day}": "Добавлено: {day}",
+"Cleared for {day}": "Очищено: {day}",
+"Add {day}": "Добавить: {day}",
+"Clear {day}": "Очистить: {day}",
+"Missed a day? Tap its circle to add it.": "Пропустили день? Нажмите на его кружок, чтобы добавить."
 }

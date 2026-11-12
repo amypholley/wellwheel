@@ -569,6 +569,8 @@ html .example{text-transform:none;letter-spacing:0;font-weight:600;font-size:12p
 .wd.today i{outline:2px solid var(--ink);outline-offset:1px}
 .wd.today{color:var(--ink);font-weight:700}
 .wd.fut{opacity:.5}
+button.wd.past{background:none;border:0;padding:6px 5px;margin:-6px -5px;width:28px;box-sizing:border-box;cursor:pointer;font-family:inherit}
+button.wd.past:active i{transform:scale(.85)}
 /* Progress: week / month / year */
 .segp{grid-template-columns:repeat(3,1fr)}
 .pnav{display:flex;align-items:center;justify-content:space-between;margin:12px 0 4px}

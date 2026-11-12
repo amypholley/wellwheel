@@ -791,5 +791,10 @@
 "Keep this prompt": "保留这个问题",
 "Prompt ideas": "问题灵感",
 "Or write your own prompt": "或者写下你自己的问题",
-"Use": "使用"
+"Use": "使用",
+"Added for {day}": "已补记{day}",
+"Cleared for {day}": "已清除{day}",
+"Add {day}": "补记{day}",
+"Clear {day}": "清除{day}",
+"Missed a day? Tap its circle to add it.": "漏了一天？点它的圆圈即可补上。"
 }

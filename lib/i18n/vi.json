@@ -791,5 +791,10 @@
 "Keep this prompt": "Giữ câu hỏi này",
 "Prompt ideas": "Gợi ý câu hỏi",
 "Or write your own prompt": "Hoặc tự viết câu hỏi",
-"Use": "Dùng"
+"Use": "Dùng",
+"Added for {day}": "Đã thêm cho {day}",
+"Cleared for {day}": "Đã xóa cho {day}",
+"Add {day}": "Thêm {day}",
+"Clear {day}": "Xóa {day}",
+"Missed a day? Tap its circle to add it.": "Lỡ một ngày? Nhấn vào vòng tròn của ngày đó để thêm."
 }

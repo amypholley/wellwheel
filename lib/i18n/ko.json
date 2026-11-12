@@ -791,5 +791,10 @@
 "Keep this prompt": "이 질문 유지하기",
 "Prompt ideas": "질문 아이디어",
 "Or write your own prompt": "또는 나만의 질문 쓰기",
-"Use": "사용"
+"Use": "사용",
+"Added for {day}": "{day}에 추가했어요",
+"Cleared for {day}": "{day} 기록을 지웠어요",
+"Add {day}": "{day} 추가",
+"Clear {day}": "{day} 지우기",
+"Missed a day? Tap its circle to add it.": "하루를 놓쳤나요? 해당 동그라미를 눌러 추가하세요."
 }

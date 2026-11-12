@@ -791,5 +791,10 @@
 "Keep this prompt": "الإبقاء على هذا السؤال",
 "Prompt ideas": "أفكار للأسئلة",
 "Or write your own prompt": "أو اكتب سؤالك الخاص",
-"Use": "استخدام"
+"Use": "استخدام",
+"Added for {day}": "تمت الإضافة ليوم {day}",
+"Cleared for {day}": "تم المسح ليوم {day}",
+"Add {day}": "إضافة {day}",
+"Clear {day}": "مسح {day}",
+"Missed a day? Tap its circle to add it.": "فاتك يوم؟ اضغط على دائرته لإضافته."
 }

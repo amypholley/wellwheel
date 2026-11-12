@@ -791,5 +791,10 @@
 "Keep this prompt": "Bu soruyu koru",
 "Prompt ideas": "Soru fikirleri",
 "Or write your own prompt": "Ya da kendi sorunu yaz",
-"Use": "Kullan"
+"Use": "Kullan",
+"Added for {day}": "{day} için eklendi",
+"Cleared for {day}": "{day} için temizlendi",
+"Add {day}": "{day} ekle",
+"Clear {day}": "{day} temizle",
+"Missed a day? Tap its circle to add it.": "Bir günü mü kaçırdın? Eklemek için dairesine dokun."
 }

@@ -60,12 +60,21 @@ function TogetherCard() {
 /* ---------- Today ---------- */
 // Sunday to Saturday at a glance for a daily goal: filled = done that day, ringed = today
 function WeekDots({ g, color }: { g: Goal; color: string }) {
-  const { S } = useWW();
+  const { S, act, toast } = useWW();
   const { TODAY, weekDays } = today();
+  // Missed a day? Tap an earlier day this week to add it (tap a finished day to clear it)
+  const fix = (d: Date) => {
+    const k = key(d), v = dayVal(S, g, k), name = d.toLocaleDateString(loc(), { weekday: 'long' });
+    if (dayFrac(S, g, k) >= 1) { act.log(g.id, -v, k); toast(t('Cleared for {day}', { day: name })); }
+    else { act.log(g.id, g.amt ? g.step : 1, k); toast(t('Added for {day}', { day: name })); }
+  };
   return (
-    <div className="wdots" aria-hidden="true">
+    <div className="wdots">
       {weekDays.map((d) => { const k = key(d), f = dayFrac(S, g, k), fut = d > TODAY, isT = d.getTime() === TODAY.getTime();
-        return <span key={k} className={`wd ${isT ? 'today' : ''} ${fut ? 'fut' : ''}`}><i style={f > 0 ? { background: color, opacity: f >= 1 ? 1 : 0.45 } : undefined} />{d.toLocaleDateString(loc(), { weekday: 'narrow' })}</span>; })}
+        const dot = <><i style={f > 0 ? { background: color, opacity: f >= 1 ? 1 : 0.45 } : undefined} />{d.toLocaleDateString(loc(), { weekday: 'narrow' })}</>;
+        return fut || isT
+          ? <span key={k} aria-hidden="true" className={`wd ${isT ? 'today' : ''} ${fut ? 'fut' : ''}`}>{dot}</span>
+          : <button key={k} type="button" className="wd past" onClick={() => fix(d)} aria-label={t(f >= 1 ? 'Clear {day}' : 'Add {day}', { day: d.toLocaleDateString(loc(), { weekday: 'long' }) })}>{dot}</button>; })}
     </div>
   );
 }
@@ -242,6 +251,7 @@ export function Today() {
         <TogetherCard />
         <section className="card">
           <div className="card-head"><h2>{t("Today’s check-ins")}</h2><button className="linkish" onClick={() => setWizard({})}>{t("+ New goal")}</button></div>
+          <p className="sub" style={{ margin: '2px 0 0' }}>{t("Missed a day? Tap its circle to add it.")}</p>
           {S.goals.length ? S.goals.map((g) => <GoalRowToday key={g.id} g={g} logOpen={logOpen} setLogOpen={setLogOpen} />) : (
             <><p className="empty">{t("No goals yet. Pick a pillar and start with one small goal.")}</p><button className="btn primary" onClick={() => setWizard({})}>{t("Set my first goal")}</button></>
           )}

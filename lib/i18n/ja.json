@@ -791,5 +791,10 @@
 "Keep this prompt": "この質問のままにする",
 "Prompt ideas": "質問のアイデア",
 "Or write your own prompt": "または自分で質問を書く",
-"Use": "使う"
+"Use": "使う",
+"Added for {day}": "{day}に追加しました",
+"Cleared for {day}": "{day}を取り消しました",
+"Add {day}": "{day}を追加",
+"Clear {day}": "{day}を取り消す",
+"Missed a day? Tap its circle to add it.": "記録し忘れた日は、その丸をタップして追加できます。"
 }

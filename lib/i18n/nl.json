@@ -791,5 +791,10 @@
 "Keep this prompt": "Deze vraag houden",
 "Prompt ideas": "Vraagideeën",
 "Or write your own prompt": "Of schrijf je eigen vraag",
-"Use": "Gebruiken"
+"Use": "Gebruiken",
+"Added for {day}": "Toegevoegd voor {day}",
+"Cleared for {day}": "Gewist voor {day}",
+"Add {day}": "{day} toevoegen",
+"Clear {day}": "{day} wissen",
+"Missed a day? Tap its circle to add it.": "Een dag gemist? Tik op het rondje om hem toe te voegen."
 }
