@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { P, PILLARS, PillarId, goalQuestion, promptIdeas, questionFor } from '@/lib/data';
+import { P, PILLARS, PillarId, goalQuestion, promptIdeas, questionFor, rotatesDaily, ROTATE_KEY } from '@/lib/data';
 import { Goal, addDays, addMonths, dayFrac, dayVal, fmtDate, fmtNum, fromKey, goalWeekScore, key, pillarScore, smartSentence, today, todaysPrompt, goalStart, sumDays, sundayOf, total, uid, weekMet, weekSum } from '@/lib/core';
 import { Icon, Wheel, initials } from './ui';
 import { firstName, useWW } from './store';
@@ -93,11 +93,16 @@ function GoalRowToday({ g, logOpen, setLogOpen }: { g: Goal; logOpen: string | n
   const [ans, setAns] = useState('');
   const [ideasOpen, setIdeasOpen] = useState(false);
   const [ownQ, setOwnQ] = useState('');
+  const [ideaAt, setIdeaAt] = useState(0);
+  const ownPick = (S.tools.gq || {})[g.id];
+  const rotating = rotatesDaily(g.title, ownPick === undefined ? undefined : String(ownPick));
+  const ideas = promptIdeas((g as any).src || g.title, q);
+  const canRotate = rotating || rotatesDaily((g as any).src || g.title, undefined);
   const notes: { d: string; t: string }[] = ((S.tools.gnotes || {})[g.id]) || [];
   const todays = notes.filter((n) => n.d === T);
   const doneNow = g.type === 'habit' && (g.per === 'day' ? dayVal(S, g, T) : weekSum(S, g)) >= g.count;
   // Switch this goal's prompt to a suggested one, or to one the person writes
-  const setPrompt = (text: string) => { const v = text.trim().slice(0, 200); if (!v) return; act.saveTool('gq', { ...(S.tools.gq || {}), [g.id]: v }); setIdeasOpen(false); setOwnQ(''); };
+  const setPrompt = (text: string) => { const v = text.trim().slice(0, 200); if (!v) return; act.saveTool('gq', { ...(S.tools.gq || {}), [g.id]: v }); setIdeasOpen(false); setOwnQ(''); setIdeaAt(0); };
   const saveAnswer = (logIt: boolean) => {
     const txt = ans.trim();
     if (txt) { const all = { ...(S.tools.gnotes || {}) }; all[g.id] = [...notes, { d: T, t: txt.slice(0, 2000) }]; act.saveTool('gnotes', all); }
@@ -181,10 +186,15 @@ function GoalRowToday({ g, logOpen, setLogOpen }: { g: Goal; logOpen: string | n
       </div>
       {ctrl}{extra}
       {q && askOpen && <div className="logrow askrow">
+        {rotating && <span className="sub asktoday">{t("Today’s prompt")}</span>}
         <label className="lbl" htmlFor={'ask-' + g.id}>{t(q)}</label>
         <button className="linkish askchange" aria-expanded={ideasOpen} onClick={() => setIdeasOpen(!ideasOpen)}>💡 {ideasOpen ? t('Keep this prompt') : t('Try a different prompt')}</button>
         {ideasOpen && <div className="askideas">
-          <div className="chips" role="group" aria-label={t("Prompt ideas")}>{promptIdeas((g as any).src || g.title, q).map((x) => <button key={x} className="chip" onClick={() => setPrompt(x)}>{t(x)}</button>)}</div>
+          <div className="chips" role="group" aria-label={t("Prompt ideas")}>{ideas.slice(ideaAt, ideaAt + 4).map((x) => <button key={x} className="chip" onClick={() => setPrompt(x)}>{t(x)}</button>)}</div>
+          <div className="row" style={{ gap: 14, flexWrap: 'wrap', marginTop: 8 }}>
+            {ideas.length > 4 && <button className="linkish" onClick={() => setIdeaAt(ideaAt + 4 >= ideas.length ? 0 : ideaAt + 4)}>🔄 {t("Show me others")}</button>}
+            {canRotate && !rotating && <button className="linkish" onClick={() => setPrompt(ROTATE_KEY)}>🗓 {t("A new prompt each day")}</button>}
+          </div>
           <form className="row" style={{ gap: 8, marginTop: 8 }} onSubmit={(e) => { e.preventDefault(); setPrompt(ownQ); }}>
             <input type="text" value={ownQ} maxLength={200} placeholder={t("Or write your own prompt")} aria-label={t("Or write your own prompt")} onChange={(e) => setOwnQ(e.target.value)} />
             <button className="btn small" type="submit" disabled={!ownQ.trim()}>{t("Use")}</button>

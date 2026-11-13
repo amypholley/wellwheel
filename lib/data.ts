@@ -281,27 +281,44 @@ export function autoQuestion(title: string) {
   return '';
 }
 // Other prompts someone can switch to, picked by what the goal is about (people can also write their own)
-const PROMPT_IDEAS: [RegExp, string[]][] = [
-  [/reflect|silent|meditat|pray|still|quiet|mindful|breath/i, ['What felt meaningful?', 'What is weighing on me that I can set down?', 'Where did I feel peace today?', 'What am I thankful for right now?', 'What is my heart telling me?', 'Anything on your heart today?']],
-  [/\bwin\b|proud|celebrat/i, ['What was your win?', 'What are you proud of today?', 'What went better than you expected?', 'What did you handle well?']],
-  [/heart|joy|laugh|lifts me|kind thing|feelings|mood|emotion/i, ['What filled your heart?', 'What made you smile today?', 'What are you feeling?', 'How’s your mood, and why?', 'What do you need right now?']],
-  [/gratitude|grateful|thankful|appreciate/i, ['What are you grateful for?', 'Who are you thankful for, and why?', 'What small thing went right today?']],
-  [/someone|reach out|call|talk|friend|family|partner|connect|note|card|serve|help|volunteer|mentor|story/i, ['Who did you connect with?', 'Who did you help, and how?', 'How did it feel to connect?', 'Who do you want to reach out to next?']],
-  [/read|learn|study|podcast|documentary|book|scripture|curious|teach|new/i, ['What did you learn?', 'What did you read, and what stood out?', 'What surprised you?', 'How could you use this?']],
-  [/business|dream|step|purpose|goal|career|work/i, ['What step did you take?', 'What is your next small step?', 'What got in the way, and how did you handle it?', 'Why does this matter to you?']],
-  [/reframe|thought|pause|say no|coping|stress|anxi/i, ['What was the thought, and how did you reframe it?', 'What did you pause on?', 'Which skill did you use?', 'What helped the most?']],
+const REFLECT_RE = /reflect|silent|meditat|pray|stillness|quiet time|mindful/i;
+const REFLECT_DEFAULTS = ['What felt meaningful?', 'Anything on your heart today?'];
+export const REFLECT_PROMPTS = [
+  'What moment from today do you want to hold onto?',
+  'What have you been carrying that isn’t yours to carry?',
+  'When did you feel most like yourself today?',
+  'What came up in the quiet that the noise was covering?',
+  'Who came to mind, and what do you wish you could tell them?',
+  'Where did fear make a choice for you today?',
+  'What do you need to forgive, in yourself or someone else?',
+  'What small gift did you almost miss today?',
 ];
-const PROMPT_ANY = ['How did it go?', 'What did you notice?', 'How do you feel now?', 'What made it easier or harder today?'];
+const PROMPT_IDEAS: [RegExp, string[]][] = [
+  [REFLECT_RE, REFLECT_PROMPTS],
+  [/\bwin\b|proud|celebrat/i, ['What was your win?', 'What hard thing did you do anyway?', 'What did you finish that you’d been putting off?', 'What could you do today that you couldn’t a year ago?', 'What promise to yourself did you keep today?']],
+  [/heart|joy|laugh|lifts me|kind thing|feelings|mood|emotion/i, ['What filled your heart?', 'What moment today would you relive?', 'Who or what made you laugh today?', 'What feeling was strongest today, and what set it off?', 'What did you need today that you didn’t ask for?']],
+  [/gratitude|grateful|thankful|appreciate/i, ['What are you grateful for?', 'Who made today easier, and what did they do?', 'What do you have now that you once hoped for?', 'What ordinary thing would you miss if it were gone tomorrow?', 'What went wrong today that turned out okay?']],
+  [/someone|reach out|call|talk|friend|family|partner|connect|note|card|serve|help|volunteer|mentor|story/i, ['Who did you connect with?', 'What did you learn about how they’re really doing?', 'What did they need most: advice, help, or someone to listen?', 'What did you say that you’re glad you said?', 'Who else has been quiet lately?']],
+  [/read|learn|study|podcast|documentary|book|scripture|curious|teach|new/i, ['What did you read, and what stood out?', 'What idea could you now explain to a friend?', 'What line or idea stuck with you?', 'What did you question or disagree with?', 'What will you do differently because of it?']],
+  [/business|dream|step|purpose|goal|career|work/i, ['What step did you take?', 'What exactly did you do, and how long did it take?', 'What is the next step, small enough to do tomorrow?', 'What almost stopped you, and what got you past it?', 'Who could help you with the next step?']],
+  [/reframe|thought|pause|say no|coping|stress|anxi/i, ['Which skill did you use?', 'What set you off, and what did you do instead of reacting?', 'How well did the skill work, from 1 to 10?', 'What were you telling yourself, and what’s a truer way to say it?', 'How did your body feel before and after?']],
+];
+const PROMPT_ANY = ['How did you feel before, and how do you feel now?', 'What made it easier or harder today?', 'What would make tomorrow go a little better?'];
+// A reflection goal with no prompt picked gets a different reflection prompt each day
+export const rotatesDaily = (title: string, own: string | undefined) => (own === undefined ? REFLECT_RE.test(title) : REFLECT_DEFAULTS.includes(own));
+export const ROTATE_KEY = REFLECT_DEFAULTS[0];
+const dayNo = () => { const d = new Date(); return Math.floor((Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) - Date.UTC(d.getFullYear(), 0, 0)) / 86400000); };
 export function promptIdeas(title: string, current = '') {
   const out: string[] = [];
-  PROMPT_IDEAS.forEach(([re, list]) => { if (re.test(title) || list.includes(current)) list.forEach((q) => { if (!out.includes(q)) out.push(q); }); });
-  PROMPT_ANY.forEach((q) => { if (!out.includes(q)) out.push(q); });
-  return out.filter((q) => q !== current).slice(0, 7);
+  PROMPT_IDEAS.forEach(([re, list]) => { if (re.test(title) || list.includes(current) || (list === REFLECT_PROMPTS && REFLECT_DEFAULTS.includes(current))) list.forEach((q) => { if (!out.includes(q)) out.push(q); }); });
+  if (!out.length) out.push(...PROMPT_ANY);
+  return out.filter((q) => q !== current);
 }
 // The question a goal asks at check-in: the person's own choice (empty = off) if they set one, otherwise a guess
 export const questionFor = (tools: Record<string, any>, g: { id: string; title: string; type: string; amt?: boolean }) => {
   if (g.type !== 'habit' || g.amt) return '';
   const own = (tools.gq || {})[g.id];
+  if (rotatesDaily(g.title, own === undefined ? undefined : String(own))) return REFLECT_PROMPTS[dayNo() % REFLECT_PROMPTS.length];
   return own !== undefined ? String(own) : autoQuestion(g.title);
 };
 
