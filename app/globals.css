@@ -594,6 +594,8 @@ button.wd.past:active i{transform:scale(.85)}
 .askchange{align-self:flex-start;font-size:13px}
 .asktoday{font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;margin-bottom:-4px}
 .askideas .linkish{font-size:13px}
+.askmore{display:block;font-weight:400;color:var(--muted);font-size:.93em;margin-top:3px}
+.askideas .chip{border-radius:14px}
 .askideas .chips{margin-top:0}
 .askideas .chip{font-size:13px;text-align:start;white-space:normal}
 .askideas input{flex:1;min-width:0}

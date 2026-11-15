@@ -79,6 +79,9 @@ function WeekDots({ g, color }: { g: Goal; color: string }) {
   );
 }
 
+// Longer prompts are a question plus a follow-up: show the question first and the follow-up lighter
+const splitQ = (x: string): [string, string] => { const m = x.match(/^(.*?[?？؟])\s*(\S[\s\S]*)$/); return m ? [m[1], m[2]] : [x, '']; };
+
 function GoalRowToday({ g, logOpen, setLogOpen }: { g: Goal; logOpen: string | null; setLogOpen: (v: string | null) => void }) {
   const { S, act, toast } = useWW();
   const { T } = today();
@@ -97,6 +100,7 @@ function GoalRowToday({ g, logOpen, setLogOpen }: { g: Goal; logOpen: string | n
   const ownPick = (S.tools.gq || {})[g.id];
   const rotating = rotatesDaily(g.title, ownPick === undefined ? undefined : String(ownPick));
   const ideas = promptIdeas((g as any).src || g.title, q);
+  const per = (ideas[0] || '').length > 70 ? 3 : 4;
   const canRotate = rotating || rotatesDaily((g as any).src || g.title, undefined);
   const notes: { d: string; t: string }[] = ((S.tools.gnotes || {})[g.id]) || [];
   const todays = notes.filter((n) => n.d === T);
@@ -181,18 +185,18 @@ function GoalRowToday({ g, logOpen, setLogOpen }: { g: Goal; logOpen: string | n
         <div className="goal-title">{g.example ? t(g.title) : g.title}</div>
         <div className="goal-meta">{meta}</div>
         {ticks}<Contrib g={g} />
-        {q && todays.length === 0 && !askOpen && <button className="linkish askcue" onClick={() => setAskOpen(true)}>📝 {t(q)}</button>}
+        {q && todays.length === 0 && !askOpen && <button className="linkish askcue" onClick={() => setAskOpen(true)}>📝 {splitQ(t(q))[0]}</button>}
         {q && todays.length > 0 && !askOpen && <div className="gans">{todays.map((n, i) => <p key={i}>“{n.t}”</p>)}<button className="linkish" onClick={() => setAskOpen(true)}>{t("+ Add another")}</button></div>}
       </div>
       {ctrl}{extra}
       {q && askOpen && <div className="logrow askrow">
         {rotating && <span className="sub asktoday">{t("Today’s prompt")}</span>}
-        <label className="lbl" htmlFor={'ask-' + g.id}>{t(q)}</label>
+        <label className="lbl" htmlFor={'ask-' + g.id}>{splitQ(t(q))[0]}{splitQ(t(q))[1] && <span className="askmore">{splitQ(t(q))[1]}</span>}</label>
         <button className="linkish askchange" aria-expanded={ideasOpen} onClick={() => setIdeasOpen(!ideasOpen)}>💡 {ideasOpen ? t('Keep this prompt') : t('Try a different prompt')}</button>
         {ideasOpen && <div className="askideas">
-          <div className="chips" role="group" aria-label={t("Prompt ideas")}>{ideas.slice(ideaAt, ideaAt + 4).map((x) => <button key={x} className="chip" onClick={() => setPrompt(x)}>{t(x)}</button>)}</div>
+          <div className="chips" role="group" aria-label={t("Prompt ideas")}>{ideas.slice(ideaAt, ideaAt + per).map((x) => { const [a, b] = splitQ(t(x)); return <button key={x} className="chip" onClick={() => setPrompt(x)}>{a}{b && <span className="askmore">{b}</span>}</button>; })}</div>
           <div className="row" style={{ gap: 14, flexWrap: 'wrap', marginTop: 8 }}>
-            {ideas.length > 4 && <button className="linkish" onClick={() => setIdeaAt(ideaAt + 4 >= ideas.length ? 0 : ideaAt + 4)}>🔄 {t("Show me others")}</button>}
+            {ideas.length > per && <button className="linkish" onClick={() => setIdeaAt(ideaAt + per >= ideas.length ? 0 : ideaAt + per)}>🔄 {t("Show me others")}</button>}
             {canRotate && !rotating && <button className="linkish" onClick={() => setPrompt(ROTATE_KEY)}>🗓 {t("A new prompt each day")}</button>}
           </div>
           <form className="row" style={{ gap: 8, marginTop: 8 }} onSubmit={(e) => { e.preventDefault(); setPrompt(ownQ); }}>
