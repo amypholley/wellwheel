@@ -369,9 +369,136 @@ export function makeMore(h) {
     },
   };
 
+  /* ---------- Recovery Tracker: cutting back or quitting something ---------- */
+  const REC_KINDS = ['Alcohol', 'Smoking or vaping', 'Drugs', 'Self-harm', 'Gambling', 'Pornography', 'Other'];
+  const REC_TRIG = ['Stress', 'Boredom', 'Loneliness', 'Anger', 'Sadness', 'Feeling ashamed', 'Tired', 'Hungry', 'An argument', 'Being around it', 'Celebrating', 'Pain', 'Can’t sleep'];
+  const REC_DID = ['Waited it out', 'Called or texted someone', 'Went for a walk', 'Left the situation', 'Drank water', 'Ate something', 'Slow breathing', 'Prayer or meditation', 'Distracted myself', 'Journaled', 'Went to a meeting', 'Used a coping skill'];
+  const REC_MILES = [[1, '1 day'], [7, '1 week'], [14, '2 weeks'], [30, '30 days'], [60, '60 days'], [90, '90 days'], [180, '6 months'], [365, '1 year']];
+  const dayNum = (k) => Math.round((TODAY - fromKey(k)) / 86400000);
+  const recName = (it) => (it.what === 'Other' ? (it.name || '').trim() || 'Other' : it.what);
+  const recDays = (it) => Math.max(0, dayNum(it.since || it.start || T));
+  const recBest = (it) => Math.max(recDays(it), ...(it.slips || []).map((s) => num(s.days)));
+  const reachOut = '<p class="note" style="margin:10px 0 0"><b>You don’t have to do this alone.</b> Telling one person makes this easier: a friend, a sponsor, a counselor, or one of the lines below. If you’re in crisis or thinking about hurting yourself, call or text <b>988</b> any time.</p>' + hotlinesHTML(esc);
+  const RECOVERY = {
+    render() {
+      const items = getP('recovery.items') || [], es = getP('recovery.entries') || [];
+      const i = Math.min(ui.recI || 0, Math.max(0, items.length - 1)), it = items[i];
+      const nd = getP('recovery.nd') || {};
+      const addForm = `${lbl('What are you working on?', 1)}${pick('recovery.nd.what', REC_KINDS)}
+        ${nd.what === 'Other' ? `<div style="margin-top:8px">${inp('recovery.nd.name', { ph: 'Name it in your own words' })}</div>` : ''}
+        ${nd.what === 'Alcohol' ? `${lbl('My goal')}${pick('recovery.nd.mode', ['Cut back', 'Quit completely'])}` : ''}
+        ${lbl('Start date')}<input type="date" data-b="recovery.nd.start" value="${esc(nd.start || T)}" aria-label="Start date">
+        ${lbl('Why I’m doing this')}${area('recovery.nd.why', 'For my kids, my health, my peace…', 2)}
+        <div class="row" style="gap:8px;margin-top:12px"><button class="btn primary" data-r="recstart">Start tracking</button>${items.length ? '<button class="btn" data-r="recadd">Cancel</button>' : ''}</div>`;
+      let main = '';
+      if (it) {
+        const P0 = `recovery.items.${i}`, harm = it.what === 'Self-harm', cut = it.what === 'Alcohol' && it.mode === 'Cut back';
+        if (cut) {
+          const wk = Array.from({ length: 7 }, (_, d) => { const x = new Date(TODAY); x.setDate(x.getDate() - x.getDay() + d); return x; });
+          const log = it.log || {}, today = num(log[T]), tot = wk.reduce((a, d) => a + num(log[key(d)]), 0), lim = num(it.limit);
+          const dry = wk.filter((d) => d <= TODAY && !num(log[key(d)])).length;
+          main = `<section class="card"><div class="card-head"><h2>${esc(recName(it))}</h2><span class="sub">Cutting back</span></div>
+            <div class="sumgrid"><div><div class="k">Drinks this week</div><div class="v xl">${tot}${lim ? ` <span class="sub" style="font-size:15px">of ${lim}</span>` : ''}</div></div><div><div class="k">Days with no drinks this week</div><div class="v">${dry}</div></div></div>
+            ${lim ? `<div class="bar" style="margin-top:10px"><span style="width:${Math.min(100, Math.round((tot / lim) * 100))}%;background:${tot > lim ? '#B4432F' : P.mental.color}"></span></div>` : ''}
+            ${lim && tot > lim ? '<p class="note" style="margin:10px 0 0">You’re over your limit this week. That’s information, not failure. What made this week harder?</p>' : ''}
+            <div class="recweek">${wk.map((d) => { const n = num(log[key(d)]), fut = d > TODAY; return `<div class="${key(d) === T ? 'today' : ''} ${fut ? 'fut' : ''}"><b>${fut ? '' : n}</b><span>${d.toLocaleDateString(undefined, { weekday: 'narrow' })}</span></div>`; }).join('')}</div>
+            ${lbl('Drinks today')}<div class="counter" style="justify-content:flex-start"><button class="round" data-r="recdrink" data-v="-1" aria-label="One less">−</button><b class="big2" style="min-width:36px;text-align:center">${today}</b><button class="round plus" data-r="recdrink" data-v="1" aria-label="One more">+</button></div>
+            <div class="grid2b" style="margin-top:12px"><label>My weekly limit (drinks)${inp(`${P0}.limit`, { type: 'number', ph: 'e.g. 7', rr: true })}</label></div>
+            ${lbl('My goal')}${pick(`${P0}.mode`, ['Cut back', 'Quit completely'])}
+            ${lbl('Why I’m doing this')}${area(`${P0}.why`, '', 2)}
+            <button class="linkish" style="margin-top:12px" data-r="recrm">${ui.recRm ? 'Tap again to remove this tracker' : 'Remove this tracker'}</button></section>`;
+        } else {
+          const days = recDays(it), best = recBest(it), next = REC_MILES.find(([n]) => n > days), spend = num(it.spend);
+          main = `<section class="card"><div class="card-head"><h2>${esc(recName(it))}</h2><span class="sub">Since ${fmtDate(it.since || it.start, { month: 'short', day: 'numeric', year: 'numeric' })}</span></div>
+            <div class="recbig"><b>${days}</b><span>${days === 1 ? 'day' : 'days'}</span></div>
+            <div class="sumgrid" style="margin-top:6px"><div><div class="k">Longest streak</div><div class="v">${best} ${best === 1 ? 'day' : 'days'}</div></div>${next ? `<div><div class="k">Next milestone</div><div class="v">${next[1]}</div></div>` : ''}${!harm && spend ? `<div><div class="k">Saved this streak</div><div class="v" style="color:var(--good)">$${Math.round((spend * days) / 7).toLocaleString()}</div></div>` : ''}</div>
+            <div class="chips" style="margin-top:12px">${REC_MILES.map(([n, l]) => `<span class="chip rec-m ${days >= n ? 'on' : ''}">${days >= n ? '✓ ' : ''}${l}</span>`).join('')}</div>
+            ${ui.recSlip ? `<div class="askrow" style="display:flex"><b>A slip isn’t the end.</b><p style="margin:0">${days > 0 ? `You made it ${days} ${days === 1 ? 'day' : 'days'}, and that still counts. ` : ''}You can start again today.</p>
+              ${harm ? '<p class="note" style="margin:0">If you’re hurt and need medical care, please get it. If you’re thinking about ending your life, call or text <b>988</b> now. Reaching out to someone you trust is a strong next step.</p>' : '<p style="margin:0">Reaching out to someone you trust is a strong next step.</p>'}
+              ${area('recovery.slipnote', 'What happened? What would help next time? (optional)', 2)}
+              <div class="row" style="gap:8px"><button class="btn primary small" data-r="recslipok">Reset my count to today</button><button class="btn small" data-r="recslip">Never mind</button></div></div>`
+              : `<div class="row" style="gap:12px;margin-top:14px;flex-wrap:wrap"><button class="btn small" data-r="recslip">I slipped</button></div>`}
+            ${it.what === 'Alcohol' ? `${lbl('My goal')}${pick(`${P0}.mode`, ['Cut back', 'Quit completely'])}` : ''}
+            ${harm ? '' : `<div class="grid2b" style="margin-top:12px"><label>What I used to spend each week<div class="money">${inp(`${P0}.spend`, { type: 'number', ph: '0', rr: true })}</div></label></div>`}
+            ${lbl('Why I’m doing this')}${area(`${P0}.why`, '', 2)}
+            ${(it.slips || []).length ? `<details class="gnotes" style="margin-top:10px"><summary>Earlier tries (${it.slips.length})</summary>${it.slips.slice().reverse().map((s) => `<div class="said"><span>${fmtDate(s.d, { month: 'short', day: 'numeric', year: 'numeric' })} · ${num(s.days)} ${num(s.days) === 1 ? 'day' : 'days'}</span>${s.note ? `<p>${esc(s.note)}</p>` : ''}</div>`).join('')}</details>` : ''}
+            <button class="linkish" style="margin-top:12px" data-r="recrm">${ui.recRm ? 'Tap again to remove this tracker' : 'Remove this tracker'}</button></section>`;
+        }
+      }
+      const passed = es.filter((e) => e.passed === 'Yes').length;
+      return `<div class="stack">
+    <section class="card"><p style="margin:0">Changing a habit that has a hold on you is hard, and it rarely goes in a straight line. Track your days, log urges when they hit, and keep a plan for the hard moments. Everything here is private to you.</p>
+      <p class="note" style="margin:10px 0 0">This is a support tool, not treatment. Stopping heavy drinking or some drugs suddenly can be dangerous, so talk with a doctor before you quit.</p>${reachOut}</section>
+    ${items.length ? `<div class="chips">${items.map((x, k) => `<button class="chip" data-r="recsel" data-v="${k}" aria-pressed="${k === i && !ui.recAdd}">${esc(recName(x))}</button>`).join('')}<button class="chip" data-r="recadd" aria-pressed="${!!ui.recAdd}">+ Add another</button></div>` : ''}
+    ${!items.length || ui.recAdd ? card('Start a tracker', addForm) : main}
+    ${items.length ? card('Log an urge', `<p class="sub" style="margin-top:0">Urges rise, peak, and pass, usually within 20 to 30 minutes. Writing it down helps you ride it out.</p>
+      ${items.length > 1 ? `${lbl('Which one?', 1)}${pick('recovery.draft.about', items.map(recName))}` : ''}
+      ${lbl('How strong is it?', items.length < 2)}${scale('recovery.draft.str', 0, 10, 'Barely there', 'Overwhelming')}
+      ${lbl('What set it off?')}${pickOwn('recovery.draft.trig', REC_TRIG, 'recovery.own.trig', 'Something else? Add your own')}
+      ${lbl('What I did instead')}${pickOwn('recovery.draft.did', REC_DID, 'recovery.own.did', 'Add your own')}
+      ${lbl('Did the urge pass?')}${pick('recovery.draft.passed', ['Yes', 'Partly', 'Not yet'])}
+      ${lbl('Notes')}${area('recovery.draft.note', 'Anything you want to remember about this moment', 2)}
+      ${saveBtn('recovery', 'Save this urge')}
+      <button class="btn small" style="margin-top:10px" data-r="opentool" data-v="coping">Open coping skills</button>`) : ''}
+    ${es.length >= 2 ? card('My patterns', `${sum([['Urges logged', es.length], ['Urges that passed', passed, 'var(--good)']]).replace('<section class="card">', '<div>').replace('</section>', '</div>')}${top(es.map((e) => e.trig)).length ? `${lbl('What sets me off most')}${tags(top(es.map((e) => e.trig)))}` : ''}${top(es.map((e) => e.did)).length ? `${lbl('What helps me most')}${tags(top(es.map((e) => e.did)))}` : ''}`) : ''}
+    ${card('My plan for hard moments', `${lbl('My warning signs', 1)}${area('recovery.plan.signs', 'e.g. I stop answering texts and start telling myself “just once”', 2)}
+      ${lbl('Things that help')}${area('recovery.plan.helps', '', 2)}
+      ${lbl('People I can reach out to')}${area('recovery.plan.people', 'Names and numbers', 2)}
+      ${lbl('Places that feel safe')}${area('recovery.plan.safe', '', 2)}
+      ${lbl('Reasons to keep going')}${area('recovery.plan.why', '', 2)}`)}
+    ${items.length ? card('Past urges', entriesList('recovery', (e) => `<div class="sk-meta">${e.about ? `<span class="tag">${esc(e.about)}</span>` : ''}${e.str !== undefined && e.str !== '' ? `<span class="tag">Strength ${esc(e.str)}/10</span>` : ''}${e.passed ? `<span class="tag used">Passed: ${esc(e.passed)}</span>` : ''}</div>${tags(e.trig)}${tags(e.did)}${e.note ? `<p style="margin:6px 0 0">${esc(e.note)}</p>` : ''}`, 'Your logged urges will show up here.')) : ''}</div>`;
+    },
+  };
+
+  /* ---------- Eating Disorder Recovery (never asks for calories, weight, or sizes) ---------- */
+  const ED_MEALS = [['b', 'Breakfast'], ['s1', 'Morning snack'], ['l', 'Lunch'], ['s2', 'Afternoon snack'], ['d', 'Dinner'], ['s3', 'Evening snack']];
+  const ED_URGES = ['Restrict or skip a meal', 'Binge', 'Purge', 'Over-exercise', 'Body checking', 'Hide or lie about food', 'Other'];
+  const ED_FEEL = ['Anxious', 'Ashamed', 'Sad', 'Angry', 'Lonely', 'Numb', 'Overwhelmed', 'Out of control', 'Guilty', 'Tired'];
+  const ED_DID = ['Ate anyway', 'Followed my meal plan', 'Called or texted someone', 'Ate with someone', 'Sat with the feeling', 'Used a coping skill', 'Distracted myself', 'Went for a gentle walk', 'Wrote it down', 'Prayer or meditation'];
+  const EATING = {
+    render() {
+      const es = getP('eating.entries') || [], day = getP(`eating.days.${T}`) || {}, voice = getP('eating.voice') || [];
+      const n = ED_MEALS.filter(([k]) => day[k]).length;
+      const wk = Array.from({ length: 7 }, (_, d) => { const x = new Date(TODAY); x.setDate(x.getDate() - x.getDay() + d); return x; });
+      const mains = (k) => { const dd = getP(`eating.days.${k}`) || {}; return ['b', 'l', 'd'].filter((m) => dd[m]).length; };
+      const noAct = es.filter((e) => e.acted === 'No').length;
+      return `<div class="stack">
+    <section class="card"><p style="margin:0">Recovery from an eating disorder isn’t about willpower, and it isn’t a straight line. This page is a quiet place to keep track of regular eating, urges, and the thoughts you’re learning to answer back. It never asks for calories, weight, or sizes.</p>
+      <p class="note" style="margin:10px 0 0">Eating disorders can be medically serious. If you feel faint, have chest pain, or can’t keep food or water down, get medical care right away. This page supports treatment; it doesn’t replace it.</p>
+      <p class="note" style="margin:10px 0 0"><b>You don’t have to do this alone.</b> Talk to someone who understands: ANAD Helpline <a href="tel:18883757767">1-888-375-7767</a>, National Alliance for Eating Disorders <a href="tel:18666621235">1-866-662-1235</a>. If you’re in crisis, call or text <b>988</b> any time.</p>${hotlinesHTML(esc)}</section>
+    ${card('Eating regularly today', `<p class="sub" style="margin-top:0">Regular meals and snacks are a foundation of recovery. If your treatment team gave you a meal plan, follow theirs.</p>
+      <div class="stack" style="gap:6px">${ED_MEALS.map(([k, l]) => chk(`eating.days.${T}.${k}`, l, true)).join('')}</div>
+      <p class="hint" style="margin-bottom:0">${n === 0 ? 'Check off each one as you eat it.' : n >= 5 ? 'You showed up for yourself today.' : 'Every meal you eat is a step.'}</p>
+      <div class="recweek">${wk.map((d) => { const fut = d > TODAY, m = mains(key(d)); return `<div class="${key(d) === T ? 'today' : ''} ${fut ? 'fut' : ''}"><b>${fut ? '' : m >= 3 ? '✓' : m ? '·' : ''}</b><span>${d.toLocaleDateString(undefined, { weekday: 'narrow' })}</span></div>`; }).join('')}</div>
+      <p class="hint" style="margin-bottom:0">A check mark means you had breakfast, lunch, and dinner that day.</p>`)}
+    ${card('Log an urge', `<p class="sub" style="margin-top:0">Noticing an urge without acting on it is the skill. Log it whether or not you acted on it.</p>
+      ${lbl('What was the urge?', 1)}${pick('eating.draft.urge', ED_URGES, true)}
+      ${lbl('How strong was it?')}${scale('eating.draft.str', 0, 10, 'Barely there', 'Overwhelming')}
+      ${lbl('What was I feeling?')}${pickOwn('eating.draft.feel', ED_FEEL, 'eating.own.feel', 'Something else? Add your own')}
+      ${lbl('What was happening?')}${area('eating.draft.sit', 'Where was I, who was there, what had just happened?', 2)}
+      ${lbl('What I did instead')}${pickOwn('eating.draft.did', ED_DID, 'eating.own.did', 'Add your own')}
+      ${lbl('Did I act on the urge?')}${pick('eating.draft.acted', ['No', 'Partly', 'Yes'])}
+      ${(getP('eating.draft.acted') || '') === 'Yes' || (getP('eating.draft.acted') || '') === 'Partly' ? '<p class="note" style="margin:8px 0 0">That doesn’t erase your progress. The next meal is a fresh start, and telling someone on your team helps.</p>' : ''}
+      ${saveBtn('eating', 'Save this urge')}
+      <button class="btn small" style="margin-top:10px" data-r="opentool" data-v="coping">Open coping skills</button>`)}
+    ${es.length >= 2 ? card('My patterns', `${sum([['Urges logged', es.length], ['Urges I didn’t act on', noAct, 'var(--good)']]).replace('<section class="card">', '<div>').replace('</section>', '</div>')}${top(es.map((e) => e.feel)).length ? `${lbl('Feelings that show up most')}${tags(top(es.map((e) => e.feel)))}` : ''}${top(es.map((e) => e.did)).length ? `${lbl('What helps me most')}${tags(top(es.map((e) => e.did)))}` : ''}`) : ''}
+    ${card('Answering the eating disorder voice', `<p class="sub" style="margin-top:0">Write down what the eating disorder tells you, then what you want to say back.</p>
+      ${voice.map((v, k) => `<div class="debt"><div class="dtop"><b style="flex:1">${k + 1}</b><button class="x" data-r="del" data-path="eating.voice" data-i="${k}" aria-label="Remove">×</button></div>${lbl('What it says', 1)}${area(`eating.voice.${k}.says`, 'e.g. “You don’t deserve to eat today.”', 2)}${lbl('What I say back')}${area(`eating.voice.${k}.back`, 'e.g. “My body needs food every day, no matter what kind of day it was.”', 2)}</div>`).join('')}
+      <button class="btn small" data-r="add" data-path="eating.voice">+ Add a thought</button>`)}
+    ${card('My support plan', `${lbl('My treatment team', 1)}${area('eating.plan.team', 'Therapist, dietitian, doctor: names and numbers', 2)}
+      ${lbl('People who can eat with me or check in')}${area('eating.plan.people', '', 2)}
+      ${lbl('What helps after a meal')}${area('eating.plan.after', 'e.g. A show, a puzzle, sitting with someone, a short walk', 2)}
+      ${lbl('My warning signs')}${area('eating.plan.signs', '', 2)}
+      ${lbl('My reasons for recovery')}${area('eating.plan.why', '', 2)}`)}
+    ${card('Past urges', entriesList('eating', (e) => `${tags(e.urge)}<div class="sk-meta">${e.str !== undefined && e.str !== '' ? `<span class="tag">Strength ${esc(e.str)}/10</span>` : ''}${e.acted ? `<span class="tag used">Acted on it: ${esc(e.acted)}</span>` : ''}</div>${tags(e.feel)}${tags(e.did)}${e.sit ? `<p style="margin:6px 0 0">${esc(e.sit)}</p>` : ''}`, 'Your logged urges will show up here.'))}</div>`;
+    },
+  };
+
   const tools = [
     { id: 'anxiety', pillar: 'mental', title: 'Anxiety Management Workbook', desc: 'Calm your body, sort your worries, and face fears step by step.', tool: ANXIETY },
     { id: 'dbt', pillar: 'mental', title: 'DBT Skills Workbook', desc: 'Diary card, the four DBT skill sets, and a DEAR MAN script builder.', tool: DBT },
+    { id: 'recovery', pillar: 'mental', title: 'Recovery Tracker', desc: 'For cutting back or quitting: count your days, log urges, and keep a plan for hard moments.', tool: RECOVERY },
+    { id: 'eating', pillar: 'emotional', title: 'Eating Disorder Recovery', desc: 'Regular eating, urges, and answering back, with no calories or weight.', tool: EATING },
     { id: 'fitness', pillar: 'physical', title: 'Fitness Planner', desc: 'Plan your week, log workouts, and track minutes and personal bests.', tool: FITNESS },
     { id: 'datenight', pillar: 'relationships', title: 'Date Night Planner', desc: 'Idea bank, a “surprise me” button, a date list, budget, and memories.', tool: DATENIGHT },
     { id: 'sermons', pillar: 'spiritual', title: 'Sermon & Study Notes', desc: 'Notes from church, Bible study, or podcasts, with takeaways and prayer.', tool: SERMONS },
@@ -386,6 +513,15 @@ export function makeMore(h) {
       const g = JSON.parse(b.dataset.g); const months = g.months || 3; delete g.months;
       api.addGoal({ why: '', sure: 7, ...g, id: uid(), deadline: key(addMonths(TODAY, months)) }, 0); toast('Added to your goals'); return true;
     }
+    if (a === 'recsel') { ui.recI = +b.dataset.v; ui.recAdd = false; ui.recSlip = false; ui.recRm = false; rerenderKeep(); return true; }
+    if (a === 'recadd') { ui.recAdd = !ui.recAdd; rerenderKeep(); return true; }
+    if (a === 'recstart') { const d = getP('recovery.nd') || {}; if (!d.what) { toast('Choose what you’re working on first'); return true; } if (d.what === 'Other' && !(d.name || '').trim()) { toast('Give it a name first'); return true; }
+      const l = getP('recovery.items') || []; l.push({ what: d.what, name: (d.name || '').trim(), mode: d.what === 'Alcohol' ? d.mode || 'Quit completely' : '', start: d.start || T, since: d.start || T, why: (d.why || '').trim(), slips: [] });
+      setP('recovery.items', l); setP('recovery.nd', {}); ui.recI = l.length - 1; ui.recAdd = false; save(); rerenderKeep(); toast('Tracker started. One day at a time.'); return true; }
+    if (a === 'recslip') { ui.recSlip = !ui.recSlip; rerenderKeep(); return true; }
+    if (a === 'recslipok') { const l = getP('recovery.items') || [], it = l[ui.recI || 0]; if (!it) return true; it.slips = [...(it.slips || []), { d: T, days: recDays(it), note: (getP('recovery.slipnote') || '').trim() }]; it.since = T; setP('recovery.items', l); setP('recovery.slipnote', ''); ui.recSlip = false; save(); rerenderKeep(); toast('Count reset. Today is day one again, and that’s okay.'); return true; }
+    if (a === 'recrm') { if (!ui.recRm) { ui.recRm = true; rerenderKeep(); return true; } const l = getP('recovery.items') || []; l.splice(ui.recI || 0, 1); setP('recovery.items', l); ui.recI = 0; ui.recRm = false; save(); rerenderKeep(); return true; }
+    if (a === 'recdrink') { const l = getP('recovery.items') || [], it = l[ui.recI || 0]; if (!it) return true; it.log = { ...(it.log || {}) }; it.log[T] = Math.max(0, num(it.log[T]) + +b.dataset.v); setP('recovery.items', l); save(); rerenderKeep(); return true; }
     if (a === 'ownrm') { setP(b.dataset.path, (getP(b.dataset.path) || []).filter((x) => x !== b.dataset.v)); save(); rerenderKeep(); return true; }
     if (a === 'garm') { const old = (getP('growth.areas') || '').trim(); const l = getP('growth.areaList') || (old ? [old] : []); l.splice(+b.dataset.i, 1); setP('growth.areaList', l); save(); rerenderKeep(); return true; }
     if (a === 'gsave') { const d = getP('growth.gd') || {}; const goal = (d.goal || '').trim(); if (!goal) { toast('Write your 90-day goal first'); return true; } const l = getP('growth.goals') || []; l.push({ goal, why: (d.why || '').trim(), weekly: (d.weekly || '').trim(), start: T, ms: [0, 1, 2].map((i) => ({ t: ((d.ms || {})[i] || '').trim(), done: false })) }); setP('growth.goals', l); setP('growth.gd', {}); save(); rerenderKeep(); toast('Goal saved'); return true; }

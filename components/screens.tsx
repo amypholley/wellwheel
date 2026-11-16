@@ -292,8 +292,8 @@ export function Today() {
 // The worksheets that belong to each pillar (same ids as Resources)
 const PILLAR_TOOLS: Record<PillarId, [string, string][]> = {
   physical: [['sleep', 'Sleep Journal'], ['meals', 'Meal & Grocery Planner'], ['fitness', 'Fitness Planner']],
-  mental: [['coping', 'Coping Skills Library'], ['cbt', 'CBT Thought Record'], ['anxiety', 'Anxiety Management Workbook'], ['dbt', 'DBT Skills Workbook']],
-  emotional: [['burnout', 'Burnout Source Worksheet'], ['selfc', 'Self-Compassion Journal']],
+  mental: [['coping', 'Coping Skills Library'], ['cbt', 'CBT Thought Record'], ['anxiety', 'Anxiety Management Workbook'], ['dbt', 'DBT Skills Workbook'], ['recovery', 'Recovery Tracker']],
+  emotional: [['burnout', 'Burnout Source Worksheet'], ['selfc', 'Self-Compassion Journal'], ['eating', 'Eating Disorder Recovery']],
   spiritual: [['prayer', 'Prayer Journal'], ['bible', 'Bible Study Workbook'], ['sermons', 'Sermon & Study Notes']],
   intellectual: [['growth', 'Personal Development Workbook']],
   environmental: [['env', 'Environment in Balance'], ['home', 'Home Reset Checklist']],

@@ -16,7 +16,7 @@ export const FREE_CHALLENGES = false;        // free: regular daily prompt; 30-d
 export const FREE_COUPLE = false;            // free: couple connection is Plus (a couples plan covers both)
 export const FREE_PORTFOLIO = false;         // free: the Portfolio tab / Financial Wellness Planner is Plus
 // Worksheets anyone can use; every other worksheet is Plus
-export const FREE_TOOLS = ['coping', 'selfc', 'sleep', 'prayer'];
+export const FREE_TOOLS = ['coping', 'selfc', 'sleep', 'prayer', 'recovery', 'eating'];
 
 export type PlusInfo = { plus: boolean; source?: 'me' | 'partner'; plan?: 'individual' | 'couple'; status?: string; until?: string; can_manage?: boolean; paid_by?: string };
 
