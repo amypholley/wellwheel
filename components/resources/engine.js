@@ -97,8 +97,10 @@ export function mountResources(root, api) {
   // Paychecks: when money comes in, and which payments fall between one payday and the next
   const dim = (y, m) => new Date(y, m + 1, 0).getDate();
   const dayAdd = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
-  function paydays(n) {
-    const pay = getP('monthly.pay') || {}, f = pay.freq || '', out = [];
+  // One or more pay schedules (two jobs, or both partners in "Our plan"). Older single entries carry over.
+  const payList = () => { const l = getP('monthly.pays'); if (Array.isArray(l) && l.length) return l; const o = getP('monthly.pay'); return [o && o.freq ? o : {}]; };
+  function paydaysOf(pay, n) {
+    const f = pay.freq || '', out = [];
     if (f === 'weekly' || f === 'biweekly') {
       if (!pay.next) return out; const step = f === 'weekly' ? 7 : 14; let d = fromKey(pay.next); if (isNaN(d)) return out;
       while (d < TODAY) d = dayAdd(d, step);
@@ -111,24 +113,32 @@ export function mountResources(root, api) {
     }
     return out;
   }
+  // Every upcoming payday across all schedules, in date order (same-day paychecks are added together)
+  function payEvents(n) {
+    const ev = [];
+    payList().forEach((pay) => paydaysOf(pay, n).forEach((d) => { const k = key(d); let e = ev.find((x) => x.k === k); if (!e) { e = { k, d, amt: 0, names: [] }; ev.push(e); } e.amt += num(pay.amt); const nm = (pay.name || '').trim(); if (nm && !e.names.includes(nm)) e.names.push(nm); }));
+    return ev.sort((a, b) => a.d - b.d).slice(0, n);
+  }
   function payHTML() {
-    const pay = getP('monthly.pay') || {}, amt = num(pay.amt), ps = paydays(5);
-    if (!pay.freq) return '<p class="empty" style="margin:8px 0 0">Choose how often you get paid to see what’s due between paychecks.</p>';
+    const list0 = payList(), ps = payEvents(5);
+    if (!list0.some((x) => x.freq)) return '<p class="empty" style="margin:8px 0 0">Choose how often you get paid to see what’s due between paychecks.</p>';
     if (ps.length < 2) return '<p class="empty" style="margin:8px 0 0">Add your payday to see what’s due between paychecks.</p>';
     const rows = dueRows().filter((r) => r.d < 99);
-    const perMonth = amt * ({ weekly: 52 / 12, biweekly: 26 / 12, twice: 2, monthly: 1 }[pay.freq] || 0);
+    const perMonth = list0.reduce((a, x) => a + num(x.amt) * ({ weekly: 52 / 12, biweekly: 26 / 12, twice: 2, monthly: 1 }[x.freq] || 0), 0);
+    const anyAmt = list0.some((x) => num(x.amt));
     const df = (d, o) => fmtDate(key(d), o || { weekday: 'short', month: 'short', day: 'numeric' });
-    let h = amt ? `<p class="hint" style="margin:8px 0 0"><span>That’s about ${money(Math.round(perMonth))} a month.</span>${Math.round(perMonth) !== Math.round(num(getP('monthly.inc.Primary income'))) ? ` <button class="linkish" data-r="set" data-path="monthly.inc.Primary income" data-v="${Math.round(perMonth)}">Use as my primary income</button>` : ''}</p>` : '';
+    const incNow = INC_KEYS.reduce((a, k) => a + num(getP(`monthly.inc.${k}`)), 0);
+    let h = anyAmt ? `<p class="hint" style="margin:8px 0 0"><span>That’s about ${money(Math.round(perMonth))} a month.</span>${list0.length === 1 && Math.round(perMonth) !== Math.round(incNow) ? ` <button class="linkish" data-r="set" data-path="monthly.inc.Primary income" data-v="${Math.round(perMonth)}">Use as my primary income</button>` : ''}</p>` : '';
     if (!rows.length) h += '<p class="note" style="margin:8px 0 0">Add a due day to your expenses and they’ll be sorted under each paycheck.</p>';
     const between = (a, b) => { const list = []; for (let d = new Date(a); d < b; d = dayAdd(d, 1)) { const L = dim(d.getFullYear(), d.getMonth()), dn = d.getDate();
       rows.forEach((r) => { if (r.d === dn || (dn === L && r.d > L)) list.push({ ...r, on: new Date(d) }); }); } return list; };
     const tbl = (list) => `<table class="duetbl"><tbody>${list.map((r) => `<tr class="${r.paid ? 'paid' : ''}"><td>${df(r.on, { month: 'short', day: 'numeric' })}</td><td>${esc(r.name)}</td><td class="num">${r.amt ? money(r.amt) : '—'}</td></tr>`).join('')}</tbody></table>`;
-    const now = between(TODAY, ps[0]);
-    if (now.length) h += `<div class="payp"><div class="payp-h"><div><b>Before your next payday</b><span class="sub">From today through ${df(dayAdd(ps[0], -1), { month: 'short', day: 'numeric' })}</span></div></div>${tbl(now)}<div class="payp-f"><span>Still due</span><b>${money(now.filter((r) => !r.paid).reduce((x, r) => x + r.amt, 0))}</b></div></div>`;
+    const now = between(TODAY, ps[0].d);
+    if (now.length) h += `<div class="payp"><div class="payp-h"><div><b>Before your next payday</b><span class="sub">From today through ${df(dayAdd(ps[0].d, -1), { month: 'short', day: 'numeric' })}</span></div></div>${tbl(now)}<div class="payp-f"><span>Still due</span><b>${money(now.filter((r) => !r.paid).reduce((x, r) => x + r.amt, 0))}</b></div></div>`;
     for (let i = 0; i < ps.length - 1; i++) {
-      const a = ps[i], b = ps[i + 1], list = between(a, b);
+      const a = ps[i].d, b = ps[i + 1].d, amt = ps[i].amt, list = between(a, b);
       const tot = list.reduce((x, r) => x + r.amt, 0), left = amt - tot;
-      h += `<div class="payp"><div class="payp-h"><div><b>${df(a)}</b><span class="sub">Covers through ${df(dayAdd(b, -1), { month: 'short', day: 'numeric' })}</span></div>${amt ? `<b class="payp-amt">${money(amt)}</b>` : ''}</div>
+      h += `<div class="payp"><div class="payp-h"><div><b>${df(a)}</b>${ps[i].names.length ? `<span class="tag" data-notr>${esc(ps[i].names.join(' + '))}</span>` : ''}<span class="sub">Covers through ${df(dayAdd(b, -1), { month: 'short', day: 'numeric' })}</span></div>${amt ? `<b class="payp-amt">${money(amt)}</b>` : ''}</div>
         ${list.length ? tbl(list) : '<p class="sub" style="margin:6px 0">Nothing due before your next payday.</p>'}
         <div class="payp-f"><span>Due before next payday</span><b>${money(tot)}</b></div>${amt ? `<div class="payp-f"><span>${left >= 0 ? 'Left after these' : 'Short by'}</span><b style="color:${left >= 0 ? 'var(--good)' : '#B4432F'}">${money(Math.abs(left))}</b></div>` : ''}</div>`;
     }
@@ -136,14 +146,17 @@ export function mountResources(root, api) {
   }
   const paySel = (path, lbl) => { const cur = dueDay(getP(path)); return `<select data-b="${esc(path)}" aria-label="${lbl}"><option value="">—</option>${Array.from({ length: 31 }, (_, i) => `<option value="${i + 1}" ${cur === i + 1 ? 'selected' : ''}>${i + 1}</option>`).join('')}</select>`; };
   function payInputs() {
-    const pay = getP('monthly.pay') || {}, f = pay.freq || '';
+    if (!Array.isArray(getP('monthly.pays')) || !getP('monthly.pays').length) setP('monthly.pays', JSON.parse(JSON.stringify(payList())));
+    const list = getP('monthly.pays');
     const opt = [['', 'Choose…'], ['weekly', 'Weekly'], ['biweekly', 'Every two weeks'], ['twice', 'Twice a month'], ['monthly', 'Monthly']];
-    return `<div class="paygrid"><label>How often<select data-b="monthly.pay.freq" data-rr aria-label="How often">${opt.map(([v, l]) => `<option value="${v}" ${f === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
-      ${f === 'weekly' || f === 'biweekly' ? `<label>Next payday<input type="date" data-b="monthly.pay.next" value="${esc(pay.next || '')}" aria-label="Next payday"></label>` : ''}
-      ${f === 'twice' ? `<label>First payday (day of the month)${paySel('monthly.pay.d1', 'First payday')}</label><label>Second payday (day of the month)${paySel('monthly.pay.d2', 'Second payday')}</label>` : ''}
-      ${f === 'monthly' ? `<label>Payday (day of the month)${paySel('monthly.pay.d1', 'Payday')}</label>` : ''}
-      ${f ? `<label>Take-home pay each time<div class="money">${inp('monthly.pay.amt', { type: 'number', ph: '0' })}</div></label>` : ''}</div>
-      ${f === 'twice' || f === 'monthly' ? '<p class="hint" style="margin:6px 0 0">Paid on the last day of the month? Choose 31.</p>' : ''}`;
+    return list.map((pay, i) => { const f = (pay || {}).freq || '', P = `monthly.pays.${i}`; return `<div class="payone">${list.length > 1 ? `<div class="dtop">${inp(`${P}.name`, { ph: 'Whose paycheck, or which job' })}<button class="x" data-r="del" data-path="monthly.pays" data-i="${i}" aria-label="Remove">×</button></div>` : ''}
+      <div class="paygrid"><label>How often<select data-b="${P}.freq" data-rr aria-label="How often">${opt.map(([v, l]) => `<option value="${v}" ${f === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
+      ${f === 'weekly' || f === 'biweekly' ? `<label>Next payday<input type="date" data-b="${P}.next" value="${esc((pay || {}).next || '')}" aria-label="Next payday"></label>` : ''}
+      ${f === 'twice' ? `<label>First payday (day of the month)${paySel(`${P}.d1`, 'First payday')}</label><label>Second payday (day of the month)${paySel(`${P}.d2`, 'Second payday')}</label>` : ''}
+      ${f === 'monthly' ? `<label>Payday (day of the month)${paySel(`${P}.d1`, 'Payday')}</label>` : ''}
+      ${f ? `<label>Take-home pay each time<div class="money">${inp(`${P}.amt`, { type: 'number', ph: '0' })}</div></label>` : ''}</div>
+      ${f === 'twice' || f === 'monthly' ? '<p class="hint" style="margin:6px 0 0">Paid on the last day of the month? Choose 31.</p>' : ''}</div>`; }).join('') +
+      `<button class="btn small" style="margin-top:10px" data-r="add" data-path="monthly.pays">+ Add another paycheck</button>`;
   }
   const allDebts = () => [...(getP('debt.list') || []), ...budgetDebts()];
   const needSel = (path, v) => `<select data-b="${esc(path)}" aria-label="Necessary?">${['Yes', 'No', 'Review'].map((o) => `<option ${(v || 'Yes') === o ? 'selected' : ''}>${o}</option>`).join('')}</select>`;
