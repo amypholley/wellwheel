@@ -66,10 +66,19 @@ export function mountResources(root, api) {
   }
   // Budget lines that are debts (cards and loans) also take a name, the balance left and the interest rate
   const isDebtLine = (c, x) => c === 'Credit Cards' || c === 'Loans' || /^Student Loan/.test(x) || x === 'Car Payment';
-  function budgetDebts() {
+  // The same debt is sometimes entered twice: once as a budget line and once by hand in Debt payoff.
+  // Treat them as one when the names match, or when the payment and the due day both match.
+  const normName = (v) => String(v || '').trim().toLowerCase();
+  const sameDebt = (a, b) => (normName(a.name) && normName(a.name) === normName(b.name)) || (num(a.min) > 0 && num(a.min) === num(b.min) && dueDay(a.due) > 0 && dueDay(a.due) === dueDay(b.due));
+  function budgetDebtLines() {
     const it = getP('spending.items') || {}; const o = [];
-    SPEND_CATS.forEach(([c, items]) => items.forEach((x) => { if (!isDebtLine(c, x)) return; const r = it[ik(x)]; if (r && r.on && num(r.bal) > 0) o.push({ name: (r.name || '').trim() || x, bal: r.bal, rate: r.rate, min: r.cost, due: r.due }); }));
+    SPEND_CATS.forEach(([c, items]) => items.forEach((x) => { if (!isDebtLine(c, x)) return; const r = it[ik(x)]; if (r && r.on) o.push({ name: (r.name || '').trim() || x, bal: r.bal, rate: r.rate, min: r.cost, due: r.due }); }));
     return o;
+  }
+  // Budget debts that count toward the payoff plan (a balance is filled in, and it isn't already listed by hand)
+  function budgetDebts() {
+    const mine = getP('debt.list') || [];
+    return budgetDebtLines().filter((d) => num(d.bal) > 0 && !mine.some((m) => m && sameDebt(m, d)));
   }
   // Due day is picked from 1 to 31 so the table always sorts cleanly (older typed values like "15th" or "11/15" still read)
   const dueDay = (v) => { const t = String(v || ''); const md = t.match(/(\d{1,2})\s*[\/.-]\s*(\d{1,2})/); const m = md ? [md[2]] : t.match(/\d{1,2}/); const n = m ? +m[0] : 0; return n >= 1 && n <= 31 ? n : 0; };
@@ -82,7 +91,8 @@ export function mountResources(root, api) {
       items.forEach((x) => { const r = it[ik(x)]; if (r && r.on && String(r.due || '').trim()) rows.push({ d: day(r.due), due: String(dueDay(r.due) || String(r.due).trim()), name: (r.name || '').trim() || x, amt: num(r.cost) }); });
       (oth[ik(c)] || []).forEach((r) => { if (r && String(r.due || '').trim()) rows.push({ d: day(r.due), due: String(dueDay(r.due) || String(r.due).trim()), name: (r.label || '').trim() || 'Other expense', amt: num(r.cost) }); });
     });
-    (getP('debt.list') || []).forEach((r) => { if (r && String(r.due || '').trim()) rows.push({ d: day(r.due), due: String(dueDay(r.due) || String(r.due).trim()), name: (r.name || '').trim() || 'Debt', amt: num(r.min) }); });
+    const bl = budgetDebtLines();
+    (getP('debt.list') || []).forEach((r) => { if (r && String(r.due || '').trim() && !bl.some((x) => sameDebt(x, r))) rows.push({ d: day(r.due), due: String(dueDay(r.due) || String(r.due).trim()), name: (r.name || '').trim() || 'Debt', amt: num(r.min) }); });
     (getP('monthly.bills') || []).forEach((b) => { if (b && b.date) rows.push({ d: +b.date.slice(8, 10) || 99, due: String(+b.date.slice(8, 10) || ''), name: (b.name || '').trim() || 'Bill', amt: num(b.amt), paid: !!b.paid }); });
     return rows;
   }
