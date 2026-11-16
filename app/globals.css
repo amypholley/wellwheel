@@ -382,6 +382,7 @@ details.mini summary{cursor:pointer;color:var(--plum);font-weight:600}
 .duetbl .num{text-align:end;white-space:nowrap}
 .duetbl tr.paid td{color:var(--muted);text-decoration:line-through}
 .duetbl tr.next td{background:var(--chip)}
+.duesrc{display:block;font-size:12px;color:var(--muted);font-weight:400}
 .duetbl tfoot td{font-weight:700;border-bottom:0}
 @media (min-width:1200px){
   .app:has(.planner-wide){max-width:1420px}

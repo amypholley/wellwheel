@@ -88,21 +88,23 @@ export function mountResources(root, api) {
     const it = getP('spending.items') || {}, oth = getP('spending.other') || {}; const rows = [];
     const day = (v) => dueDay(v) || 99;
     SPEND_CATS.forEach(([c, items]) => {
-      items.forEach((x) => { const r = it[ik(x)]; if (r && r.on && String(r.due || '').trim()) rows.push({ d: day(r.due), due: String(dueDay(r.due) || String(r.due).trim()), name: (r.name || '').trim() || x, amt: num(r.cost) }); });
-      (oth[ik(c)] || []).forEach((r) => { if (r && String(r.due || '').trim()) rows.push({ d: day(r.due), due: String(dueDay(r.due) || String(r.due).trim()), name: (r.label || '').trim() || 'Other expense', amt: num(r.cost) }); });
+      items.forEach((x) => { const r = it[ik(x)]; if (r && r.on && String(r.due || '').trim()) rows.push({ d: day(r.due), due: String(dueDay(r.due) || String(r.due).trim()), name: (r.name || '').trim() || x, amt: num(r.cost), src: [c, (r.name || '').trim() ? x : ''] }); });
+      (oth[ik(c)] || []).forEach((r) => { if (r && String(r.due || '').trim()) rows.push({ d: day(r.due), due: String(dueDay(r.due) || String(r.due).trim()), name: (r.label || '').trim() || 'Other expense', amt: num(r.cost), src: [c, 'Other expense'] }); });
     });
     const bl = budgetDebtLines();
-    (getP('debt.list') || []).forEach((r) => { if (r && String(r.due || '').trim() && !bl.some((x) => sameDebt(x, r))) rows.push({ d: day(r.due), due: String(dueDay(r.due) || String(r.due).trim()), name: (r.name || '').trim() || 'Debt', amt: num(r.min) }); });
-    (getP('monthly.bills') || []).forEach((b) => { if (b && b.date) rows.push({ d: +b.date.slice(8, 10) || 99, due: String(+b.date.slice(8, 10) || ''), name: (b.name || '').trim() || 'Bill', amt: num(b.amt), paid: !!b.paid }); });
+    (getP('debt.list') || []).forEach((r) => { if (r && String(r.due || '').trim() && !bl.some((x) => sameDebt(x, r))) rows.push({ d: day(r.due), due: String(dueDay(r.due) || String(r.due).trim()), name: (r.name || '').trim() || 'Debt', amt: num(r.min), src: ['Debt payoff'] }); });
+    (getP('monthly.bills') || []).forEach((b) => { if (b && b.date) rows.push({ d: +b.date.slice(8, 10) || 99, due: String(+b.date.slice(8, 10) || ''), name: (b.name || '').trim() || 'Bill', amt: num(b.amt), paid: !!b.paid, src: ['Bills'] }); });
     return rows;
   }
+  // Where a payment was entered, shown under its name so it is easy to find and edit
+  const srcTag = (r) => (r.src ? `<span class="duesrc">${r.src.filter(Boolean).map((x) => `<span>${esc(x)}</span>`).join(' · ')}</span>` : '');
   function dueHTML() {
     const rows = dueRows();
     if (!rows.length) return '<p class="empty" style="margin:6px 0 0">Add a due day to any expense and it shows up here, in order.</p>';
     rows.sort((a, b) => a.d - b.d);
     const today = TODAY.getDate(); const nx = rows.findIndex((r) => !r.paid && r.d >= today && r.d < 99);
     const tot = rows.reduce((a, r) => a + r.amt, 0);
-    return `<table class="duetbl"><thead><tr><th>Due</th><th>Payment</th><th class="num">Amount</th></tr></thead><tbody>${rows.map((r, i) => `<tr class="${r.paid ? 'paid' : ''} ${i === nx ? 'next' : ''}"><td>${esc(r.due)}</td><td>${esc(r.name)}${i === nx ? ' <span class="tag used">Next</span>' : ''}</td><td class="num">${r.amt ? money(r.amt) : '—'}</td></tr>`).join('')}</tbody><tfoot><tr><td></td><td>Total</td><td class="num">${money(tot)}</td></tr></tfoot></table>`;
+    return `<table class="duetbl"><thead><tr><th>Due</th><th>Payment</th><th class="num">Amount</th></tr></thead><tbody>${rows.map((r, i) => `<tr class="${r.paid ? 'paid' : ''} ${i === nx ? 'next' : ''}"><td>${esc(r.due)}</td><td>${esc(r.name)}${i === nx ? ' <span class="tag used">Next</span>' : ''}${srcTag(r)}</td><td class="num">${r.amt ? money(r.amt) : '—'}</td></tr>`).join('')}</tbody><tfoot><tr><td></td><td>Total</td><td class="num">${money(tot)}</td></tr></tfoot></table>`;
   }
   // Paychecks: when money comes in, and which payments fall between one payday and the next
   const dim = (y, m) => new Date(y, m + 1, 0).getDate();
@@ -142,7 +144,7 @@ export function mountResources(root, api) {
     if (!rows.length) h += '<p class="note" style="margin:8px 0 0">Add a due day to your expenses and they’ll be sorted under each paycheck.</p>';
     const between = (a, b) => { const list = []; for (let d = new Date(a); d < b; d = dayAdd(d, 1)) { const L = dim(d.getFullYear(), d.getMonth()), dn = d.getDate();
       rows.forEach((r) => { if (r.d === dn || (dn === L && r.d > L)) list.push({ ...r, on: new Date(d) }); }); } return list; };
-    const tbl = (list) => `<table class="duetbl"><tbody>${list.map((r) => `<tr class="${r.paid ? 'paid' : ''}"><td>${df(r.on, { month: 'short', day: 'numeric' })}</td><td>${esc(r.name)}</td><td class="num">${r.amt ? money(r.amt) : '—'}</td></tr>`).join('')}</tbody></table>`;
+    const tbl = (list) => `<table class="duetbl"><tbody>${list.map((r) => `<tr class="${r.paid ? 'paid' : ''}"><td>${df(r.on, { month: 'short', day: 'numeric' })}</td><td>${esc(r.name)}${srcTag(r)}</td><td class="num">${r.amt ? money(r.amt) : '—'}</td></tr>`).join('')}</tbody></table>`;
     const now = between(TODAY, ps[0].d);
     if (now.length) h += `<div class="payp"><div class="payp-h"><div><b>Before your next payday</b><span class="sub">From today through ${df(dayAdd(ps[0].d, -1), { month: 'short', day: 'numeric' })}</span></div></div>${tbl(now)}<div class="payp-f"><span>Still due</span><b>${money(now.filter((r) => !r.paid).reduce((x, r) => x + r.amt, 0))}</b></div></div>`;
     for (let i = 0; i < ps.length - 1; i++) {
