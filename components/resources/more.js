@@ -498,7 +498,7 @@ export function makeMore(h) {
     { id: 'anxiety', pillar: 'mental', title: 'Anxiety Management Workbook', desc: 'Calm your body, sort your worries, and face fears step by step.', tool: ANXIETY },
     { id: 'dbt', pillar: 'mental', title: 'DBT Skills Workbook', desc: 'Diary card, the four DBT skill sets, and a DEAR MAN script builder.', tool: DBT },
     { id: 'recovery', pillar: 'mental', title: 'Recovery Tracker', desc: 'For cutting back or quitting: count your days, log urges, and keep a plan for hard moments.', tool: RECOVERY },
-    { id: 'eating', pillar: 'emotional', title: 'Eating Disorder Recovery', desc: 'Regular eating, urges, and answering back, with no calories or weight.', tool: EATING },
+    { id: 'eating', pillar: 'mental', title: 'Eating Disorder Recovery', desc: 'Regular eating, urges, and answering back, with no calories or weight.', tool: EATING },
     { id: 'fitness', pillar: 'physical', title: 'Fitness Planner', desc: 'Plan your week, log workouts, and track minutes and personal bests.', tool: FITNESS },
     { id: 'datenight', pillar: 'relationships', title: 'Date Night Planner', desc: 'Idea bank, a “surprise me” button, a date list, budget, and memories.', tool: DATENIGHT },
     { id: 'sermons', pillar: 'spiritual', title: 'Sermon & Study Notes', desc: 'Notes from church, Bible study, or podcasts, with takeaways and prayer.', tool: SERMONS },
