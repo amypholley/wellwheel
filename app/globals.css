@@ -437,7 +437,9 @@ details.mini summary{cursor:pointer;color:var(--plum);font-weight:600}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--dn2:#D4741F;--dn4:#B08414;--dn6:#4E9A25;--dnrest:#6E6676}}
 .dn1{fill:var(--dn1);background:var(--dn1)}.dn2{fill:var(--dn2);background:var(--dn2)}.dn3{fill:var(--dn3);background:var(--dn3)}.dn4{fill:var(--dn4);background:var(--dn4)}
 .dn5{fill:var(--dn5);background:var(--dn5)}.dn6{fill:var(--dn6);background:var(--dn6)}.dn7{fill:var(--dn7);background:var(--dn7)}.dnrest{fill:var(--dnrest);background:var(--dnrest)}
-.pf-tiles{margin-top:10px;border-top:1px solid var(--line);padding-top:12px}
+.pf-tiles{margin-top:10px;border-top:1px solid var(--line);padding-top:12px;grid-template-columns:repeat(2,minmax(0,1fr))}
+.pf-tiles>div{min-width:0}
+.pf-tiles .v{overflow-wrap:anywhere}
 .subfolds{border:1px solid var(--line);border-radius:12px;overflow:hidden}
 .subfold{border-top:1px solid var(--line);background:var(--surface)}
 .subfold:first-child{border-top:0}
@@ -448,7 +450,6 @@ details.mini summary{cursor:pointer;color:var(--plum);font-weight:600}
 b.num{text-align:right;font-variant-numeric:tabular-nums}
 @media (min-width:900px){
   .planner-wide + .savebar{width:fit-content;margin-left:auto;gap:14px}
-  .pf-tiles{grid-template-columns:repeat(4,1fr)}
 }
 .subfold > summary .sub{margin-left:auto}
 /* ---------- Couple features ---------- */
