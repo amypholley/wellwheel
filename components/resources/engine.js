@@ -75,7 +75,7 @@ export function mountResources(root, api) {
   const dueDay = (v) => { const t = String(v || ''); const md = t.match(/(\d{1,2})\s*[\/.-]\s*(\d{1,2})/); const m = md ? [md[2]] : t.match(/\d{1,2}/); const n = m ? +m[0] : 0; return n >= 1 && n <= 31 ? n : 0; };
   const dueSel = (path) => { const cur = dueDay(getP(path)); return `<select data-b="${esc(path)}" aria-label="Due day"><option value="">—</option>${Array.from({ length: 31 }, (_, i) => `<option value="${i + 1}" ${cur === i + 1 ? 'selected' : ''}>${i + 1}</option>`).join('')}</select>`; };
   // Every payment that has a due day, in order through the month (fills in as due days are typed)
-  function dueHTML() {
+  function dueRows() {
     const it = getP('spending.items') || {}, oth = getP('spending.other') || {}; const rows = [];
     const day = (v) => dueDay(v) || 99;
     SPEND_CATS.forEach(([c, items]) => {
@@ -84,11 +84,66 @@ export function mountResources(root, api) {
     });
     (getP('debt.list') || []).forEach((r) => { if (r && String(r.due || '').trim()) rows.push({ d: day(r.due), due: String(dueDay(r.due) || String(r.due).trim()), name: (r.name || '').trim() || 'Debt', amt: num(r.min) }); });
     (getP('monthly.bills') || []).forEach((b) => { if (b && b.date) rows.push({ d: +b.date.slice(8, 10) || 99, due: String(+b.date.slice(8, 10) || ''), name: (b.name || '').trim() || 'Bill', amt: num(b.amt), paid: !!b.paid }); });
+    return rows;
+  }
+  function dueHTML() {
+    const rows = dueRows();
     if (!rows.length) return '<p class="empty" style="margin:6px 0 0">Add a due day to any expense and it shows up here, in order.</p>';
     rows.sort((a, b) => a.d - b.d);
     const today = TODAY.getDate(); const nx = rows.findIndex((r) => !r.paid && r.d >= today && r.d < 99);
     const tot = rows.reduce((a, r) => a + r.amt, 0);
     return `<table class="duetbl"><thead><tr><th>Due</th><th>Payment</th><th class="num">Amount</th></tr></thead><tbody>${rows.map((r, i) => `<tr class="${r.paid ? 'paid' : ''} ${i === nx ? 'next' : ''}"><td>${esc(r.due)}</td><td>${esc(r.name)}${i === nx ? ' <span class="tag used">Next</span>' : ''}</td><td class="num">${r.amt ? money(r.amt) : '—'}</td></tr>`).join('')}</tbody><tfoot><tr><td></td><td>Total</td><td class="num">${money(tot)}</td></tr></tfoot></table>`;
+  }
+  // Paychecks: when money comes in, and which payments fall between one payday and the next
+  const dim = (y, m) => new Date(y, m + 1, 0).getDate();
+  const dayAdd = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+  function paydays(n) {
+    const pay = getP('monthly.pay') || {}, f = pay.freq || '', out = [];
+    if (f === 'weekly' || f === 'biweekly') {
+      if (!pay.next) return out; const step = f === 'weekly' ? 7 : 14; let d = fromKey(pay.next); if (isNaN(d)) return out;
+      while (d < TODAY) d = dayAdd(d, step);
+      while (dayAdd(d, -step) >= TODAY) d = dayAdd(d, -step);
+      for (let i = 0; i < n; i++) out.push(dayAdd(d, step * i));
+    } else if (f === 'twice' || f === 'monthly') {
+      const days = [dueDay(pay.d1), f === 'twice' ? dueDay(pay.d2) : 0].filter(Boolean); if (!days.length) return out;
+      for (let k = 0; out.length < n && k < 24; k++) { const y = TODAY.getFullYear(), m = TODAY.getMonth() + k; const L = dim(y, m);
+        [...new Set(days.map((x) => Math.min(x, L)))].sort((a, b) => a - b).forEach((x) => { const d = new Date(y, m, x); if (d >= TODAY && out.length < n) out.push(d); }); }
+    }
+    return out;
+  }
+  function payHTML() {
+    const pay = getP('monthly.pay') || {}, amt = num(pay.amt), ps = paydays(5);
+    if (!pay.freq) return '<p class="empty" style="margin:8px 0 0">Choose how often you get paid to see what’s due between paychecks.</p>';
+    if (ps.length < 2) return '<p class="empty" style="margin:8px 0 0">Add your payday to see what’s due between paychecks.</p>';
+    const rows = dueRows().filter((r) => r.d < 99);
+    const perMonth = amt * ({ weekly: 52 / 12, biweekly: 26 / 12, twice: 2, monthly: 1 }[pay.freq] || 0);
+    const df = (d, o) => fmtDate(key(d), o || { weekday: 'short', month: 'short', day: 'numeric' });
+    let h = amt ? `<p class="hint" style="margin:8px 0 0"><span>That’s about ${money(Math.round(perMonth))} a month.</span>${Math.round(perMonth) !== Math.round(num(getP('monthly.inc.Primary income'))) ? ` <button class="linkish" data-r="set" data-path="monthly.inc.Primary income" data-v="${Math.round(perMonth)}">Use as my primary income</button>` : ''}</p>` : '';
+    if (!rows.length) h += '<p class="note" style="margin:8px 0 0">Add a due day to your expenses and they’ll be sorted under each paycheck.</p>';
+    const between = (a, b) => { const list = []; for (let d = new Date(a); d < b; d = dayAdd(d, 1)) { const L = dim(d.getFullYear(), d.getMonth()), dn = d.getDate();
+      rows.forEach((r) => { if (r.d === dn || (dn === L && r.d > L)) list.push({ ...r, on: new Date(d) }); }); } return list; };
+    const tbl = (list) => `<table class="duetbl"><tbody>${list.map((r) => `<tr class="${r.paid ? 'paid' : ''}"><td>${df(r.on, { month: 'short', day: 'numeric' })}</td><td>${esc(r.name)}</td><td class="num">${r.amt ? money(r.amt) : '—'}</td></tr>`).join('')}</tbody></table>`;
+    const now = between(TODAY, ps[0]);
+    if (now.length) h += `<div class="payp"><div class="payp-h"><div><b>Before your next payday</b><span class="sub">From today through ${df(dayAdd(ps[0], -1), { month: 'short', day: 'numeric' })}</span></div></div>${tbl(now)}<div class="payp-f"><span>Still due</span><b>${money(now.filter((r) => !r.paid).reduce((x, r) => x + r.amt, 0))}</b></div></div>`;
+    for (let i = 0; i < ps.length - 1; i++) {
+      const a = ps[i], b = ps[i + 1], list = between(a, b);
+      const tot = list.reduce((x, r) => x + r.amt, 0), left = amt - tot;
+      h += `<div class="payp"><div class="payp-h"><div><b>${df(a)}</b><span class="sub">Covers through ${df(dayAdd(b, -1), { month: 'short', day: 'numeric' })}</span></div>${amt ? `<b class="payp-amt">${money(amt)}</b>` : ''}</div>
+        ${list.length ? tbl(list) : '<p class="sub" style="margin:6px 0">Nothing due before your next payday.</p>'}
+        <div class="payp-f"><span>Due before next payday</span><b>${money(tot)}</b></div>${amt ? `<div class="payp-f"><span>${left >= 0 ? 'Left after these' : 'Short by'}</span><b style="color:${left >= 0 ? 'var(--good)' : '#B4432F'}">${money(Math.abs(left))}</b></div>` : ''}</div>`;
+    }
+    return h;
+  }
+  const paySel = (path, lbl) => { const cur = dueDay(getP(path)); return `<select data-b="${esc(path)}" aria-label="${lbl}"><option value="">—</option>${Array.from({ length: 31 }, (_, i) => `<option value="${i + 1}" ${cur === i + 1 ? 'selected' : ''}>${i + 1}</option>`).join('')}</select>`; };
+  function payInputs() {
+    const pay = getP('monthly.pay') || {}, f = pay.freq || '';
+    const opt = [['', 'Choose…'], ['weekly', 'Weekly'], ['biweekly', 'Every two weeks'], ['twice', 'Twice a month'], ['monthly', 'Monthly']];
+    return `<div class="paygrid"><label>How often<select data-b="monthly.pay.freq" data-rr aria-label="How often">${opt.map(([v, l]) => `<option value="${v}" ${f === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
+      ${f === 'weekly' || f === 'biweekly' ? `<label>Next payday<input type="date" data-b="monthly.pay.next" value="${esc(pay.next || '')}" aria-label="Next payday"></label>` : ''}
+      ${f === 'twice' ? `<label>First payday (day of the month)${paySel('monthly.pay.d1', 'First payday')}</label><label>Second payday (day of the month)${paySel('monthly.pay.d2', 'Second payday')}</label>` : ''}
+      ${f === 'monthly' ? `<label>Payday (day of the month)${paySel('monthly.pay.d1', 'Payday')}</label>` : ''}
+      ${f ? `<label>Take-home pay each time<div class="money">${inp('monthly.pay.amt', { type: 'number', ph: '0' })}</div></label>` : ''}</div>
+      ${f === 'twice' || f === 'monthly' ? '<p class="hint" style="margin:6px 0 0">Paid on the last day of the month? Choose 31.</p>' : ''}`;
   }
   const allDebts = () => [...(getP('debt.list') || []), ...budgetDebts()];
   const needSel = (path, v) => `<select data-b="${esc(path)}" aria-label="Necessary?">${['Yes', 'No', 'Review'].map((o) => `<option ${(v || 'Yes') === o ? 'selected' : ''}>${o}</option>`).join('')}</select>`;
@@ -578,6 +633,7 @@ export function mountResources(root, api) {
           <div class="r2"><span>Actually spent this month</span><b class="num">${out('m-ac')}</b></div>
           <div class="r2"><span>Marked “No” or “Review”</span><b class="num" style="color:var(--gold)">${out('sp-rev')}</b></div></div>
         <div class="callout">${out('m-left')}</div></section>
+      <section class="card" id="pf-pay"><div class="card-head"><h2>Paychecks</h2><span class="sub">what’s due between paydays</span></div>${payInputs()}<div data-oh="pf-pay"></div></section>
       <section class="card pf-due" id="pf-due"><div class="card-head"><h2>Due dates</h2><span class="sub">each month</span></div><div data-oh="pf-due"></div></section>
       <section class="card" id="pf-plan"><h2>This month’s plan</h2><div class="rule"></div>
         <h3 class="h3" style="margin-top:0">Monthly goals</h3><div class="stack" style="gap:8px">
@@ -640,7 +696,7 @@ export function mountResources(root, api) {
       Object.assign(o, { 'm-inc': money(c.inc), 'sp-tot': money(t.tot), 'sp-rev': money(t.rev), 'm-ac': c.ac ? money(c.ac) : '—', 'm-bills': `${money(c.bt)} total · ${money(c.bu)} unpaid` });
       t.cats.forEach(([cn, ct], i) => { const a = num(getP(`spending.actual.${ik(SPEND_CATS[i][0])}`)); o['sp-c' + i] = cn || a ? `${cn ? money(ct) + ' planned' : ''}${cn && a ? ' · ' : ''}${a ? money(a) + ' spent' : ''}` : ''; });
       const left = c.inc - c.pl; o['m-left'] = !c.inc ? 'Add your income to see how much is left to give a purpose.' : left > 0 ? `${money(left)} still needs a purpose. Consider savings or debt.` : left === 0 ? 'Every dollar has a purpose. Nice work.' : `Planned spending is ${money(-left)} more than income.`;
-      html['pf-donut'] = donutHTML(); html['pf-tiles'] = tilesHTML(); html['pf-due'] = dueHTML();
+      html['pf-donut'] = donutHTML(); html['pf-tiles'] = tilesHTML(); html['pf-due'] = dueHTML(); html['pf-pay'] = payHTML();
       o.__html = html; return o;
     },
   };
