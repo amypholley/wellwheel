@@ -2399,5 +2399,18 @@
 "From today through {x}": "Dari hari ini sampai {x}",
 "Still due": "Masih harus dibayar",
 "Whose paycheck, or which job": "Gaji siapa, atau pekerjaan yang mana",
-"+ Add another paycheck": "+ Tambah gajian lain"
+"+ Add another paycheck": "+ Tambah gajian lain",
+"Every payday": "Setiap gajian",
+"Cost each payday": "Biaya setiap gajian",
+"Payment each payday": "Pembayaran setiap gajian",
+"Counted as about ${0} a month in your budget.": "Dihitung sekitar ${0} sebulan di anggaranmu.",
+"Add your paydays under Paychecks so these are counted correctly.": "Tambahkan hari gajianmu di bagian Gajian agar ini dihitung dengan benar.",
+"Once a month": "Sebulan sekali",
+"Every week": "Setiap minggu",
+"Second due day": "Tanggal jatuh tempo kedua",
+"Day of the week": "Hari dalam seminggu",
+"Next due date": "Tanggal jatuh tempo berikutnya",
+"Cost each time": "Biaya setiap kali",
+"Payment each time": "Pembayaran setiap kali",
+"Repeating": "Berulang"
 }

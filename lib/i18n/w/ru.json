@@ -2399,5 +2399,18 @@
 "From today through {x}": "С сегодняшнего дня до {x}",
 "Still due": "Ещё к оплате",
 "Whose paycheck, or which job": "Чья зарплата или какая работа",
-"+ Add another paycheck": "+ Добавить ещё одну зарплату"
+"+ Add another paycheck": "+ Добавить ещё одну зарплату",
+"Every payday": "Каждую выплату",
+"Cost each payday": "Сумма с каждой выплаты",
+"Payment each payday": "Платёж с каждой выплаты",
+"Counted as about ${0} a month in your budget.": "Учитывается как примерно ${0} в месяц в бюджете.",
+"Add your paydays under Paychecks so these are counted correctly.": "Укажите дни выплат в разделе «Зарплата», чтобы это считалось правильно.",
+"Once a month": "Раз в месяц",
+"Every week": "Каждую неделю",
+"Second due day": "Второй день платежа",
+"Day of the week": "День недели",
+"Next due date": "Следующая дата платежа",
+"Cost each time": "Сумма за раз",
+"Payment each time": "Платёж за раз",
+"Repeating": "Повторяющиеся"
 }

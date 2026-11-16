@@ -2399,5 +2399,18 @@
 "From today through {x}": "Bugünden {x} tarihine kadar",
 "Still due": "Hâlâ ödenecek",
 "Whose paycheck, or which job": "Kimin maaşı ya da hangi iş",
-"+ Add another paycheck": "+ Başka bir maaş ekle"
+"+ Add another paycheck": "+ Başka bir maaş ekle",
+"Every payday": "Her maaş günü",
+"Cost each payday": "Her maaş günü tutar",
+"Payment each payday": "Her maaş günü ödeme",
+"Counted as about ${0} a month in your budget.": "Bütçende ayda yaklaşık ${0} olarak sayılır.",
+"Add your paydays under Paychecks so these are counted correctly.": "Bunların doğru sayılması için Maaş ödemeleri bölümüne maaş günlerini ekle.",
+"Once a month": "Ayda bir",
+"Every week": "Her hafta",
+"Second due day": "İkinci son ödeme günü",
+"Day of the week": "Haftanın günü",
+"Next due date": "Sonraki ödeme tarihi",
+"Cost each time": "Her seferinde tutar",
+"Payment each time": "Her seferinde ödeme",
+"Repeating": "Tekrarlayanlar"
 }

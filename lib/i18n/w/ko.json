@@ -2399,5 +2399,18 @@
 "From today through {x}": "오늘부터 {x}까지",
 "Still due": "아직 낼 금액",
 "Whose paycheck, or which job": "누구의 급여인지, 어떤 일인지",
-"+ Add another paycheck": "+ 급여 하나 더 추가"
+"+ Add another paycheck": "+ 급여 하나 더 추가",
+"Every payday": "급여일마다",
+"Cost each payday": "급여일마다 드는 금액",
+"Payment each payday": "급여일마다 납부액",
+"Counted as about ${0} a month in your budget.": "예산에서는 한 달에 약 ${0}로 계산됩니다.",
+"Add your paydays under Paychecks so these are counted correctly.": "정확히 계산되도록 급여에서 급여일을 입력하세요.",
+"Once a month": "한 달에 한 번",
+"Every week": "매주",
+"Second due day": "두 번째 납부일",
+"Day of the week": "요일",
+"Next due date": "다음 납부일",
+"Cost each time": "매번 드는 금액",
+"Payment each time": "매번 납부액",
+"Repeating": "반복"
 }

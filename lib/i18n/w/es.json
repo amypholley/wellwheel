@@ -2399,5 +2399,18 @@
 "From today through {x}": "Desde hoy hasta el {x}",
 "Still due": "Aún por pagar",
 "Whose paycheck, or which job": "De quién es el sueldo, o de qué trabajo",
-"+ Add another paycheck": "+ Agregar otro sueldo"
+"+ Add another paycheck": "+ Agregar otro sueldo",
+"Every payday": "Cada día de pago",
+"Cost each payday": "Costo en cada pago",
+"Payment each payday": "Pago en cada día de pago",
+"Counted as about ${0} a month in your budget.": "Cuenta como unos ${0} al mes en tu presupuesto.",
+"Add your paydays under Paychecks so these are counted correctly.": "Agrega tus días de pago en Pagos de sueldo para que esto se cuente bien.",
+"Once a month": "Una vez al mes",
+"Every week": "Cada semana",
+"Second due day": "Segundo día de pago",
+"Day of the week": "Día de la semana",
+"Next due date": "Próxima fecha de pago",
+"Cost each time": "Costo cada vez",
+"Payment each time": "Pago cada vez",
+"Repeating": "Recurrentes"
 }

@@ -2399,5 +2399,18 @@
 "From today through {x}": "从今天到 {x}",
 "Still due": "仍需支付",
 "Whose paycheck, or which job": "谁的工资，或哪份工作",
-"+ Add another paycheck": "+ 再添加一份工资"
+"+ Add another paycheck": "+ 再添加一份工资",
+"Every payday": "每个发薪日",
+"Cost each payday": "每次发薪的费用",
+"Payment each payday": "每次发薪的还款",
+"Counted as about ${0} a month in your budget.": "在预算中按每月约 ${0} 计算。",
+"Add your paydays under Paychecks so these are counted correctly.": "请在“工资”中填写发薪日，这样才能正确计算。",
+"Once a month": "每月一次",
+"Every week": "每周",
+"Second due day": "第二个到期日",
+"Day of the week": "星期几",
+"Next due date": "下次到期日",
+"Cost each time": "每次费用",
+"Payment each time": "每次还款",
+"Repeating": "重复付款"
 }

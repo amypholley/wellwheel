@@ -2399,5 +2399,18 @@
 "From today through {x}": "今日から{x}まで",
 "Still due": "未払い",
 "Whose paycheck, or which job": "誰の給料か、どの仕事か",
-"+ Add another paycheck": "+ 別の給料を追加"
+"+ Add another paycheck": "+ 別の給料を追加",
+"Every payday": "給料日ごと",
+"Cost each payday": "給料日ごとの金額",
+"Payment each payday": "給料日ごとの支払い",
+"Counted as about ${0} a month in your budget.": "予算では月あたり約 ${0} として計算されます。",
+"Add your paydays under Paychecks so these are counted correctly.": "正しく計算するために「給料」で給料日を入力してください。",
+"Once a month": "月に1回",
+"Every week": "毎週",
+"Second due day": "2回目の期日",
+"Day of the week": "曜日",
+"Next due date": "次の期日",
+"Cost each time": "1回あたりの金額",
+"Payment each time": "1回あたりの支払い",
+"Repeating": "繰り返し"
 }

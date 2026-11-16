@@ -2399,5 +2399,18 @@
 "From today through {x}": "आज से {x} तक",
 "Still due": "अभी भी देय",
 "Whose paycheck, or which job": "किसका वेतन, या कौन-सी नौकरी",
-"+ Add another paycheck": "+ एक और वेतन जोड़ें"
+"+ Add another paycheck": "+ एक और वेतन जोड़ें",
+"Every payday": "हर वेतन दिन",
+"Cost each payday": "हर वेतन पर खर्च",
+"Payment each payday": "हर वेतन पर भुगतान",
+"Counted as about ${0} a month in your budget.": "आपके बजट में लगभग ${0} प्रति माह गिना जाता है।",
+"Add your paydays under Paychecks so these are counted correctly.": "इन्हें सही गिनने के लिए वेतन में अपने वेतन के दिन जोड़ें।",
+"Once a month": "महीने में एक बार",
+"Every week": "हर हफ़्ते",
+"Second due day": "दूसरा देय दिन",
+"Day of the week": "हफ़्ते का दिन",
+"Next due date": "अगली देय तिथि",
+"Cost each time": "हर बार का खर्च",
+"Payment each time": "हर बार का भुगतान",
+"Repeating": "दोहराए जाने वाले"
 }

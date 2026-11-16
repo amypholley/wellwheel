@@ -2399,5 +2399,18 @@
 "From today through {x}": "Van vandaag t/m {x}",
 "Still due": "Nog te betalen",
 "Whose paycheck, or which job": "Wiens loon, of welke baan",
-"+ Add another paycheck": "+ Nog een loon toevoegen"
+"+ Add another paycheck": "+ Nog een loon toevoegen",
+"Every payday": "Elke betaaldag",
+"Cost each payday": "Kosten per betaaldag",
+"Payment each payday": "Betaling per betaaldag",
+"Counted as about ${0} a month in your budget.": "Telt als ongeveer ${0} per maand in je budget.",
+"Add your paydays under Paychecks so these are counted correctly.": "Voeg je betaaldagen toe bij Loonbetalingen zodat dit goed wordt meegeteld.",
+"Once a month": "Eén keer per maand",
+"Every week": "Elke week",
+"Second due day": "Tweede vervaldag",
+"Day of the week": "Dag van de week",
+"Next due date": "Volgende vervaldatum",
+"Cost each time": "Kosten per keer",
+"Payment each time": "Betaling per keer",
+"Repeating": "Terugkerend"
 }

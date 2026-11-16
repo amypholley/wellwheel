@@ -250,6 +250,7 @@ export function Today() {
       </header>
       {/* Wide screens: wheel on the left, check-ins on the right, the rest underneath. Phones: one column. */}
       <div className="today-grid">
+        <div className="tg-top">
         <section className="card tg-wheel">
           <div className="card-head"><h2>{t("This week’s balance")}</h2><span className="sub">{t("Tap a pillar to open it")}</span></div>
           <div className="wheel-wrap"><Wheel S={S} />
@@ -270,6 +271,7 @@ export function Today() {
             <><p className="empty">{t("No goals yet. Pick a pillar and start with one small goal.")}</p><button className="btn primary" onClick={() => setWizard({})}>{t("Set my first goal")}</button></>
           )}
         </section>
+        </div>
         </div>
         <div className="tg-under">
         <section className="card">

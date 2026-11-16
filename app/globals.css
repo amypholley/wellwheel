@@ -305,7 +305,8 @@ details.mini summary{cursor:pointer;color:var(--plum);font-weight:600}
 .savestate.ok{color:var(--good)}
 .item-in{grid-template-columns:1fr 1fr}
 .item-in label,.oth-in label{font-size:12px;color:var(--muted);font-weight:600;display:flex;flex-direction:column;gap:4px}
-.oth-in{display:grid;grid-template-columns:1.3fr 1fr 1fr .8fr auto;gap:8px;align-items:end}
+.oth-in{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) auto;gap:8px;align-items:end}
+.oth-in label:first-child{grid-column:1/4;grid-row:1}.oth-in .x{grid-column:4;grid-row:1}
 .oth-in>*,.item-in>*{min-width:0}
 @media (max-width:560px){.oth-in{grid-template-columns:1fr 1fr auto}.oth-in label:first-child{grid-column:1/3;grid-row:1}.oth-in .x{grid-column:3;grid-row:1}}
 /* budget lines: due day on every expense; cards and loans also take a name, balance and rate */
@@ -382,6 +383,8 @@ details.mini summary{cursor:pointer;color:var(--plum);font-weight:600}
 .duetbl .num{text-align:end;white-space:nowrap}
 .duetbl tr.paid td{color:var(--muted);text-decoration:line-through}
 .duetbl tr.next td{background:var(--chip)}
+.paybox{border-top:1px solid var(--line);margin-top:10px;padding-top:10px;font-size:14px}
+.paybox .duesrc{font-size:12px}
 .duesrc{display:block;font-size:12px;color:var(--muted);font-weight:400}
 .duetbl tfoot td{font-weight:700;border-bottom:0}
 @media (min-width:1200px){
@@ -462,16 +465,18 @@ b.num{text-align:right;font-variant-numeric:tabular-nums}
 .planmode .seg{min-width:240px}
 .byline{font-size:12px;font-weight:700;color:#C2416B}
 /* ---------- Today: wheel left, check-ins right, the rest underneath (wide screens) ---------- */
-.today-grid{display:grid;grid-template-columns:1fr;gap:14px}
+.today-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:14px}
+.tg-top{display:grid;grid-template-columns:minmax(0,1fr);gap:14px}
 .tg-under{display:flex;flex-direction:column;gap:14px}
 @media (min-width:900px){
   .app:has(.today-grid){max-width:1180px}
-  .today-grid{grid-template-columns:minmax(360px,5fr) 7fr;align-items:start}
+  /* The wheel sticks while you scroll the check-ins beside it, and stops before the cards underneath */
+  .tg-top{grid-template-columns:minmax(360px,5fr) 7fr;align-items:start}
   .tg-wheel{position:sticky;top:12px}
   .tg-wheel .wheel-wrap{grid-template-columns:1fr;justify-items:center}
   .tg-wheel .wheel-wrap svg{width:240px;height:240px}
   .tg-wheel .legend{width:100%;grid-template-columns:1fr 1fr;gap:4px 16px}
-  .tg-under{grid-column:1 / -1;display:grid;grid-template-columns:1fr 1fr;align-items:start}
+  .tg-under{display:grid;grid-template-columns:1fr 1fr;align-items:start}
 }
 /* 8 tabs: a little tighter on small phones */
 @media (max-width:400px){nav.tabs button{font-size:9px}nav.tabs button svg{width:20px;height:20px}}
@@ -520,7 +525,7 @@ nav.tabs .in{grid-template-columns:repeat(8,1fr);max-width:720px}
 
 /* ---------- Calmer look: same colors, more room, fewer lines and capital-letter labels. ---------- */
 html body{line-height:1.55}
-html .stack,html .today-grid,html .tg-under{gap:22px}
+html .stack,html .today-grid,html .tg-top,html .tg-under{gap:22px}
 html header.top{padding-bottom:18px}
 html .card{padding:22px;border-color:transparent;box-shadow:0 1px 2px rgba(45,41,51,.04),0 6px 20px rgba(45,41,51,.06)}
 @media (prefers-color-scheme: dark){html:not([data-theme="light"]) .card{border-color:var(--line);box-shadow:none}}
@@ -686,7 +691,7 @@ input[type=date],input[type=time],input[type=month],input[type=datetime-local]{-
 input[type=date]::-webkit-date-and-time-value,input[type=time]::-webkit-date-and-time-value{text-align:left}
 .grid2>*,.grid2b>*,.grid3>*,.grid2b label>*{min-width:0}
 @media (max-width:440px){.grid2{grid-template-columns:1fr;gap:4px}}
-.today-grid>*,.stack>*,.tg-under>*{min-width:0}
+.today-grid>*,.tg-top>*,.stack>*,.tg-under>*{min-width:0}
 .card-head{flex-wrap:wrap}
 .goal{grid-template-columns:4px minmax(0,1fr) auto}
 @media (max-width:400px){.goal .counter{grid-column:2 / 4}}

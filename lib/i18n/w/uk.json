@@ -2399,5 +2399,18 @@
 "From today through {x}": "Від сьогодні до {x}",
 "Still due": "Ще до сплати",
 "Whose paycheck, or which job": "Чия зарплата або яка робота",
-"+ Add another paycheck": "+ Додати ще одну зарплату"
+"+ Add another paycheck": "+ Додати ще одну зарплату",
+"Every payday": "Кожної виплати",
+"Cost each payday": "Сума з кожної виплати",
+"Payment each payday": "Платіж з кожної виплати",
+"Counted as about ${0} a month in your budget.": "Враховується як приблизно ${0} на місяць у бюджеті.",
+"Add your paydays under Paychecks so these are counted correctly.": "Вкажіть дні виплат у розділі «Зарплата», щоб це рахувалося правильно.",
+"Once a month": "Раз на місяць",
+"Every week": "Щотижня",
+"Second due day": "Другий день платежу",
+"Day of the week": "День тижня",
+"Next due date": "Наступна дата платежу",
+"Cost each time": "Сума за раз",
+"Payment each time": "Платіж за раз",
+"Repeating": "Повторювані"
 }

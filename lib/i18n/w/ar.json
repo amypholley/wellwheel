@@ -2399,5 +2399,18 @@
 "From today through {x}": "من اليوم حتى {x}",
 "Still due": "ما زال مستحقًا",
 "Whose paycheck, or which job": "راتب من، أو أي وظيفة",
-"+ Add another paycheck": "+ إضافة راتب آخر"
+"+ Add another paycheck": "+ إضافة راتب آخر",
+"Every payday": "كل يوم راتب",
+"Cost each payday": "التكلفة في كل راتب",
+"Payment each payday": "الدفعة في كل راتب",
+"Counted as about ${0} a month in your budget.": "يُحتسب بنحو ${0} في الشهر ضمن ميزانيتك.",
+"Add your paydays under Paychecks so these are counted correctly.": "أضف أيام راتبك في قسم الرواتب ليُحتسب ذلك بشكل صحيح.",
+"Once a month": "مرة في الشهر",
+"Every week": "كل أسبوع",
+"Second due day": "يوم الاستحقاق الثاني",
+"Day of the week": "يوم الأسبوع",
+"Next due date": "تاريخ الاستحقاق القادم",
+"Cost each time": "التكلفة في كل مرة",
+"Payment each time": "الدفعة في كل مرة",
+"Repeating": "المتكررة"
 }

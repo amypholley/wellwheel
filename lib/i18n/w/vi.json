@@ -2399,5 +2399,18 @@
 "From today through {x}": "Từ hôm nay đến {x}",
 "Still due": "Còn phải trả",
 "Whose paycheck, or which job": "Lương của ai, hoặc công việc nào",
-"+ Add another paycheck": "+ Thêm kỳ lương khác"
+"+ Add another paycheck": "+ Thêm kỳ lương khác",
+"Every payday": "Mỗi ngày lương",
+"Cost each payday": "Chi phí mỗi kỳ lương",
+"Payment each payday": "Khoản trả mỗi kỳ lương",
+"Counted as about ${0} a month in your budget.": "Được tính khoảng ${0} mỗi tháng trong ngân sách.",
+"Add your paydays under Paychecks so these are counted correctly.": "Thêm ngày lương ở mục Kỳ lương để các khoản này được tính đúng.",
+"Once a month": "Mỗi tháng một lần",
+"Every week": "Mỗi tuần",
+"Second due day": "Ngày đến hạn thứ hai",
+"Day of the week": "Ngày trong tuần",
+"Next due date": "Ngày đến hạn tiếp theo",
+"Cost each time": "Chi phí mỗi lần",
+"Payment each time": "Khoản trả mỗi lần",
+"Repeating": "Lặp lại"
 }
