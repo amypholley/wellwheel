@@ -96,9 +96,9 @@ grant execute on function public.redeem_plus_code(text) to authenticated;
 insert into public.plus_codes (code, plan, days) values ('FRIEND', 'couple', 365)
 on conflict (code) do nothing;
 
--- The 100 code: the first 100 people get 6 months of Plus free, couples plan
-insert into public.plus_codes (code, plan, days, max_uses) values ('100', 'couple', 183, 100)
-on conflict (code) do nothing;
+-- The 100 code: the first 250 people get 6 months of Plus free, couples plan
+insert into public.plus_codes (code, plan, days, max_uses) values ('100', 'couple', 183, 250)
+on conflict (code) do update set max_uses = 250, days = 183, active = true;
 
 -- =====================================================================
 -- WellWheel feedback. Paste into Supabase -> SQL Editor -> New query -> Run. Only needed once.
