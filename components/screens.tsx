@@ -625,7 +625,11 @@ export function Journal() {
   const past = Object.entries(S.journal).filter(([, v]) => v.text).sort((a, b) => (a[0] < b[0] ? 1 : -1));
   // Answers written when checking in on goals (see GoalRowToday), shown with the journal by day
   const goalAnswers = S.goals.flatMap((g) => (((S.tools.gnotes || {})[g.id]) || []).map((n: { d: string; t: string }) => ({ ...n, goal: g.title, pillar: g.pillar, q: t(questionFor(S.tools, g) || 'Note') })));
-  const entryDays = Array.from(new Set([...past.map(([k]) => k), ...goalAnswers.map((x) => x.d), ...free.map((x) => x.d), ...sermons.map((x) => x.d)])).sort((a, b) => (a < b ? 1 : -1));
+  // "My entries" has two tabs so goal check-in answers don't crowd the journal itself
+  const [entView, setEntView] = useState<'journal' | 'goals'>('journal');
+  const desc = (a: string, b: string) => (a < b ? 1 : -1);
+  const journalDays = Array.from(new Set([...past.map(([k]) => k), ...free.map((x) => x.d), ...sermons.map((x) => x.d)])).sort(desc);
+  const goalDays = Array.from(new Set(goalAnswers.map((x) => x.d))).sort(desc);
   const preNov = TODAY < new Date(2026, 10, 1);
   // Saves automatically a moment after you stop typing, and when you leave the page.
   const [status, setStatus] = useState<'' | 'typing' | 'saved'>(saved?.text ? 'saved' : '');
@@ -674,20 +678,36 @@ export function Journal() {
         {preNov && <section className="card"><h2>{t("30 Days, 9 Pillars starts Nov 1")}</h2><p className="sub" style={{ margin: '6px 0 0' }}>{t("All November, your daily prompt comes from the challenge, starting with your list of 30 things you’re grateful for.")}</p></section>}
         </div>
         <FreeJournal editId={editId} setEditId={setEditId} /></div>
-        <section className="card"><div className="card-head"><h2>{t("My entries")}</h2><span className="sub">{entryDays.length}</span></div>
-          <p className="sub" style={{ marginTop: 0 }}>{t("Everything you’ve written, day by day: prompts, your own entries, and answers from your goals.")}</p>
-          {entryDays.length ? entryDays.map((k) => { const v = S.journal[k]; const ans = goalAnswers.filter((x) => x.d === k); const fe = free.filter((x) => x.d === k); const sn = sermons.filter((x) => x.d === k); const pp = v?.text ? (P[v.pillar] || P.purpose) : ans.length ? P[ans[0].pillar] : sn.length && !fe.length ? P.spiritual : { color: 'var(--plum)' };
+        <section className="card"><div className="card-head"><h2>{t("My entries")}</h2><span className="sub">{entView === 'journal' ? journalDays.length : goalDays.length}</span></div>
+          <div className="seg" role="group" aria-label={t("My entries")} style={{ margin: '4px 0 10px' }}>
+            <button aria-pressed={entView === 'journal'} onClick={() => setEntView('journal')}>{t("Journal")}</button>
+            <button aria-pressed={entView === 'goals'} onClick={() => setEntView('goals')}>{t("Goal answers")}{goalDays.length ? ` (${goalDays.length})` : ''}</button>
+          </div>
+          {entView === 'journal' ? (<>
+          <p className="sub" style={{ marginTop: 0 }}>{t("Your daily prompts, your own entries, and sermon notes, day by day.")}</p>
+          {journalDays.length ? journalDays.map((k) => { const v = S.journal[k]; const fe = free.filter((x) => x.d === k); const sn = sermons.filter((x) => x.d === k); const pp = v?.text ? (P[v.pillar] || P.purpose) : sn.length && !fe.length ? P.spiritual : { color: 'var(--plum)' };
             return (
             <div className="goal" style={{ gridTemplateColumns: '4px 1fr' }} key={k}>
               <span className="stripe" style={{ background: pp.color }} />
               <div>
-                <div className="goal-meta">{k === T ? <b style={{ color: 'var(--good)' }}>Today{v?.text ? ' ✓ Saved' : ''}</b> : fmtDate(k, { weekday: 'short', month: 'short', day: 'numeric' })}{v?.example && <span className="example">{t("Example")}</span>}</div>
+                <div className="goal-meta">{k === T ? <b style={{ color: 'var(--good)' }}>{t("Today")}{v?.text ? ' ✓ ' + t('Saved') : ''}</b> : fmtDate(k, { weekday: 'short', month: 'short', day: 'numeric' })}{v?.example && <span className="example">{t("Example")}</span>}</div>
                 {v?.text && <><div className="sub" style={{ fontStyle: 'italic', margin: '3px 0' }}>{t(v.prompt)}</div><div style={{ whiteSpace: 'pre-wrap' }}>{v.example ? t(v.text) : v.text}</div></>}
                 {fe.map((x) => <div key={x.id} className={`jfree ${v?.text ? '' : 'solo'}`}><div className="card-head" style={{ margin: 0 }}><b>{x.title || t('Journal entry')}</b><span className="row" style={{ gap: 4 }}><button className="linkish" onClick={() => { setEditId(x.id); document.getElementById('myjournal')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}>{t("Edit")}</button><button className="x" aria-label={t("Delete entry")} onClick={() => { if (confirm('Delete this journal entry?')) { act.saveTool('fjournal', free.filter((y) => y.id !== x.id)); if (editId === x.id) setEditId(null); toast("Entry deleted"); } }}>×</button></span></div><div style={{ whiteSpace: 'pre-wrap' }}>{x.text}</div></div>)}
                 {sn.map((x, i) => <div key={'s' + i} className={`jfree ${v?.text || fe.length ? '' : 'solo'}`}><b>📖 {x.title || x.ref || 'Sermon & study notes'}</b>{(x.who || (x.title && x.ref)) && <div className="sub">{[x.who, x.title ? x.ref : ''].filter(Boolean).join(' · ')}</div>}{x.notes && <div style={{ whiteSpace: 'pre-wrap', marginTop: 4 }}>{x.notes}</div>}{x.take && <div className="said"><span>{t("Key takeaway")}</span><p>{x.take}</p></div>}</div>)}
-                {ans.length > 0 && <div className={`jgoals ${v?.text || fe.length || sn.length ? "" : "solo"}`}>{ans.map((x, i) => <div key={i}><span className="pill" style={{ color: P[x.pillar].color }}><span className="dot" style={{ background: P[x.pillar].color }} />{x.goal}</span><div className="sub" style={{ fontStyle: 'italic' }}>{x.q}</div><div style={{ whiteSpace: 'pre-wrap' }}>{x.t}</div></div>)}</div>}
               </div>
             </div>); }) : <p className="empty">{t("Your entries will show up here.")}</p>}
+          </>) : (<>
+          <p className="sub" style={{ marginTop: 0 }}>{t("What you wrote when checking in on your goals, day by day.")}</p>
+          {goalDays.length ? goalDays.map((k) => { const ans = goalAnswers.filter((x) => x.d === k);
+            return (
+            <div className="goal" style={{ gridTemplateColumns: '4px 1fr' }} key={k}>
+              <span className="stripe" style={{ background: P[ans[0].pillar].color }} />
+              <div>
+                <div className="goal-meta">{k === T ? <b style={{ color: 'var(--good)' }}>{t("Today")}</b> : fmtDate(k, { weekday: 'short', month: 'short', day: 'numeric' })}</div>
+                <div className="jgoals solo">{ans.map((x, i) => <div key={i}><span className="pill" style={{ color: P[x.pillar].color }}><span className="dot" style={{ background: P[x.pillar].color }} />{x.goal}</span><div className="sub" style={{ fontStyle: 'italic' }}>{x.q}</div><div style={{ whiteSpace: 'pre-wrap' }}>{x.t}</div></div>)}</div>
+              </div>
+            </div>); }) : <p className="empty">{t("Your goal answers will show up here. Answer the question under a goal on the Today page and it’s saved here.")}</p>}
+          </>)}
         </section>
       </div>
     </>
