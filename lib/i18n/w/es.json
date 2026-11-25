@@ -2412,5 +2412,13 @@
 "Next due date": "Próxima fecha de pago",
 "Cost each time": "Costo cada vez",
 "Payment each time": "Pago cada vez",
-"Repeating": "Recurrentes"
+"Repeating": "Recurrentes",
+"Paycheck planner": "Planificador de sueldo",
+"Enter your take-home pay and when you get paid. You’ll see the bills due before each next payday, and what’s left.": "Ingresa tu pago neto y cuándo te pagan. Verás las facturas que vencen antes de cada próximo pago y lo que te queda.",
+"Bills come from your Monthly budget below. Give each one a due day and it appears here.": "Las facturas vienen de tu Presupuesto mensual de abajo. Ponle un día de pago a cada una y aparecerá aquí.",
+"Next paycheck · {x}": "Próximo pago · {x}",
+"Take-home pay": "Pago neto",
+"Bills before the next one": "Facturas antes del siguiente",
+"You’ll have left": "Te quedará",
+"You’ll be short": "Te faltará"
 }

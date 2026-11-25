@@ -2412,5 +2412,13 @@
 "Next due date": "Tanggal jatuh tempo berikutnya",
 "Cost each time": "Biaya setiap kali",
 "Payment each time": "Pembayaran setiap kali",
-"Repeating": "Berulang"
+"Repeating": "Berulang",
+"Paycheck planner": "Perencana gaji",
+"Enter your take-home pay and when you get paid. You’ll see the bills due before each next payday, and what’s left.": "Masukkan gaji bersihmu dan kapan kamu gajian. Kamu akan melihat tagihan sebelum setiap gajian berikutnya, dan sisanya.",
+"Bills come from your Monthly budget below. Give each one a due day and it appears here.": "Tagihan diambil dari Anggaran bulanan di bawah. Beri setiap tagihan tanggal jatuh tempo agar muncul di sini.",
+"Next paycheck · {x}": "Gajian berikutnya · {x}",
+"Take-home pay": "Gaji bersih",
+"Bills before the next one": "Tagihan sebelum gajian berikutnya",
+"You’ll have left": "Sisa uangmu",
+"You’ll be short": "Kamu kurang"
 }

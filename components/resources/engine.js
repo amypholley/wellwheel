@@ -177,6 +177,8 @@ export function mountResources(root, api) {
     const between = (a, b) => { const list = []; for (let d = new Date(a); d < b; d = dayAdd(d, 1)) rows.forEach((r) => { if (landsOn(r, d)) list.push({ ...r, on: new Date(d) }); }); return list; };
     const tbl = (list) => `<table class="duetbl"><tbody>${list.map((r) => `<tr class="${r.paid ? 'paid' : ''}"><td>${df(r.on, { month: 'short', day: 'numeric' })}</td><td>${esc(r.name)}${srcTag(r)}</td><td class="num">${r.amt ? money(r.amt) : '—'}</td></tr>`).join('')}</tbody></table>`;
     const now = between(TODAY, ps[0].d);
+    { const a0 = ps[0].d, amt0 = ps[0].amt, l0 = [...everyPay, ...between(a0, ps[1].d)], t0 = l0.reduce((x, r) => x + r.amt, 0), left0 = amt0 - t0;
+      if (amt0) h += `<div class="paynext"><div class="k">Next paycheck · ${df(a0)}</div><div class="paynext-row"><div><span>Take-home pay</span><b>${money(amt0)}</b></div><div><span>Bills before the next one</span><b>− ${money(t0)}</b></div><div><span>${left0 >= 0 ? 'You’ll have left' : 'You’ll be short'}</span><b style="color:${left0 >= 0 ? 'var(--good)' : '#B4432F'}">${money(Math.abs(left0))}</b></div></div></div>`; }
     if (now.length) h += `<div class="payp"><div class="payp-h"><div><b>Before your next payday</b><span class="sub">From today through ${df(dayAdd(ps[0].d, -1), { month: 'short', day: 'numeric' })}</span></div></div>${tbl(now)}<div class="payp-f"><span>Still due</span><b>${money(now.filter((r) => !r.paid).reduce((x, r) => x + r.amt, 0))}</b></div></div>`;
     for (let i = 0; i < ps.length - 1; i++) {
       const a = ps[i].d, b = ps[i + 1].d, amt = ps[i].amt, list = [...everyPay.map((r) => ({ ...r, on: a })), ...between(a, b)];
@@ -677,6 +679,7 @@ export function mountResources(root, api) {
     <aside class="pf-left"><section class="card"><div class="card-head"><h2>Where your money goes</h2><span class="sub">each month</span></div>
       <div data-oh="pf-donut"></div><div data-oh="pf-tiles"></div></section></aside>
     <div class="pf-right stack">
+      <section class="card" id="pf-pay"><div class="card-head"><h2>Paycheck planner</h2></div><p class="sub" style="margin:0 0 10px">Enter your take-home pay and when you get paid. You’ll see the bills due before each next payday, and what’s left.</p>${payInputs()}<div data-oh="pf-pay"></div><p class="hint" style="margin:10px 0 0">Bills come from your Monthly budget below. Give each one a due day and it appears here.</p></section>
       <section class="card" id="pf-budget"><div class="card-head"><h2>Monthly budget</h2><div style="max-width:170px">${inp('monthly.month', { ph: 'Month' })}</div></div>
         <h3 class="h3" style="margin-top:4px">Income</h3><p class="sub" style="margin-top:0">Take-home pay after taxes, for a typical month.</p>
         <div class="rows">${INC_KEYS.map((k) => `<div class="r2"><span>${k}</span><div class="money">${inp(`monthly.inc.${k}`, { type: 'number', ph: '0' })}</div></div>`).join('')}
@@ -689,7 +692,6 @@ export function mountResources(root, api) {
           <div class="r2"><span>Actually spent this month</span><b class="num">${out('m-ac')}</b></div>
           <div class="r2"><span>Marked “No” or “Review”</span><b class="num" style="color:var(--gold)">${out('sp-rev')}</b></div></div>
         <div class="callout">${out('m-left')}</div></section>
-      <section class="card" id="pf-pay"><div class="card-head"><h2>Paychecks</h2><span class="sub">what’s due between paydays</span></div>${payInputs()}<div data-oh="pf-pay"></div></section>
       <section class="card pf-due" id="pf-due"><div class="card-head"><h2>Due dates</h2><span class="sub">each month</span></div><div data-oh="pf-due"></div></section>
       <section class="card" id="pf-plan"><h2>This month’s plan</h2><div class="rule"></div>
         <h3 class="h3" style="margin-top:0">Monthly goals</h3><div class="stack" style="gap:8px">

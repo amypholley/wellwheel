@@ -2412,5 +2412,13 @@
 "Next due date": "Наступна дата платежу",
 "Cost each time": "Сума за раз",
 "Payment each time": "Платіж за раз",
-"Repeating": "Повторювані"
+"Repeating": "Повторювані",
+"Paycheck planner": "Планувальник зарплати",
+"Enter your take-home pay and when you get paid. You’ll see the bills due before each next payday, and what’s left.": "Вкажіть суму на руки та дні виплат. Ви побачите рахунки до кожної наступної виплати і скільки залишиться.",
+"Bills come from your Monthly budget below. Give each one a due day and it appears here.": "Рахунки беруться з Місячного бюджету нижче. Вкажіть для кожного день платежу, і він з’явиться тут.",
+"Next paycheck · {x}": "Наступна виплата · {x}",
+"Take-home pay": "На руки",
+"Bills before the next one": "Рахунки до наступної",
+"You’ll have left": "Залишиться",
+"You’ll be short": "Не вистачить"
 }

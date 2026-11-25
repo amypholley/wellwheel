@@ -2412,5 +2412,13 @@
 "Next due date": "Volgende vervaldatum",
 "Cost each time": "Kosten per keer",
 "Payment each time": "Betaling per keer",
-"Repeating": "Terugkerend"
+"Repeating": "Terugkerend",
+"Paycheck planner": "Salarisplanner",
+"Enter your take-home pay and when you get paid. You’ll see the bills due before each next payday, and what’s left.": "Vul je nettoloon in en wanneer je betaald krijgt. Je ziet de rekeningen vóór elke volgende betaaldag, en wat er overblijft.",
+"Bills come from your Monthly budget below. Give each one a due day and it appears here.": "De rekeningen komen uit je Maandbudget hieronder. Geef elke rekening een vervaldag en ze verschijnt hier.",
+"Next paycheck · {x}": "Volgende betaaldag · {x}",
+"Take-home pay": "Nettoloon",
+"Bills before the next one": "Rekeningen tot de volgende",
+"You’ll have left": "Je houdt over",
+"You’ll be short": "Je komt tekort"
 }

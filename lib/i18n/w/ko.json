@@ -2412,5 +2412,13 @@
 "Next due date": "다음 납부일",
 "Cost each time": "매번 드는 금액",
 "Payment each time": "매번 납부액",
-"Repeating": "반복"
+"Repeating": "반복",
+"Paycheck planner": "급여 플래너",
+"Enter your take-home pay and when you get paid. You’ll see the bills due before each next payday, and what’s left.": "실수령액과 급여일을 입력하세요. 다음 급여일 전까지 낼 청구서와 남는 금액을 볼 수 있습니다.",
+"Bills come from your Monthly budget below. Give each one a due day and it appears here.": "청구서는 아래 월 예산에서 가져옵니다. 각 항목에 납부일을 정하면 여기에 표시됩니다.",
+"Next paycheck · {x}": "다음 급여 · {x}",
+"Take-home pay": "실수령액",
+"Bills before the next one": "다음 급여 전 청구서",
+"You’ll have left": "남는 금액",
+"You’ll be short": "부족한 금액"
 }

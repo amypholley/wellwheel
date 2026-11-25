@@ -2412,5 +2412,13 @@
 "Next due date": "次の期日",
 "Cost each time": "1回あたりの金額",
 "Payment each time": "1回あたりの支払い",
-"Repeating": "繰り返し"
+"Repeating": "繰り返し",
+"Paycheck planner": "給料プランナー",
+"Enter your take-home pay and when you get paid. You’ll see the bills due before each next payday, and what’s left.": "手取り額と給料日を入力すると、次の給料日までの支払いと残る金額がわかります。",
+"Bills come from your Monthly budget below. Give each one a due day and it appears here.": "支払いは下の「月の予算」から読み込まれます。それぞれに期日を設定するとここに表示されます。",
+"Next paycheck · {x}": "次の給料日 · {x}",
+"Take-home pay": "手取り",
+"Bills before the next one": "次の給料日までの支払い",
+"You’ll have left": "残る金額",
+"You’ll be short": "不足する金額"
 }

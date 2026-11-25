@@ -2412,5 +2412,13 @@
 "Next due date": "अगली देय तिथि",
 "Cost each time": "हर बार का खर्च",
 "Payment each time": "हर बार का भुगतान",
-"Repeating": "दोहराए जाने वाले"
+"Repeating": "दोहराए जाने वाले",
+"Paycheck planner": "वेतन योजनाकार",
+"Enter your take-home pay and when you get paid. You’ll see the bills due before each next payday, and what’s left.": "अपना हाथ में आने वाला वेतन और वेतन के दिन दर्ज करें। आप हर अगले वेतन से पहले के बिल और बची रकम देखेंगे।",
+"Bills come from your Monthly budget below. Give each one a due day and it appears here.": "बिल नीचे आपके मासिक बजट से आते हैं। हर बिल का देय दिन चुनें, वह यहाँ दिखेगा।",
+"Next paycheck · {x}": "अगला वेतन · {x}",
+"Take-home pay": "हाथ में आने वाला वेतन",
+"Bills before the next one": "अगले वेतन से पहले के बिल",
+"You’ll have left": "आपके पास बचेगा",
+"You’ll be short": "आपको कम पड़ेगा"
 }

@@ -2412,5 +2412,13 @@
 "Next due date": "Sonraki ödeme tarihi",
 "Cost each time": "Her seferinde tutar",
 "Payment each time": "Her seferinde ödeme",
-"Repeating": "Tekrarlayanlar"
+"Repeating": "Tekrarlayanlar",
+"Paycheck planner": "Maaş planlayıcı",
+"Enter your take-home pay and when you get paid. You’ll see the bills due before each next payday, and what’s left.": "Ele geçen maaşını ve maaş günlerini gir. Her sonraki maaştan önce ödenecek faturaları ve kalanı görürsün.",
+"Bills come from your Monthly budget below. Give each one a due day and it appears here.": "Faturalar aşağıdaki Aylık bütçenden gelir. Her birine son ödeme günü ver, burada görünsün.",
+"Next paycheck · {x}": "Sonraki maaş · {x}",
+"Take-home pay": "Ele geçen",
+"Bills before the next one": "Sonrakine kadar faturalar",
+"You’ll have left": "Kalacak",
+"You’ll be short": "Eksik kalacak"
 }

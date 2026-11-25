@@ -2412,5 +2412,13 @@
 "Next due date": "تاريخ الاستحقاق القادم",
 "Cost each time": "التكلفة في كل مرة",
 "Payment each time": "الدفعة في كل مرة",
-"Repeating": "المتكررة"
+"Repeating": "المتكررة",
+"Paycheck planner": "مخطط الراتب",
+"Enter your take-home pay and when you get paid. You’ll see the bills due before each next payday, and what’s left.": "أدخل صافي راتبك ومواعيد استلامه. سترى الفواتير المستحقة قبل كل راتب قادم، وما يتبقى لك.",
+"Bills come from your Monthly budget below. Give each one a due day and it appears here.": "تأتي الفواتير من ميزانيتك الشهرية أدناه. أعطِ كل فاتورة يوم استحقاق لتظهر هنا.",
+"Next paycheck · {x}": "الراتب القادم · {x}",
+"Take-home pay": "صافي الراتب",
+"Bills before the next one": "الفواتير قبل الراتب التالي",
+"You’ll have left": "سيتبقى لك",
+"You’ll be short": "سينقصك"
 }

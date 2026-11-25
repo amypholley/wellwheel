@@ -2412,5 +2412,13 @@
 "Next due date": "Próximo vencimento",
 "Cost each time": "Custo de cada vez",
 "Payment each time": "Parcela de cada vez",
-"Repeating": "Recorrentes"
+"Repeating": "Recorrentes",
+"Paycheck planner": "Planejador de salário",
+"Enter your take-home pay and when you get paid. You’ll see the bills due before each next payday, and what’s left.": "Informe seu salário líquido e quando recebe. Você verá as contas que vencem antes de cada próximo pagamento e quanto sobra.",
+"Bills come from your Monthly budget below. Give each one a due day and it appears here.": "As contas vêm do seu Orçamento mensal abaixo. Dê um dia de vencimento a cada uma e ela aparece aqui.",
+"Next paycheck · {x}": "Próximo pagamento · {x}",
+"Take-home pay": "Salário líquido",
+"Bills before the next one": "Contas antes do próximo",
+"You’ll have left": "Vai sobrar",
+"You’ll be short": "Vai faltar"
 }

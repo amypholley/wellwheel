@@ -2412,5 +2412,13 @@
 "Next due date": "Ngày đến hạn tiếp theo",
 "Cost each time": "Chi phí mỗi lần",
 "Payment each time": "Khoản trả mỗi lần",
-"Repeating": "Lặp lại"
+"Repeating": "Lặp lại",
+"Paycheck planner": "Kế hoạch lương",
+"Enter your take-home pay and when you get paid. You’ll see the bills due before each next payday, and what’s left.": "Nhập lương thực nhận và ngày nhận lương. Bạn sẽ thấy các hóa đơn đến hạn trước mỗi kỳ lương tiếp theo và số tiền còn lại.",
+"Bills come from your Monthly budget below. Give each one a due day and it appears here.": "Hóa đơn lấy từ Ngân sách hằng tháng bên dưới. Đặt ngày đến hạn cho từng khoản để nó hiện ở đây.",
+"Next paycheck · {x}": "Kỳ lương tới · {x}",
+"Take-home pay": "Lương thực nhận",
+"Bills before the next one": "Hóa đơn trước kỳ sau",
+"You’ll have left": "Bạn sẽ còn",
+"You’ll be short": "Bạn sẽ thiếu"
 }

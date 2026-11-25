@@ -2412,5 +2412,13 @@
 "Next due date": "下次到期日",
 "Cost each time": "每次费用",
 "Payment each time": "每次还款",
-"Repeating": "重复付款"
+"Repeating": "重复付款",
+"Paycheck planner": "工资规划",
+"Enter your take-home pay and when you get paid. You’ll see the bills due before each next payday, and what’s left.": "填写到手工资和发薪日。你会看到每次发薪前要付的账单，以及剩下多少。",
+"Bills come from your Monthly budget below. Give each one a due day and it appears here.": "账单来自下面的“每月预算”。给每笔账单设定到期日，它就会显示在这里。",
+"Next paycheck · {x}": "下次发薪 · {x}",
+"Take-home pay": "到手工资",
+"Bills before the next one": "下次发薪前的账单",
+"You’ll have left": "你还剩",
+"You’ll be short": "你还差"
 }

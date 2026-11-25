@@ -2412,5 +2412,13 @@
 "Next due date": "Nächste Fälligkeit",
 "Cost each time": "Kosten pro Mal",
 "Payment each time": "Zahlung pro Mal",
-"Repeating": "Wiederkehrend"
+"Repeating": "Wiederkehrend",
+"Paycheck planner": "Gehaltsplaner",
+"Enter your take-home pay and when you get paid. You’ll see the bills due before each next payday, and what’s left.": "Gib deinen Nettolohn und deine Zahltage ein. Du siehst die Rechnungen vor jedem nächsten Zahltag und was übrig bleibt.",
+"Bills come from your Monthly budget below. Give each one a due day and it appears here.": "Die Rechnungen kommen aus deinem Monatsbudget unten. Gib jeder einen Fälligkeitstag, dann erscheint sie hier.",
+"Next paycheck · {x}": "Nächster Zahltag · {x}",
+"Take-home pay": "Nettolohn",
+"Bills before the next one": "Rechnungen bis zum nächsten",
+"You’ll have left": "Dir bleiben",
+"You’ll be short": "Dir fehlen"
 }
