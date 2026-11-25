@@ -174,16 +174,19 @@ export function mountResources(root, api) {
     const incNow = INC_KEYS.reduce((a, k) => a + num(getP(`monthly.inc.${k}`)), 0);
     let h = anyAmt ? `<p class="hint" style="margin:8px 0 0"><span>That’s about ${money(Math.round(perMonth))} a month.</span>${list0.length === 1 && Math.round(perMonth) !== Math.round(incNow) ? ` <button class="linkish" data-r="set" data-path="monthly.inc.Primary income" data-v="${Math.round(perMonth)}">Use as my primary income</button>` : ''}</p>` : '';
     if (!rows.length && !everyPay.length) h += '<p class="note" style="margin:8px 0 0">Add a due day to your expenses and they’ll be sorted under each paycheck.</p>';
+    // Paychecks often change (overtime, hours, per-load pay), so each one can hold its real amount
+    const actual = (e) => { const v = getP(`monthly.payAmt.${e.k}`); return v !== undefined && String(v).trim() !== '' ? num(v) : e.amt; };
+    const thisPay = (e) => `<label class="payamt">This paycheck<div class="money">${inp(`monthly.payAmt.${e.k}`, { type: 'number', ph: e.amt ? String(Math.round(e.amt * 100) / 100) : '0', rr: true })}</div></label>`;
     const between = (a, b) => { const list = []; for (let d = new Date(a); d < b; d = dayAdd(d, 1)) rows.forEach((r) => { if (landsOn(r, d)) list.push({ ...r, on: new Date(d) }); }); return list; };
     const tbl = (list) => `<table class="duetbl"><tbody>${list.map((r) => `<tr class="${r.paid ? 'paid' : ''}"><td>${df(r.on, { month: 'short', day: 'numeric' })}</td><td>${esc(r.name)}${srcTag(r)}</td><td class="num">${r.amt ? money(r.amt) : '—'}</td></tr>`).join('')}</tbody></table>`;
     const now = between(TODAY, ps[0].d);
-    { const a0 = ps[0].d, amt0 = ps[0].amt, l0 = [...everyPay, ...between(a0, ps[1].d)], t0 = l0.reduce((x, r) => x + r.amt, 0), left0 = amt0 - t0;
-      if (amt0) h += `<div class="paynext"><div class="k">Next paycheck · ${df(a0)}</div><div class="paynext-row"><div><span>Take-home pay</span><b>${money(amt0)}</b></div><div><span>Bills before the next one</span><b>− ${money(t0)}</b></div><div><span>${left0 >= 0 ? 'You’ll have left' : 'You’ll be short'}</span><b style="color:${left0 >= 0 ? 'var(--good)' : '#B4432F'}">${money(Math.abs(left0))}</b></div></div></div>`; }
+    { const a0 = ps[0].d, amt0 = actual(ps[0]), l0 = [...everyPay, ...between(a0, ps[1].d)], t0 = l0.reduce((x, r) => x + r.amt, 0), left0 = amt0 - t0;
+      if (amt0) h += `<div class="paynext"><div class="k">This paycheck · ${df(a0)}</div><div class="paynext-row"><div><span>Take-home pay</span><b>${money(amt0)}</b></div><div><span>Bills before the next one</span><b>− ${money(t0)}</b></div><div><span>${left0 >= 0 ? 'You’ll have left' : 'You’ll be short'}</span><b style="color:${left0 >= 0 ? 'var(--good)' : '#B4432F'}">${money(Math.abs(left0))}</b></div></div></div>`; }
     if (now.length) h += `<div class="payp"><div class="payp-h"><div><b>Before your next payday</b><span class="sub">From today through ${df(dayAdd(ps[0].d, -1), { month: 'short', day: 'numeric' })}</span></div></div>${tbl(now)}<div class="payp-f"><span>Still due</span><b>${money(now.filter((r) => !r.paid).reduce((x, r) => x + r.amt, 0))}</b></div></div>`;
     for (let i = 0; i < ps.length - 1; i++) {
-      const a = ps[i].d, b = ps[i + 1].d, amt = ps[i].amt, list = [...everyPay.map((r) => ({ ...r, on: a })), ...between(a, b)];
+      const a = ps[i].d, b = ps[i + 1].d, amt = actual(ps[i]), list = [...everyPay.map((r) => ({ ...r, on: a })), ...between(a, b)];
       const tot = list.reduce((x, r) => x + r.amt, 0), left = amt - tot;
-      h += `<div class="payp"><div class="payp-h"><div><b>${df(a)}</b>${ps[i].names.length ? `<span class="tag" data-notr>${esc(ps[i].names.join(' + '))}</span>` : ''}<span class="sub">Covers through ${df(dayAdd(b, -1), { month: 'short', day: 'numeric' })}</span></div>${amt ? `<b class="payp-amt">${money(amt)}</b>` : ''}</div>
+      h += `<div class="payp"><div class="payp-h"><div><b>${df(a)}</b>${ps[i].names.length ? `<span class="tag" data-notr>${esc(ps[i].names.join(' + '))}</span>` : ''}<span class="sub">Covers through ${df(dayAdd(b, -1), { month: 'short', day: 'numeric' })}</span></div>${thisPay(ps[i])}</div>
         ${list.length ? tbl(list) : '<p class="sub" style="margin:6px 0">Nothing due before your next payday.</p>'}
         <div class="payp-f"><span>Due before next payday</span><b>${money(tot)}</b></div>${amt ? `<div class="payp-f"><span>${left >= 0 ? 'Left after these' : 'Short by'}</span><b style="color:${left >= 0 ? 'var(--good)' : '#B4432F'}">${money(Math.abs(left))}</b></div>` : ''}</div>`;
     }
@@ -199,8 +202,9 @@ export function mountResources(root, api) {
       ${f === 'weekly' || f === 'biweekly' ? `<label>Next payday<input type="date" data-b="${P}.next" value="${esc((pay || {}).next || '')}" aria-label="Next payday"></label>` : ''}
       ${f === 'twice' ? `<label>First payday (day of the month)${paySel(`${P}.d1`, 'First payday')}</label><label>Second payday (day of the month)${paySel(`${P}.d2`, 'Second payday')}</label>` : ''}
       ${f === 'monthly' ? `<label>Payday (day of the month)${paySel(`${P}.d1`, 'Payday')}</label>` : ''}
-      ${f ? `<label>Take-home pay each time<div class="money">${inp(`${P}.amt`, { type: 'number', ph: '0' })}</div></label>` : ''}</div>
+      ${f ? `<label>Usual take-home pay<div class="money">${inp(`${P}.amt`, { type: 'number', ph: '0' })}</div></label>` : ''}</div>
       ${f === 'twice' || f === 'monthly' ? '<p class="hint" style="margin:6px 0 0">Paid on the last day of the month? Choose 31.</p>' : ''}</div>`; }).join('') +
+      (list.some((x) => x && x.freq) ? '<p class="hint" style="margin:8px 0 0">Paychecks change? Type the real amount in “This paycheck” on each one below.</p>' : '') +
       `<button class="btn small" style="margin-top:10px" data-r="add" data-path="monthly.pays">+ Add another paycheck</button>`;
   }
   const allDebts = () => [...(getP('debt.list') || []), ...budgetDebts()];
@@ -790,7 +794,7 @@ export function mountResources(root, api) {
     if (!ui.tool) return; const r = RES.find((x) => x.id === ui.tool); if (!r.tool.outs) return;
     const o = r.tool.outs();
     Object.entries(o).forEach(([k, v]) => { if (k === '__html') return; root.querySelectorAll(`[data-o="${k}"]`).forEach((e) => (e.textContent = v)); });
-    if (o.__html) Object.entries(o.__html).forEach(([k, v]) => root.querySelectorAll(`[data-oh="${k}"]`).forEach((e) => (e.innerHTML = v)));
+    if (o.__html) Object.entries(o.__html).forEach(([k, v]) => root.querySelectorAll(`[data-oh="${k}"]`).forEach((e) => { if (!e.contains(document.activeElement)) e.innerHTML = v; }));
     if (r.tool.after) r.tool.after(root);
   }
   function render() { root.innerHTML = renderResources(); updateOuts(); addSectionSaves(root, 'b', ['data-r', 'savenow']); }

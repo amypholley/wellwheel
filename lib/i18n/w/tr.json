@@ -2420,5 +2420,9 @@
 "Take-home pay": "Ele geçen",
 "Bills before the next one": "Sonrakine kadar faturalar",
 "You’ll have left": "Kalacak",
-"You’ll be short": "Eksik kalacak"
+"You’ll be short": "Eksik kalacak",
+"Usual take-home pay": "Her zamanki ele geçen",
+"This paycheck": "Bu maaş",
+"This paycheck · {x}": "Bu maaş · {x}",
+"Paychecks change? Type the real amount in “This paycheck” on each one below.": "Maaşın değişiyor mu? Aşağıda her birinde “Bu maaş” kutusuna gerçek tutarı yaz."
 }

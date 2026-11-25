@@ -2420,5 +2420,9 @@
 "Take-home pay": "Pago neto",
 "Bills before the next one": "Facturas antes del siguiente",
 "You’ll have left": "Te quedará",
-"You’ll be short": "Te faltará"
+"You’ll be short": "Te faltará",
+"Usual take-home pay": "Pago neto habitual",
+"This paycheck": "Este pago",
+"This paycheck · {x}": "Este pago · {x}",
+"Paychecks change? Type the real amount in “This paycheck” on each one below.": "¿Tus pagos cambian? Escribe el monto real en “Este pago” en cada uno abajo."
 }

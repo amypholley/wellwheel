@@ -2420,5 +2420,9 @@
 "Take-home pay": "到手工资",
 "Bills before the next one": "下次发薪前的账单",
 "You’ll have left": "你还剩",
-"You’ll be short": "你还差"
+"You’ll be short": "你还差",
+"Usual take-home pay": "通常到手工资",
+"This paycheck": "这次工资",
+"This paycheck · {x}": "这次工资 · {x}",
+"Paychecks change? Type the real amount in “This paycheck” on each one below.": "工资会变？在下面每次工资的“这次工资”里填实际金额。"
 }

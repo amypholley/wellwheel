@@ -2420,5 +2420,9 @@
 "Take-home pay": "Na rękę",
 "Bills before the next one": "Rachunki przed następną",
 "You’ll have left": "Zostanie ci",
-"You’ll be short": "Zabraknie ci"
+"You’ll be short": "Zabraknie ci",
+"Usual take-home pay": "Zwykła kwota na rękę",
+"This paycheck": "Ta wypłata",
+"This paycheck · {x}": "Ta wypłata · {x}",
+"Paychecks change? Type the real amount in “This paycheck” on each one below.": "Wypłaty się zmieniają? Wpisz prawdziwą kwotę w polu „Ta wypłata” przy każdej poniżej."
 }

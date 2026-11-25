@@ -2420,5 +2420,9 @@
 "Take-home pay": "Lương thực nhận",
 "Bills before the next one": "Hóa đơn trước kỳ sau",
 "You’ll have left": "Bạn sẽ còn",
-"You’ll be short": "Bạn sẽ thiếu"
+"You’ll be short": "Bạn sẽ thiếu",
+"Usual take-home pay": "Lương thực nhận thường lệ",
+"This paycheck": "Kỳ lương này",
+"This paycheck · {x}": "Kỳ lương này · {x}",
+"Paychecks change? Type the real amount in “This paycheck” on each one below.": "Lương thay đổi? Nhập số tiền thực tế vào ô “Kỳ lương này” ở từng kỳ bên dưới."
 }

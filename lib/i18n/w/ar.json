@@ -2420,5 +2420,9 @@
 "Take-home pay": "صافي الراتب",
 "Bills before the next one": "الفواتير قبل الراتب التالي",
 "You’ll have left": "سيتبقى لك",
-"You’ll be short": "سينقصك"
+"You’ll be short": "سينقصك",
+"Usual take-home pay": "صافي الراتب المعتاد",
+"This paycheck": "هذا الراتب",
+"This paycheck · {x}": "هذا الراتب · {x}",
+"Paychecks change? Type the real amount in “This paycheck” on each one below.": "راتبك يتغير؟ اكتب المبلغ الفعلي في خانة «هذا الراتب» لكل راتب أدناه."
 }

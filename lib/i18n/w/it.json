@@ -2420,5 +2420,9 @@
 "Take-home pay": "Stipendio netto",
 "Bills before the next one": "Bollette prima della prossima",
 "You’ll have left": "Ti resteranno",
-"You’ll be short": "Ti mancheranno"
+"You’ll be short": "Ti mancheranno",
+"Usual take-home pay": "Stipendio netto abituale",
+"This paycheck": "Questa paga",
+"This paycheck · {x}": "Questa paga · {x}",
+"Paychecks change? Type the real amount in “This paycheck” on each one below.": "La paga cambia? Scrivi l’importo reale in “Questa paga” su ciascuna qui sotto."
 }

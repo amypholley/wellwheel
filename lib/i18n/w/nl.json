@@ -2420,5 +2420,9 @@
 "Take-home pay": "Nettoloon",
 "Bills before the next one": "Rekeningen tot de volgende",
 "You’ll have left": "Je houdt over",
-"You’ll be short": "Je komt tekort"
+"You’ll be short": "Je komt tekort",
+"Usual take-home pay": "Gebruikelijk nettoloon",
+"This paycheck": "Deze betaling",
+"This paycheck · {x}": "Deze betaling · {x}",
+"Paychecks change? Type the real amount in “This paycheck” on each one below.": "Wisselt je loon? Vul hieronder bij elke betaling het echte bedrag in bij ‘Deze betaling’."
 }
