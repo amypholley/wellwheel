@@ -9,7 +9,7 @@ import {
 import { makeMore } from './more';
 import { hotlinesHTML } from '@/lib/hotlines';
 import { addSectionSaves } from '@/lib/sectionSave';
-import { loc, t } from '@/lib/i18n';
+import { loc, t, tdom } from '@/lib/i18n';
 
 // Which saved record each worksheet uses
 const STORE_KEY = { networth: 'nw', burnout: 'burn' };
@@ -30,6 +30,7 @@ export function mountResources(root, api) {
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const icon = (id, size = 22) => `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[id]}</svg>`;
   const toast = (m) => api.toast(m);
+  const t2 = (m) => tdom(m) || m;
   const partnerName = () => api.partnerName ? api.partnerName() : '';
 
   /* ---------- saving ---------- */
@@ -206,6 +207,40 @@ export function mountResources(root, api) {
       ${f === 'twice' || f === 'monthly' ? '<p class="hint" style="margin:6px 0 0">Paid on the last day of the month? Choose 31.</p>' : ''}</div>`; }).join('') +
       (list.some((x) => x && x.freq) ? '<p class="hint" style="margin:8px 0 0">Paychecks change? Type the real amount in “This paycheck” on each one below.</p>' : '') +
       `<button class="btn small" style="margin-top:10px" data-r="add" data-path="monthly.pays">+ Add another paycheck</button>`;
+  }
+  // Month-by-month history: a snapshot of the budget and what was actually spent, kept so people can look back
+  function monthSnapshot() {
+    const it = getP('spending.items') || {}, oth = getP('spending.other') || {}, t = spendTotals(), lines = [];
+    SPEND_CATS.forEach(([c, items]) => {
+      items.forEach((x) => { const r = it[ik(x)]; if (r && r.on) lines.push({ c, n: (r.name || '').trim() || x, m: Math.round(monthCost(r) * 100) / 100 }); });
+      (oth[ik(c)] || []).forEach((r) => { if (r && (r.label || num(r.cost))) lines.push({ c, n: (r.label || '').trim() || 'Other expense', m: Math.round(monthCost(r) * 100) / 100 }); });
+    });
+    const cats = SPEND_CATS.map(([c], i) => ({ c, p: Math.round(t.cats[i][1] * 100) / 100, a: num(getP(`spending.actual.${ik(c)}`)) })).filter((x) => x.p || x.a);
+    const inc = incomeTotal(), act = actualTotal();
+    return { id: uid(), month: (getP('monthly.month') || '').trim() || TODAY.toLocaleDateString(loc(), { month: 'long', year: 'numeric' }), saved: T, inc, plan: Math.round(t.tot * 100) / 100, act, cats, lines };
+  }
+  function saveMonth() {
+    const snap = monthSnapshot(); if (!snap.inc && !snap.plan && !snap.act) { toast(t2('Fill in your budget first')); return false; }
+    const l = getP('monthly.archive') || []; const i = l.findIndex((x) => x.month.toLowerCase() === snap.month.toLowerCase());
+    if (i >= 0) l[i] = { ...snap, id: l[i].id }; else l.push(snap);
+    setP('monthly.archive', l); save(); return i >= 0 ? 'updated' : 'saved';
+  }
+  function nextMonthLabel(label) { const d = new Date('1 ' + label); const base = isNaN(d) ? TODAY : d; return new Date(base.getFullYear(), base.getMonth() + 1, 1).toLocaleDateString(loc(), { month: 'long', year: 'numeric' }); }
+  function archiveHTML() {
+    // Newest month first: by the month's name when it reads as a date (e.g. "November 2026"), else by the day it was saved
+    const when = (m) => { const d = new Date('1 ' + m.month); return isNaN(d) ? m.saved : key(d); };
+    const l = (getP('monthly.archive') || []).slice().sort((a, b) => (when(a) < when(b) ? 1 : when(a) > when(b) ? -1 : a.saved < b.saved ? 1 : -1));
+    if (!l.length) return '<p class="empty" style="margin:6px 0 0">No months saved yet. At the end of each month, tap “Save this month” to keep a copy of your budget and what you spent.</p>';
+    const max = Math.max(...l.map((m) => Math.max(m.inc, m.plan, m.act)));
+    const spent = (m) => (m.act ? m.act : m.plan);
+    return `<div class="hbars" style="margin:4px 0 14px">${l.slice(0, 12).reverse().map((m) => hbar(m.month, spent(m), max)).join('')}</div>
+      <p class="hint" style="margin:-6px 0 12px">Bars show what you actually spent, or your plan if you didn’t fill in spending.</p>
+      ${l.map((m) => { const left = m.inc - spent(m); const all = getP('monthly.archive') || []; const idx = all.findIndex((x) => x.id === m.id);
+        return `<details class="pmonth"><summary><b data-notr>${esc(m.month)}</b><span class="pm-sum">${m.inc ? `<span>${money(m.inc)} in</span>` : ''}<span>${money(spent(m))} ${m.act ? 'spent' : 'planned'}</span>${m.inc ? `<span style="color:${left >= 0 ? 'var(--good)' : '#B4432F'}">${left >= 0 ? money(left) + ' left' : money(-left) + ' over'}</span>` : ''}</span></summary>
+        <div class="sumgrid pf-tiles" style="margin-top:8px"><div><div class="k">Income</div><div class="v">${m.inc ? money(m.inc) : '—'}</div></div><div><div class="k">Planned</div><div class="v">${money(m.plan)}</div></div><div><div class="k">Actually spent</div><div class="v">${m.act ? money(m.act) : '—'}</div></div><div><div class="k">${left >= 0 ? 'Left over' : 'Over budget'}</div><div class="v" style="color:${left >= 0 ? 'var(--good)' : '#B4432F'}">${m.inc ? money(Math.abs(left)) : '—'}</div></div></div>
+        ${m.cats.length ? `<table class="duetbl" style="margin-top:12px"><thead><tr><th>Category</th><th class="num">Planned</th><th class="num">Spent</th></tr></thead><tbody>${m.cats.map((c) => `<tr><td>${esc(c.c)}</td><td class="num">${c.p ? money(c.p) : '—'}</td><td class="num"${c.a && c.p && c.a > c.p ? ' style="color:#B4432F"' : ''}>${c.a ? money(c.a) : '—'}</td></tr>`).join('')}</tbody></table>` : ''}
+        ${m.lines.length ? `<details class="mini" style="margin-top:10px"><summary>Every expense (${m.lines.length})</summary><table class="duetbl" style="margin-top:6px"><tbody>${m.lines.map((x) => `<tr><td>${esc(x.n)}<span class="duesrc"><span>${esc(x.c)}</span></span></td><td class="num">${money(x.m)}</td></tr>`).join('')}</tbody></table></details>` : ''}
+        <div class="row" style="justify-content:space-between;margin-top:10px"><span class="hint" style="margin:0">Saved ${fmtDate(m.saved, { month: 'short', day: 'numeric', year: 'numeric' })}</span><button class="linkish" data-r="delmonth" data-i="${idx}">Delete this month</button></div></details>`; }).join('')}`;
   }
   const allDebts = () => [...(getP('debt.list') || []), ...budgetDebts()];
   const needSel = (path, v) => `<select data-b="${esc(path)}" aria-label="Necessary?">${['Yes', 'No', 'Review'].map((o) => `<option ${(v || 'Yes') === o ? 'selected' : ''}>${o}</option>`).join('')}</select>`;
@@ -696,6 +731,10 @@ export function mountResources(root, api) {
           <div class="r2"><span>Actually spent this month</span><b class="num">${out('m-ac')}</b></div>
           <div class="r2"><span>Marked “No” or “Review”</span><b class="num" style="color:var(--gold)">${out('sp-rev')}</b></div></div>
         <div class="callout">${out('m-left')}</div></section>
+      <section class="card" id="pf-months"><div class="card-head"><h2>Past months</h2><span class="sub">${(getP('monthly.archive') || []).length || ''}</span></div>
+        <p class="sub" style="margin:0 0 10px">Save a copy of each month’s budget and spending so you can look back and compare.</p>
+        <div class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:12px"><button class="btn small primary" data-r="savemonth">Save this month</button><button class="btn small" data-r="newmonth">Save and start next month</button></div>
+        <div data-oh="pf-months"></div></section>
       <section class="card pf-due" id="pf-due"><div class="card-head"><h2>Due dates</h2><span class="sub">each month</span></div><div data-oh="pf-due"></div></section>
       <section class="card" id="pf-plan"><h2>This month’s plan</h2><div class="rule"></div>
         <h3 class="h3" style="margin-top:0">Monthly goals</h3><div class="stack" style="gap:8px">
@@ -758,7 +797,7 @@ export function mountResources(root, api) {
       Object.assign(o, { 'm-inc': money(c.inc), 'sp-tot': money(t.tot), 'sp-rev': money(t.rev), 'm-ac': c.ac ? money(c.ac) : '—', 'm-bills': `${money(c.bt)} total · ${money(c.bu)} unpaid` });
       t.cats.forEach(([cn, ct], i) => { const a = num(getP(`spending.actual.${ik(SPEND_CATS[i][0])}`)); o['sp-c' + i] = cn || a ? `${cn ? money(ct) + ' planned' : ''}${cn && a ? ' · ' : ''}${a ? money(a) + ' spent' : ''}` : ''; });
       const left = c.inc - c.pl; o['m-left'] = !c.inc ? 'Add your income to see how much is left to give a purpose.' : left > 0 ? `${money(left)} still needs a purpose. Consider savings or debt.` : left === 0 ? 'Every dollar has a purpose. Nice work.' : `Planned spending is ${money(-left)} more than income.`;
-      html['pf-donut'] = donutHTML(); html['pf-tiles'] = tilesHTML(); html['pf-due'] = dueHTML(); html['pf-pay'] = payHTML();
+      html['pf-donut'] = donutHTML(); html['pf-tiles'] = tilesHTML(); html['pf-due'] = dueHTML(); html['pf-pay'] = payHTML(); html['pf-months'] = archiveHTML();
       o.__html = html; return o;
     },
   };
@@ -829,6 +868,11 @@ export function mountResources(root, api) {
     else if (a === 'efuse') { const v = num(getP('efund.ess')) * (num(getP('efund.mo')) || 3); if (v) { setP('efund.goal', String(v)); save(); rerenderKeep(); toast('Goal set to ' + money(v)); } else toast('Add your essential monthly expenses first'); }
     else if (a === 'efgoal') { const c = efCalc(); if (!c.goal) { toast('Set a goal amount first'); return; } api.addGoal({ ...(ui.tool === 'money' && ui.joint && couple ? { coupleId: couple.couple_id } : {}), id: uid(), pillar: 'financial', title: ui.tool === 'money' && ui.joint ? 'Build our emergency fund' : 'Build an emergency fund', type: 'target', count: 1, per: 'day', target: c.goal, unit: '$', why: getP('efund.why') || '', deadline: getP('efund.date') || key(addMonths(TODAY, 6)), sure: 7 }, c.cur); toast('Added to your goals'); }
     else if (a === 'debtex') { setP('debt.list', [{ name: 'Store Card', bal: '500', rate: '18', min: '25' }, { name: 'Credit Card', bal: '2000', rate: '24', min: '60' }, { name: 'Personal Loan', bal: '5000', rate: '10', min: '150' }]); setP('debt.extra', '100'); save(); rerenderKeep(); }
+    else if (a === 'savemonth') { const r = saveMonth(); if (r) { rerenderKeep(); toast(t2(r === 'updated' ? `Updated ${getP('monthly.month')}` : `Saved ${getP('monthly.month')}`)); } }
+    else if (a === 'newmonth') { const cur = (getP('monthly.month') || '').trim() || TODAY.toLocaleDateString(loc(), { month: 'long', year: 'numeric' }), nx = nextMonthLabel(cur);
+      if (!confirm(t2(`Save ${cur} and start ${nx}? Your budget stays the same. “Actually spent” amounts and bill checkmarks are cleared for the new month.`))) return;
+      if (!saveMonth()) return; setP('spending.actual', {}); setP('monthly.bills', (getP('monthly.bills') || []).map((x) => ({ ...x, paid: false }))); setP('monthly.hab', {}); setP('monthly.month', nx); save(); rerenderKeep(); toast(t2(`Saved ${cur}. Welcome to ${nx}!`)); }
+    else if (a === 'delmonth') { const l = getP('monthly.archive') || [], i = +b.dataset.i; if (!l[i] || !confirm(t2(`Delete the saved copy of ${l[i].month}?`))) return; l.splice(i, 1); setP('monthly.archive', l); save(); rerenderKeep(); }
     else if (a === 'nwsave') { const h = getP('nw.hist') || []; const nw = nwCalc().nw; const ex = h.findIndex((x) => x.date === T); ex >= 0 ? (h[ex].nw = nw) : h.push({ date: T, nw }); setP('nw.hist', h); save(); rerenderKeep(); toast('Check-in saved'); }
     else if (a === 'book') { const k = b.dataset.k; const cur = getP('books.' + k); setP('books.' + k, cur === b.dataset.v ? '' : b.dataset.v); save(); rerenderKeep(); }
     else if (a === 'ccat') { ui.copeCat = b.dataset.v; rerenderKeep(); }
